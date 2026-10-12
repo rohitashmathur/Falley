@@ -1,0 +1,22 @@
+.gradle/
+.idea/
+local.properties
+build/
+app/build/
+releases/
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.class
+*.apk
+*.idsig
+.env
+.env.*
+# Screenshots from the superseded 0.1.0 prototype.
+anchor.png
+preview.png
+stretch.png
+tall-phone.png
+tilt.png
