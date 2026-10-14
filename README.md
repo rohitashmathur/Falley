@@ -1,84 +1,90 @@
-# Rope Lab — Perf Games prototype 0.2.0
+# Falley — V1
 
-Android-only, offline, portrait **Mode 1**: keep a ball alive as gravity pulls it through elastic ropes. Points increase its weight, heavier impacts cut ropes, and glowing side walls steadily close in. Touch a side wall and the ball blasts apart. Tap to jump; steer with phone motion or a horizontal touch drag. The focus is testing physics and controls on a phone.
+**Physics at play.** An offline Android game with a simple human character, elastic ropes and a bouncy landing target. V1 has one finite Mode 1 course. Land on the marked target to win.
 
-![Mode 1 touch jump](mode1-jump.png)
+![Falley home](screenshots/v1/api36/small/home.png)
 
-This replaces the 0.1.0 ring-chasing rope-drag toy. There is one test arena, one ball and one mode, without levels, monetization, network services or a backend.
+[Download the V1 test build](https://github.com/rohitashmathur/Falley/releases/tag/v1.0.0). This is a debug-signed Android testing release, not a Google Play production submission.
 
-## Play and tune
+## Play
 
-- **Tap the arena** or press **JUMP** for an upward impulse. Jump has a 0.30-second cooldown; a heavier ball jumps less strongly. Holding a finger does not auto-jump.
-- **Drag horizontally in the arena** to steer. This remains available with motion enabled and supplies touch-only play when motion is disabled or no accelerometer is present.
-- **MOTION ON/OFF** enables or disables sideways motion steering. When an accelerometer is available, motion starts enabled. Gravity always pulls downward.
-- Hold the phone in a comfortable portrait pose. The first valid sensor sample automatically centers it; press **ZERO** to center the current pose again. Returning from the background clears stale sensor samples and centers the next pose.
-- The sensitivity button cycles **LOOSE → BALANCED → TIGHT**. Loose has more gain, less dead zone and faster response. Tight has less gain, a wider dead zone and more smoothing. Balanced is the initial choice. Compare all three during short runs.
-- **RESTART** begins a fresh run and repairs the ropes. The best score is kept locally; the sensitivity and motion preferences are kept locally too.
+- Open **Play Mode 1** from Home. Descend through six ropes and reach the ground target.
+- **Tap** the arena or **Jump** for an upward impulse. Rope landings also produce a small natural jump.
+- **Tilt** to steer, or **drag horizontally** for touch steering. Touch works with motion off or unavailable.
+- Points increase weight and load. Heavy impacts snap ropes; touching a narrowing coral side rail ends the run.
+- Land with the figure's contact area inside the green target to win. The floor compresses and produces a short real bounce before **Landed!** appears.
+- A landing outside the target bounces without awarding a win; steer back for another attempt. Restart is always available.
 
-The gyroscope provides quick rotation response and the accelerometer supplies the gravity reference that corrects drift. Phones without a gyroscope use filtered accelerometer steering. No motion hardware is required for touch play. Tilting right should move the ball right; ZERO compensates for a comfortable resting angle rather than forcing a flat phone.
+The human is drawn directly with head, body and articulated limbs. Landing bends the knees, ascent raises/tucks the limbs, and descent spreads and moves them. Collision uses a compact proxy aligned to the drawn feet, not a full articulated ragdoll.
 
-## Rules implemented
+## A simple Frontline framework
 
-- Constant downward gravity with a fixed 240 Hz simulation and bounded frame catch-up.
-- Six elastic, 25-node Verlet ropes recycle below the camera as the ball descends. They sag, react to impacts and visibly separate when cut.
-- Survival earns **10 points per second**; each rope cut adds **30 points**.
-- Ball mass grows as `min(6, 1 + score × 0.012)`. Its radius grows slightly to show the weight change. Mass increases the force on ropes and reduces the jump impulse; it does not make gravity itself stronger.
-- A downward contact cuts a segment when weight plus impact load exceeds that rope's strength. The cut persists while the rope is visible. Its torn ends keep animating but no longer catch the ball; recycling repairs it.
-- Side walls narrow with elapsed time and score. Their terminal safety bound is a **38-unit gap**, smaller than a fully weighted ball: even a perfectly centered idle run eventually ends. Contact is lethal, including a wall closing onto the ball. There is no floor death; the camera follows downward progress.
-- Neon ropes, tension glow, a ball trail, weight/score readouts, jump cooldown feedback and a blast on death provide immediate visual feedback.
-- Pause/resume releases touch state and unregisters/restarts sensor listeners. The portrait drawing area accounts for Android system bars.
+Falley follows Frontline's native Android Canvas, small profile, persisted preferences and screen-navigation conventions. It keeps only Home, Mode 1, Settings, How to Play, Pause and Results. Gameplay freezes in menus and during lifecycle pause. Android Back routes through those screens; supported Back callbacks are used on Android 13+.
 
-`Physics.java` and `MotionSteering.java` are independent of Android and can be tested on a desktop JDK. `MainActivity.java` draws the arena and handles touch, sensors and local preferences. Tuning is intentionally kept in these small files for prototype iteration.
+Settings replace difficulty choices with **motion feel**:
 
-## Why native Android
+- **Motion steering ON/OFF**. Gyro plus accelerometer when available; filtered accelerometer fallback otherwise.
+- **Loose / Balanced / Tight**. Loose responds faster to smaller tilts; Tight is calmer and needs more tilt; Balanced is the default.
+- **ZERO / Center my hold**. Centers the current comfortable pose. A fresh pose auto-centers after resume; calibration is session-based.
+- **Sound Effects**. Optional short system-generated tones, with no downloaded audio assets.
+- **Vibration**. Optional touch/landing/result feedback.
 
-The existing local **Perf Games** project uses Java, Android Canvas and a portable Android SDK builder. Rope Lab follows those conventions with a separate package (`com.perfgames.ropelab`). This repository contains the standalone Rope Lab source project.
+There is **no music** or music setting. Motion, feel, sound and vibration choices persist locally, alongside best score, successful landings and fastest win. An unfinished run is not saved across process death.
 
-The initial prototype was inspired by the uploaded recording's ball/egg deforming a stack of colored strings. Mode 1 changes that inspiration into the requested gravity, increasing weight, rope cuts and narrowing sideline mechanic. The recording is not an app asset.
+## Install
 
-## Install on Android
-
-[Download the 0.2.0 test APK](https://github.com/rohitashmathur/RopeLab/releases/tag/v0.2.0). The builder creates `RopeLab-debug.apk` in this directory for **Android 7.0 / API 24 or newer**. It is a locally debug-signed prototype. Transfer it to a phone, open it, and permit installation from your chosen file app when Android prompts. With an Android SDK and USB debugging:
+Requires Android 7.0 / API 24 or newer. Download `Falley-V1-1.0.0-debug.apk`, transfer it to a phone and open it using your file app, allowing installation from that app when prompted. Or use USB debugging:
 
 ```powershell
-adb install -r .\RopeLab-debug.apk
-adb shell am start -n com.perfgames.ropelab/.MainActivity
+adb install -r .\Falley-V1-1.0.0-debug.apk
+adb shell am start -n com.perfgames.falley/com.perfgames.ropelab.MainActivity
 ```
 
-The app needs no network, account or special runtime permission. Keep the generated `build/debug.keystore` locally if you want later APKs to install over this one; it is ignored by source control and should not be published. An APK signed with another key requires uninstalling the old app first, which clears its local score/preferences.
+Falley uses application ID `com.perfgames.falley`, separate from the earlier Rope Lab prototype. They can coexist; old prototype scores/preferences are not imported. The internal Java namespace remains unchanged for continuity.
 
-## Build and test — Windows
+## Build and test
 
-Install **JDK 17**, Android SDK **platform 35** and **build-tools 35.0.0**. The portable build script needs no Gradle or third-party runtime library. Run from this directory:
+Portable Windows builder: JDK 17, Android SDK **platform 36** and **build-tools 35.0.0**. Run from the project root:
 
 ```powershell
 .\scripts\build-android.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
 .\scripts\test-physics.ps1 -JdkRoot 'C:\path\to\jdk-17'
 ```
 
-Alternatively set `ANDROID_HOME` and `JAVA_HOME`, then run the scripts without arguments. Build intermediates, test classes and the local debug key go into `build/`; the final APK goes into the project root. The builder checks compilation, DEX conversion, APK alignment and signature verification.
+Alternatively set `ANDROID_HOME` and `JAVA_HOME`. Output is `Falley-debug.apk`; unique staging directories and the ignored debug key live in `build/`. Keep the local key to install later debug updates over this build. It is deliberately absent from the public source archive.
 
-Standard Android Gradle files are supplied using AGP 8.7.3. With JDK 17 and Gradle 8.9 installed, set `ANDROID_HOME` or an untracked `local.properties`, then run `gradle :app:assembleDebug`. This route needs plugin-repository access; a Gradle wrapper is not bundled. See [Android command-line build documentation](https://developer.android.com/build/building-cmdline).
+Gradle files use AGP 8.10.1, Gradle 8.11.1, JDK 17 and compile/target SDK 36. A wrapper is not bundled; with the matching Gradle installed and SDK configured, use `gradle :app:assembleDebug`. That route has not been verified here; the portable SDK builder was used.
 
-Motion implementation references: [Android motion sensors](https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion) and [sensor lifecycle and sampling](https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview).
+Native tests require an already running disposable emulator, an installed Falley APK and platform 35 for compiling the reflection-only test harness:
 
-## Verification — 12 October 2026
+```powershell
+.\scripts\test-ui.ps1 -Device emulator-5584 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
+```
 
-**Portable physics tests: PASS.** Survival scoring and mass growth/cap, light-ball catch versus heavy-ball cut, break bonus, persistent cut, narrowing bounds, both lethal sidelines, death input lock, reset, actual jump ascent and cooldown, mass-adjusted jump, bilateral steering, downward camera and rope recycling, passive/repeated-jump runs ending in wall crush, plus a seeded **100,000-step** mixed jump/steering run checking finite ball and rope states.
+The native runner sends real touch and Back events, checks preferences and navigation, captures screens, then restores preferences/display overrides and removes its test APK. Target/death tests use controlled physics setup. See `android-tests/` and `screenshots/v1/`.
 
-**Portable motion tests: PASS.** Startup neutral pose, accelerometer-only steering in both directions, ZERO and held calibrated pose, resume reset, sensitivity ordering, similar response at 30 Hz and 120 Hz, finite/capped output, gyroscope response before another accelerometer sample, invalid/stale/freefall/shake input rejection and gravity correction after gyro rotation.
+## Implemented rules
 
-**Mode 1 APK and Android smoke checks: PASS.** The 0.2.0 APK built, verified its v2/v3 signature, installed and launched on an Android 15 / API 35 emulator. Screen checks covered 720x1280 at 320 dpi and 1080x2400 at 420 dpi. Tap/JUMP produced visible ascent; motion OFF plus horizontal drag steered into a lethal wall; simulated accelerometer and gyroscope input with motion ON steered into a wall and displayed the blast. Restart, ZERO, Loose/Balanced/Tight cycling, pause/resume, score/weight growth, rope cuts and shrinking rails were exercised. No AndroidRuntime crash output appeared during these checks. See `BUILD_STATUS.md` and the `mode1-*.png` screenshots. Physical-phone comfort and subjective fun remain untested.
+Six fixed 25-node elastic ropes lead to ground at world Y1590. Simulation uses fixed 240 Hz steps and bounded frame catch-up. Gravity remains constant; mass grows with score and affects impact load and jumping. Survival earns 10 points/second, each rope cut adds 30, and a target landing adds 100. Walls narrow with time/score, ending runs that stall too long. The camera stops where the target floor stays visible.
 
-## Known gaps and next iteration
+A win freezes gameplay input and score while the short floor bounce continues. Results are recorded once. No levels, extra modes, accounts, analytics, advertising, purchases or backend are included.
 
-- This is a small test arena, not a balanced survival challenge. Frequent taps can hover near the top while survival points accrue; timed narrowing still ends the run. Survival-only scoring may reward avoiding rope progression. The next gameplay pass should compare landing-gated jumps, limits on air jumps and a different score balance before adding content.
-- Physics prioritizes a readable prototype response over exact rope material simulation. Cut ropes stop catching the ball, rope-to-rope contacts are not solved, and fast contacts use small fixed steps rather than full continuous collision detection.
-- Real motion comfort, touch latency, battery use and balance require phone testing. Compare Loose/Balanced/Tight during 30–60 second runs while standing still; then compare touch-only steering with motion. Record wall deaths, unintended steering and whether jumps feel predictable as weight grows.
-- Linear acceleration from shaking can disturb an accelerometer gravity estimate. The filter rejects extreme norms and uses gyro correction when available, but ZERO and sensitivity presets are still tuning tools.
-- No audio/haptics yet. Canvas UI has descriptive accessibility text but is not a full set of independent TalkBack controls. Landscape, tablets and additional Android versions need testing.
-- An in-progress run is not saved across process death. Gradle compilation and release signing/Play distribution are unverified and outside this prototype.
+## Verification — 14 October 2026
 
-After a few phone sessions, tune jump cadence, lateral steering, rope strength and the narrowing rate together. Add light impact haptics or audio once the controls feel intentional; keep this iteration focused on one mode.
+- Portable SDK build and v2/v3 APK signatures: **PASS**; version 1.0.0 / code 3 / target API 36.
+- Physics suite: **PASS**, including a complete finite-course steering win, landing/automatic jump, cuts, off-target recovery, full target bounds, winning input/score lock, bounce, floor/camera limits, reset and 100,000 seeded stability steps.
+- Motion filter: **PASS**, 17 scenarios for presets, calibration, fallback, timing, gyro response and invalid samples.
+- Local profile: **PASS**, 15 scenarios for defaults, sanitization, settings and win/loss records.
+- Native final APK: **PASS**, Android 15/API 35 and Android 16/API 36, each at 480x800/240 dpi and 720x1600/320 dpi. Four suites total 750 checks and 48 screenshots.
+- Native checks cover actual touch and system Back, preference persistence through Activity recreation, pause timing, jump/drag, restart/replay and results. Controlled fixtures verify target bounce/win, rail death and off-target recovery. Their screenshots may show a 0.0-second staged win; those are test setups, not a natural player session.
+- Home, settings, gameplay and target/result screenshots were visually inspected with no clipping or system-bar overlap.
 
+See `BUILD_STATUS.md` for the delivered APK checksum and native logs under `screenshots/v1/api35/` and `api36/`.
 
+## Known gaps and V2
+
+Real-phone motion comfort, haptic/audio feel, battery cost and subjective fun still need testing. Balance is provisional; repeated air jumps can delay descent and earn survival points. Ropes do not collide with one another, and cut ropes stop catching the figure. English-only Canvas controls do not yet provide a full set of independent TalkBack controls. Android versions before 15 and tablet/landscape behavior have not been run here.
+
+API 36 targeting is implemented, but this release remains a debug APK: release-signed AAB generation, Google Play setup/privacy disclosures and production readiness are not completed. Motion samples and preferences stay on-device; the inspected app has no network permission, ads or analytics.
+
+**V2 adds more stages and game modes.** Before that, run short physical-phone sessions to tune motion feel, rope response, jump cadence and the target landing. Keep V1 focused on this one complete loop.

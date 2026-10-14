@@ -1,13 +1,15 @@
 package com.perfgames.ropelab;
 
-/** Mode 1: constant gravity, increasing mass, yielding ropes, lethal shrinking walls. */
+/** Falley V1: a finite descent through elastic ropes to a bouncy target floor. */
 public final class Physics {
     public static final float W = 480, H = 820, DT = 1f / 240, R = 17;
     public static final float GRAVITY = 900, ROPE_SPACING = 170;
+    public static final float GROUND_Y = 1590, TARGET_LEFT = 158, TARGET_RIGHT = 322;
     public final Rope[] ropes = new Rope[6];
     public float x, y, vx, vy, gx, cameraY, elapsed, flash, blast;
     public int score, brokenCount;
-    public boolean lost;
+    public boolean lost, won;
+    public float winTime, landingPulse, groundBounce;
     public String deathReason = "";
     private float jumpCooldown;
 
@@ -40,7 +42,8 @@ public final class Physics {
     }
     public void reset() {
         x = 240; y = 310; vx = vy = gx = cameraY = elapsed = flash = blast = 0;
-        score = brokenCount = 0; lost = false; deathReason = ""; jumpCooldown = 0;
+        score = brokenCount = 0; lost = won = false; deathReason = ""; jumpCooldown = 0;
+        winTime = landingPulse = groundBounce = 0;
         for (int i = 0; i < ropes.length; i++) ropes[i].reset(450 + i * ROPE_SPACING, leftWall(), rightWall());
     }
     public float mass() { return Math.min(6, 1 + score * .012f); }
@@ -49,7 +52,7 @@ public final class Physics {
     public float rightWall() { return W - leftWall(); }
     public float jumpRemaining() { return jumpCooldown; }
     public boolean jump() {
-        if (lost || jumpCooldown > 0) return false;
+        if (lost || won || jumpCooldown > 0) return false;
         // Same impulse is less effective as the ball gets heavier, with a playability floor.
         vy = -Math.max(350, 650 / (float) Math.sqrt(mass()));
         jumpCooldown = .30f;
@@ -59,6 +62,9 @@ public final class Physics {
 
     public void step() {
         if (lost) { blast = Math.max(0, blast - DT * .7f); return; }
+        landingPulse = Math.max(0, landingPulse - DT);
+        groundBounce = Math.max(0, groundBounce - DT * 2);
+        if (won) { celebrateLanding(); return; }
         elapsed += DT;
         score = (int) (elapsed * 10) + brokenCount * 30;
         jumpCooldown = Math.max(0, jumpCooldown - DT);
@@ -73,9 +79,10 @@ public final class Physics {
         if (x - radius() <= left || x + radius() >= right) { die("SIDE WALL"); return; }
         if (y - cameraY < 190 + radius()) { y = cameraY + 190 + radius(); vy = Math.abs(vy) * .25f; }
         for (Rope rope : ropes) contact(rope);
-        // Only descend the camera; jumping never pushes the level backwards.
-        cameraY = Math.max(cameraY, y - 420);
-        recycleRopes(left, right);
+        if (lost) return;
+        contactGround();
+        // Follow downwards, stopping where the target floor remains in view.
+        cameraY = Math.min(GROUND_Y - 565, Math.max(cameraY, y - 420));
     }
 
     private void simulateRope(Rope r, float left, float right) {
@@ -130,6 +137,7 @@ public final class Physics {
             float load = mass() * (GRAVITY + Math.max(0, -normalVelocity) * .6f);
             if (ny < -.25f && vy >= 0 && load > r.strength) {
                 r.cut = i;
+                landingPulse = .18f;
                 brokenCount++;
                 score = (int) (elapsed * 10) + brokenCount * 30;
                 flash = 1;
@@ -145,6 +153,12 @@ public final class Physics {
                 // Low restitution keeps gravity and deliberate touch jumps in control.
                 float impulse = Math.min(1000, -normalVelocity * 1.16f);
                 vx += nx * impulse; vy += ny * impulse;
+                if (ny < -.45f && normalVelocity < -55) {
+                    landingPulse = .18f;
+                    // A landing naturally produces a small spring-assisted human jump.
+                    vy = -Math.max(235, 325 / (float) Math.sqrt(mass()));
+                    flash = Math.max(flash, .35f);
+                }
                 for (int k = i; k <= i + 1; k++) if (k > 0 && k < Rope.N - 1) {
                     float weight = k == i ? 1 - t : t;
                     r.px[k] += nx * impulse * DT * .18f * mass() * weight;
@@ -154,14 +168,34 @@ public final class Physics {
         }
         if (x - radius() <= leftWall() || x + radius() >= rightWall()) die("SIDE WALL");
     }
-    private void recycleRopes(float left, float right) {
-        for (Rope r : ropes) if (r.base - cameraY < 100) {
-            float deepest = r.base;
-            for (Rope other : ropes) deepest = Math.max(deepest, other.base);
-            r.reset(deepest + ROPE_SPACING, left, right);
+    private void contactGround() {
+        if (vy < 0 || y + radius() < GROUND_Y) return;
+        float impact = vy;
+        y = GROUND_Y - radius();
+        vy = -Math.min(350, Math.max(90, impact * .32f));
+        landingPulse = .18f;
+        groundBounce = 1;
+        if (x - radius() >= TARGET_LEFT && x + radius() <= TARGET_RIGHT) {
+            won = true;
+            winTime = 0;
+            score += 100;
+            y = GROUND_Y - radius();
+            gx = 0;
+            vx = 0;
+        }
+    }
+    private void celebrateLanding() {
+        // Gameplay is terminal, but a short real bounce plays before the result panel.
+        winTime += DT;
+        gx = vx = 0;
+        vy += GRAVITY * DT;
+        y += vy * DT;
+        if (y + radius() >= GROUND_Y && vy > 0) {
+            y = GROUND_Y - radius();
+            vy = vy < 55 ? 0 : -vy * .25f;
+            groundBounce = Math.max(groundBounce, .3f);
         }
     }
     private void die(String reason) { lost = true; deathReason = reason; blast = 1; gx = 0; }
     public static float clamp(float value, float low, float high) { return Math.max(low, Math.min(high, value)); }
 }
-

@@ -1,0 +1,199 @@
+PASS no interrupted fixture; recover with -RestoreOnly if needed
+PASS preferences committed
+PASS original preferences backed up
+PASS deterministic emulator settings installed
+PASS native Canvas view laid out
+PASS artifact directory ready
+PASS prior test artifact cleared home.png
+PASS prior test artifact cleared how-to-play.png
+PASS prior test artifact cleared settings-preset-0.png
+PASS prior test artifact cleared settings-preset-1.png
+PASS prior test artifact cleared settings-preset-2.png
+PASS prior test artifact cleared checks.txt
+PASS prior test artifact cleared gameplay.png
+PASS prior test artifact cleared failure-screen-5.png
+PASS prior test artifact cleared pause.png
+PASS prior test artifact cleared target-bounce-controlled.png
+PASS prior test artifact cleared victory-controlled.png
+PASS prior test artifact cleared death-controlled.png
+PASS prior test artifact cleared off-target-bounce-controlled.png
+PASS prior test artifact cleared home-final.png
+PASS initial home (expected 0, actual 0)
+PASS native compositor screenshot home
+PASS screenshot saved home
+PASS home physics frozen
+PASS tap x inside display
+PASS tap x inside display
+PASS How to Play opened by touch (expected 3, actual 3)
+PASS native compositor screenshot how-to-play
+PASS screenshot saved how-to-play
+PASS help physics frozen
+PASS Android back leaves help (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS home settings opened (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS active motion preset 0
+PASS preset 0 saved
+PASS native compositor screenshot settings-preset-0
+PASS screenshot saved settings-preset-0
+PASS settings physics frozen preset 0
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreated Activity opens safe home (expected 0, actual 0)
+PASS preset 0 survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS home settings opened (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS active motion preset 1
+PASS preset 1 saved
+PASS native compositor screenshot settings-preset-1
+PASS screenshot saved settings-preset-1
+PASS settings physics frozen preset 1
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreated Activity opens safe home (expected 0, actual 0)
+PASS preset 1 survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS home settings opened (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS active motion preset 2
+PASS preset 2 saved
+PASS native compositor screenshot settings-preset-2
+PASS screenshot saved settings-preset-2
+PASS settings physics frozen preset 2
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreated Activity opens safe home (expected 0, actual 0)
+PASS preset 2 survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS settings reopened after recreation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sensor switch respects hardware availability
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting saves by touch
+PASS haptics setting saves by touch
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS sound and haptics survive Activity recreation
+PASS touch-only setting survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Done leaves home settings (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS Play begins Mode 1 (expected 1, actual 1)
+PASS native compositor screenshot gameplay
+PASS screenshot saved gameplay
+PASS gameplay advances under gravity
+PASS tap x inside display
+PASS tap x inside display
+PASS Jump touch sends character upward
+PASS tap x inside display
+PASS tap x inside display
+PASS horizontal touch drag steers
+PASS tap x inside display
+PASS touch release clears steering
+PASS tap x inside display
+PASS tap x inside display
+PASS Pause opens by touch (expected 4, actual 4)
+PASS native compositor screenshot pause
+PASS screenshot saved pause
+PASS pause physics frozen
+PASS tap x inside display
+PASS tap x inside display
+PASS pause settings opened (expected 2, actual 2)
+PASS pause settings physics frozen
+PASS Android back returns settings to pause (expected 4, actual 4)
+PASS return to pause stays frozen
+PASS Android back resumes pause (expected 1, actual 1)
+PASS resume advances the gameplay clock
+PASS tap x inside display
+PASS tap x inside display
+PASS gameplay Restart starts a fresh run (expected 1, actual 1)
+PASS Restart resets elapsed time
+PASS Restart clears terminal states
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS pause Restart resumes fresh run (expected 1, actual 1)
+PASS pause Restart resets elapsed time
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS pause Main Menu returns home (expected 0, actual 0)
+PASS home freezes an abandoned run
+PASS tap x inside display
+PASS tap x inside display
+PASS new run begins from home (expected 1, actual 1)
+PASS new home run resets timer
+PASS native frame transition won=true
+PASS actual frame physics detects staged target landing
+PASS target landing wins without a death
+PASS target floor bounces character upward
+PASS landing triggers human crouch and target bounce animation
+PASS floor bounce animates before result overlay (expected 1, actual 1)
+PASS native compositor screenshot target-bounce-controlled
+PASS screenshot saved target-bounce-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot victory-controlled
+PASS screenshot saved victory-controlled
+PASS victory persists once
+PASS win result physics frozen
+PASS result redraw does not duplicate win count
+PASS tap x inside display
+PASS tap x inside display
+PASS win Play Again restarts by touch (expected 1, actual 1)
+PASS replay clears win
+PASS replay resets timer
+PASS native screen transition 5 (expected 5, actual 5)
+PASS actual physics detects staged rail overlap
+PASS death cannot award a win
+PASS native compositor screenshot death-controlled
+PASS screenshot saved death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS result Main Menu works by touch (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS new run starts after a death (expected 1, actual 1)
+PASS native frame detects off-target floor contact
+PASS outside-target floor remains bouncy
+PASS outside-target bounce permits recovery without awarding a win
+PASS off-target landing keeps gameplay available (expected 1, actual 1)
+PASS missed landing leaves wins unchanged
+PASS native compositor screenshot off-target-bounce-controlled
+PASS screenshot saved off-target-bounce-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS corrected target landing wins after a miss
+PASS recovered landing records exactly one additional victory
+PASS tap x inside display
+PASS tap x inside display
+PASS recovered result returns home (expected 0, actual 0)
+PASS native compositor screenshot home-final
+PASS screenshot saved home-final
+PASS Activity finished before preferences restored
+PASS preferences committed
+PASS original preferences restored exactly
+PASS verified backup cleared
+PASS: native Falley suite; checks=198; captures=12; viewport=small; actual pointer navigation and Activity recreation; controlled landing/death fixtures, not a natural phone playtest; original preferences restored
