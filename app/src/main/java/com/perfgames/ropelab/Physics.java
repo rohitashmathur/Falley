@@ -1,17 +1,26 @@
 package com.perfgames.ropelab;
 
-/** Falley V1: a finite descent through elastic ropes to a bouncy target floor. */
+/** Falley V2: long chapter descents, elastic ropes and a bouncy target floor. */
 public final class Physics {
     public static final float W = 480, H = 820, DT = 1f / 240, R = 17;
     public static final float GRAVITY = 900, ROPE_SPACING = 170;
-    public static final float GROUND_Y = 1590, TARGET_LEFT = 158, TARGET_RIGHT = 322;
-    public final Rope[] ropes = new Rope[6];
+    public static final float GROUND_Y = 4200, TARGET_LEFT = 158, TARGET_RIGHT = 322;
+    public final Rope[] ropes = new Rope[8];
+    public StageCatalog.Stage stage = StageCatalog.get(0);
+    public static final class FireHazard {
+        public float x, y, warningTime, radius = 12;
+        public boolean active;
+        private float speed;
+    }
+    public final FireHazard[] fireHazards = new FireHazard[4];
     public float x, y, vx, vy, gx, cameraY, elapsed, flash, blast;
     public int score, brokenCount;
     public boolean lost, won;
     public float winTime, landingPulse, groundBounce;
     public String deathReason = "";
-    private float jumpCooldown;
+    private float jumpCooldown, nextRopeY, fireCountdown, touchVelocity, deepestY;
+    private boolean touchControl;
+    private java.util.Random random;
 
     public static final class Rope {
         public static final int N = 25;
@@ -38,17 +47,37 @@ public final class Physics {
 
     public Physics() {
         for (int i = 0; i < ropes.length; i++) ropes[i] = new Rope(i);
+        for (int i = 0; i < fireHazards.length; i++) fireHazards[i] = new FireHazard();
         reset();
     }
+    public void reset(int stageIndex) { stage = StageCatalog.get(stageIndex); reset(); }
     public void reset() {
         x = 240; y = 310; vx = vy = gx = cameraY = elapsed = flash = blast = 0;
         score = brokenCount = 0; lost = won = false; deathReason = ""; jumpCooldown = 0;
         winTime = landingPulse = groundBounce = 0;
+        touchVelocity = 0;
+        deepestY = y;
+        nextRopeY = 450 + ropes.length * ROPE_SPACING;
+        random = new java.util.Random(7283L + stage.index * 101L);
+        fireCountdown = 1.5f;
+        for (FireHazard fire : fireHazards) { fire.active = false; fire.warningTime = 0; }
         for (int i = 0; i < ropes.length; i++) ropes[i].reset(450 + i * ROPE_SPACING, leftWall(), rightWall());
+    }
+    public float groundY() { return stage.groundY; }
+    public float targetLeft() { return stage.targetCenter - stage.targetWidth / 2; }
+    public float targetRight() { return stage.targetCenter + stage.targetWidth / 2; }
+    public float hazardInset() { return stage.hazard == StageCatalog.SPIKES ? 18 : stage.hazard == StageCatalog.FIRE ? 10 : 4; }
+    public void touchControlled(boolean enabled) { touchControl = enabled; if (enabled) gx = 0; }
+    public void steerTouch(float desiredVelocity) {
+        touchVelocity = clamp(desiredVelocity, -340, 340);
+        if (touchControl && !lost && !won) vx = touchVelocity;
     }
     public float mass() { return Math.min(6, 1 + score * .012f); }
     public float radius() { return R + (mass() - 1) * 1.1f; }
-    public float leftWall() { return Math.min(221, 28 + elapsed * 1.4f + score * .10f); }
+    public float leftWall() {
+        float progress = clamp((Math.max(y, deepestY) - 310) / (groundY() - 310), 0, 1);
+        return Math.min(214, 28 + progress * 92 + elapsed * .7f + score * .025f);
+    }
     public float rightWall() { return W - leftWall(); }
     public float jumpRemaining() { return jumpCooldown; }
     public boolean jump() {
@@ -70,19 +99,27 @@ public final class Physics {
         jumpCooldown = Math.max(0, jumpCooldown - DT);
         flash = Math.max(0, flash - DT * 2);
         float left = leftWall(), right = rightWall();
-        for (Rope rope : ropes) simulateRope(rope, left, right);
-        vx = clamp((vx + clamp(gx, -950, 950) * DT) * .9995f, -950, 950);
-        vy = clamp(vy + GRAVITY * DT, -1100, 1450);
+        for (Rope rope : ropes) {
+            if (rope.base < cameraY - 240 && nextRopeY < groundY() - 320) {
+                rope.reset(nextRopeY, left, right);
+                nextRopeY += ROPE_SPACING;
+            }
+            simulateRope(rope, left, right);
+        }
+        vx = touchControl ? touchVelocity : clamp((vx + clamp(gx, -950, 950) * DT) * .9995f, -950, 950);
+        vy = clamp(vy + GRAVITY * DT, -1100, 800);
         x += vx * DT;
         y += vy * DT;
+        deepestY = Math.max(deepestY, y);
         // Walls are lethal on first overlap, including walls that move into a stationary ball.
-        if (x - radius() <= left || x + radius() >= right) { die("SIDE WALL"); return; }
-        if (y - cameraY < 190 + radius()) { y = cameraY + 190 + radius(); vy = Math.abs(vy) * .25f; }
+        if (hitsSide()) { die(sideReason()); return; }
+        if (y - cameraY < 160 + radius()) { y = cameraY + 160 + radius(); vy = Math.abs(vy) * .25f; }
         for (Rope rope : ropes) contact(rope);
         if (lost) return;
         contactGround();
+        if (!won) simulateFire();
         // Follow downwards, stopping where the target floor remains in view.
-        cameraY = Math.min(GROUND_Y - 565, Math.max(cameraY, y - 420));
+        cameraY = Math.min(groundY() - 675, Math.max(cameraY, y - 430));
     }
 
     private void simulateRope(Rope r, float left, float right) {
@@ -148,11 +185,13 @@ public final class Physics {
                 return;
             }
             float penetration = radius() + 3 - distance;
-            x += nx * penetration; y += ny * penetration;
+            if (!touchControl) x += nx * penetration;
+            y += ny * penetration;
             if (normalVelocity < 0) {
                 // Low restitution keeps gravity and deliberate touch jumps in control.
                 float impulse = Math.min(1000, -normalVelocity * 1.16f);
-                vx += nx * impulse; vy += ny * impulse;
+                if (!touchControl) vx += nx * impulse;
+                vy += ny * impulse;
                 if (ny < -.45f && normalVelocity < -55) {
                     landingPulse = .18f;
                     // A landing naturally produces a small spring-assisted human jump.
@@ -166,20 +205,20 @@ public final class Physics {
                 }
             }
         }
-        if (x - radius() <= leftWall() || x + radius() >= rightWall()) die("SIDE WALL");
+        if (hitsSide()) die(sideReason());
     }
     private void contactGround() {
-        if (vy < 0 || y + radius() < GROUND_Y) return;
+        if (vy < 0 || y + radius() < groundY()) return;
         float impact = vy;
-        y = GROUND_Y - radius();
+        y = groundY() - radius();
         vy = -Math.min(350, Math.max(90, impact * .32f));
         landingPulse = .18f;
         groundBounce = 1;
-        if (x - radius() >= TARGET_LEFT && x + radius() <= TARGET_RIGHT) {
+        if (x - radius() >= targetLeft() && x + radius() <= targetRight()) {
             won = true;
             winTime = 0;
             score += 100;
-            y = GROUND_Y - radius();
+            y = groundY() - radius();
             gx = 0;
             vx = 0;
         }
@@ -190,10 +229,46 @@ public final class Physics {
         gx = vx = 0;
         vy += GRAVITY * DT;
         y += vy * DT;
-        if (y + radius() >= GROUND_Y && vy > 0) {
-            y = GROUND_Y - radius();
+        if (y + radius() >= groundY() && vy > 0) {
+            y = groundY() - radius();
             vy = vy < 55 ? 0 : -vy * .25f;
             groundBounce = Math.max(groundBounce, .3f);
+        }
+    }
+    private boolean hitsSide() {
+        return x - radius() <= leftWall() + hazardInset() || x + radius() >= rightWall() - hazardInset();
+    }
+    private String sideReason() {
+        return stage.hazard == StageCatalog.LASER ? "LASER" : stage.hazard == StageCatalog.SPIKES ? "SPIKES" : "FIRE";
+    }
+    private void simulateFire() {
+        if (!stage.fireRain) return;
+        if (y > 1300 && y < groundY() - 550) {
+            fireCountdown -= DT;
+            if (fireCountdown <= 0) {
+                for (FireHazard fire : fireHazards) if (!fire.active) {
+                    float left = leftWall() + hazardInset() + 28, right = rightWall() - hazardInset() - 28;
+                    fire.x = left + random.nextFloat() * (right - left);
+                    fire.y = cameraY + 155;
+                    fire.radius = 10 + random.nextFloat() * 4;
+                    fire.warningTime = .9f;
+                    fire.speed = 1100;
+                    fire.active = true;
+                    break;
+                }
+                fireCountdown = 2.4f + random.nextFloat() * .6f;
+            }
+        }
+        for (FireHazard fire : fireHazards) if (fire.active) {
+            if (fire.warningTime > 0) {
+                fire.y = cameraY + 155;
+                fire.warningTime = Math.max(0, fire.warningTime - DT);
+                continue;
+            }
+            fire.speed = Math.min(1400, fire.speed + 100 * DT);
+            fire.y += fire.speed * DT;
+            if (Math.hypot(fire.x - x, fire.y - y) <= radius() + fire.radius) { die("FALLING FIRE"); return; }
+            if (fire.y > cameraY + H + 140 || fire.y > groundY()) fire.active = false;
         }
     }
     private void die(String reason) { lost = true; deathReason = reason; blast = 1; gx = 0; }

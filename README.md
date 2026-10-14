@@ -1,90 +1,62 @@
-# Falley — V1
+# Falley — V2
 
-**Physics at play.** An offline Android game with a simple human character, elastic ropes and a bouncy landing target. V1 has one finite Mode 1 course. Land on the marked target to win.
+**Physics at play.** An offline Android game about guiding a falling human through elastic ropes to a bouncy ground target. V2 expands the descent into **six stages across three chapters**: Laser, Spikes and Fire. The final Fire stage adds falling fireballs with warnings before they drop.
 
-![Falley home](screenshots/v1/api36/small/home.png)
-
-[Download the V1 test build](https://github.com/rohitashmathur/Falley/releases/tag/v1.0.0). This is a debug-signed Android testing release, not a Google Play production submission.
+This repository shares source and test evidence. **APKs are built and kept locally; no public APK download is provided.** This is a debug testing build, not a Google Play production submission.
 
 ## Play
 
-- Open **Play Mode 1** from Home. Descend through six ropes and reach the ground target.
-- **Tap** the arena or **Jump** for an upward impulse. Rope landings also produce a small natural jump.
-- **Tilt** to steer, or **drag horizontally** for touch steering. Touch works with motion off or unavailable.
-- Points increase weight and load. Heavy impacts snap ropes; touching a narrowing coral side rail ends the run.
-- Land with the figure's contact area inside the green target to win. The floor compresses and produces a short real bounce before **Landed!** appears.
-- A landing outside the target bounces without awarding a win; steer back for another attempt. Restart is always available.
+Choose a chapter and stage from Home, then descend to its marked target. Tap the arena or **Jump** for an upward impulse; intact-rope landings also produce a small natural jump. Points increase weight, heavy contacts snap ropes, and the side hazards gradually close in.
 
-The human is drawn directly with head, body and articulated limbs. Landing bends the knees, ascent raises/tucks the limbs, and descent spreads and moves them. Collision uses a compact proxy aligned to the drawn feet, not a full articulated ragdoll.
+Tilt to steer when motion is enabled. With motion off, swipe left/right to move in that direction; release or cancel ends touch steering. Touch steering remains available without motion sensors. The taller play area keeps attention on the descent; motion feel belongs in Settings rather than the gameplay screen.
 
-## A simple Frontline framework
+Land with the whole character contact area inside the ground target to win. Later stages shift and narrow the target, requiring an intentional finish rather than staying at the arena center. A miss bounces without a false win, allowing another attempt. A short physical finish bounce precedes the result. Pause, restart, replay and Home navigation are available. The human uses distinct falling, jumping and crouched landing poses rather than a ragdoll.
 
-Falley follows Frontline's native Android Canvas, small profile, persisted preferences and screen-navigation conventions. It keeps only Home, Mode 1, Settings, How to Play, Pause and Results. Gameplay freezes in menus and during lifecycle pause. Android Back routes through those screens; supported Back callbacks are used on Android 13+.
+Home has an animated Falley title. Startup shows the Falley icon and **Falley by Perf Games**; returning from the background does not replay the intro.
 
-Settings replace difficulty choices with **motion feel**:
+## Settings and local records
 
-- **Motion steering ON/OFF**. Gyro plus accelerometer when available; filtered accelerometer fallback otherwise.
-- **Loose / Balanced / Tight**. Loose responds faster to smaller tilts; Tight is calmer and needs more tilt; Balanced is the default.
-- **ZERO / Center my hold**. Centers the current comfortable pose. A fresh pose auto-centers after resume; calibration is session-based.
-- **Sound Effects**. Optional short system-generated tones, with no downloaded audio assets.
-- **Vibration**. Optional touch/landing/result feedback.
+Motion steering uses gyro plus accelerometer when available, with filtered accelerometer fallback. **Loose / Balanced / Tight** adjust sensor gain, dead zone and smoothing; they are motion feel choices, not difficulty presets. The first valid sample automatically centers the comfortable phone pose; resume starts from a fresh sensor reference. There is no manual centering control.
 
-There is **no music** or music setting. Motion, feel, sound and vibration choices persist locally, alongside best score, successful landings and fastest win. An unfinished run is not saved across process death.
+Motion, feel, short sound effects and vibration settings persist on the device. There is no music setting or downloaded audio. Best score, wins and fastest finish are kept globally and per stage; the selected stage persists too. An unfinished run is not saved across process death.
 
-## Install
+## Build and install locally
 
-Requires Android 7.0 / API 24 or newer. Download `Falley-V1-1.0.0-debug.apk`, transfer it to a phone and open it using your file app, allowing installation from that app when prompted. Or use USB debugging:
-
-```powershell
-adb install -r .\Falley-V1-1.0.0-debug.apk
-adb shell am start -n com.perfgames.falley/com.perfgames.ropelab.MainActivity
-```
-
-Falley uses application ID `com.perfgames.falley`, separate from the earlier Rope Lab prototype. They can coexist; old prototype scores/preferences are not imported. The internal Java namespace remains unchanged for continuity.
-
-## Build and test
-
-Portable Windows builder: JDK 17, Android SDK **platform 36** and **build-tools 35.0.0**. Run from the project root:
+Requires JDK 17, Android SDK **platform 36**, **build-tools 35.0.0**, and an Android 7.0/API 24 or newer phone. Run from this project root:
 
 ```powershell
 .\scripts\build-android.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
 .\scripts\test-physics.ps1 -JdkRoot 'C:\path\to\jdk-17'
+adb install -r .\Falley-debug.apk
+adb shell am start -n com.perfgames.falley/com.perfgames.ropelab.MainActivity
 ```
 
-Alternatively set `ANDROID_HOME` and `JAVA_HOME`. Output is `Falley-debug.apk`; unique staging directories and the ignored debug key live in `build/`. Keep the local key to install later debug updates over this build. It is deliberately absent from the public source archive.
+Alternatively set `ANDROID_HOME` and `JAVA_HOME`. The builder emits `Falley-debug.apk` locally and uses fresh staging under `build/`. Preserve the ignored `build/debug.keystore` to install future debug updates over this one; never publish that key or APK binaries. Application ID remains `com.perfgames.falley`; its legacy internal Java namespace is intentional.
 
-Gradle files use AGP 8.10.1, Gradle 8.11.1, JDK 17 and compile/target SDK 36. A wrapper is not bundled; with the matching Gradle installed and SDK configured, use `gradle :app:assembleDebug`. That route has not been verified here; the portable SDK builder was used.
+Gradle configuration uses AGP 8.10.1, Gradle 8.11.1 compatibility, JDK 17 and compile/target SDK 36. A wrapper is not bundled; the alternate `gradle :app:assembleDebug` path requires the SDK and plugin-repository access. [Official AGP compatibility](https://developer.android.com/build/releases/agp-8-10-0-release-notes) supports this combination. The portable builder is the validation path used here.
 
-Native tests require an already running disposable emulator, an installed Falley APK and platform 35 for compiling the reflection-only test harness:
+The native regression runner needs an already running disposable emulator, an installed Falley APK and **SDK platform 35** in addition to the app builder's platform 36. Platform 35 supplies `android.jar` for compiling the reflection-only harness:
 
 ```powershell
 .\scripts\test-ui.ps1 -Device emulator-5584 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
 ```
 
-The native runner sends real touch and Back events, checks preferences and navigation, captures screens, then restores preferences/display overrides and removes its test APK. Target/death tests use controlled physics setup. See `android-tests/` and `screenshots/v1/`.
+Its controlled target/death fixtures are test setups, not evidence of natural phone play. Source lives in `android-tests/`; portable simulation/profile tests live in `tests/`.
 
-## Implemented rules
+## Rules and verification
 
-Six fixed 25-node elastic ropes lead to ground at world Y1590. Simulation uses fixed 240 Hz steps and bounded frame catch-up. Gravity remains constant; mass grows with score and affects impact load and jumping. Survival earns 10 points/second, each rope cut adds 30, and a target landing adds 100. Walls narrow with time/score, ending runs that stall too long. The camera stops where the target floor stays visible.
+`StageCatalog.java` describes the finite stages. `Physics.java` handles fixed 240 Hz gravity, elastic ropes, load/cuts, steering, closing side hazards, fireball warning/drop behavior, floor contact and win/loss state. A small rope pool recycles during longer descents and stops before the ground. Winning freezes gameplay input and score while the celebration bounce continues. `MotionSteering.java` filters sensors; `FalleyProfile.java` handles safe local result accounting.
 
-A win freezes gameplay input and score while the short floor bounce continues. Results are recorded once. No levels, extra modes, accounts, analytics, advertising, purchases or backend are included.
+**Portable tests: PASS.** All six complete courses were won using actual gravity/rope progression and bounded steering; final-stage fire warnings were encountered and avoided. Physics checks cover touch direction/release/no drift, rope recycling/cuts, chapter hazards, warning/fire collision, shifted target recovery, complete contact-area bounds, sides remaining closed through actual jumps, result/reset state and **100,000 seeded stability steps**. Touch gestures have 16 cases, motion filtering 17 and global/per-stage profiles 21. See `BUILD_STATUS.md` and `screenshots/v2/physics-suite.log` for the final local APK/build evidence.
 
-## Verification — 14 October 2026
+**Native final APK checks: PASS.** Android 15/API 35 and Android 16/API 36, each at 480x800/240 dpi and 720x1600/320 dpi: four suites with 416 logged checks each (**1,664 total**). Actual swipe/tap/Jump, release/cancel/no drift, system Back, pause, settings/preset persistence, chapter/stage selection and replay were exercised. Controlled fixtures verify all six target finishes, Next Stage, per-stage records, three side-hazard reasons and final-stage fire warnings/drop/collision. Home, chapter selection, gameplay and results were visually reviewed without clipping or system-bar overlap.
 
-- Portable SDK build and v2/v3 APK signatures: **PASS**; version 1.0.0 / code 3 / target API 36.
-- Physics suite: **PASS**, including a complete finite-course steering win, landing/automatic jump, cuts, off-target recovery, full target bounds, winning input/score lock, bounce, floor/camera limits, reset and 100,000 seeded stability steps.
-- Motion filter: **PASS**, 17 scenarios for presets, calibration, fallback, timing, gyro response and invalid samples.
-- Local profile: **PASS**, 15 scenarios for defaults, sanitization, settings and win/loss records.
-- Native final APK: **PASS**, Android 15/API 35 and Android 16/API 36, each at 480x800/240 dpi and 720x1600/320 dpi. Four suites total 750 checks and 48 screenshots.
-- Native checks cover actual touch and system Back, preference persistence through Activity recreation, pause timing, jump/drag, restart/replay and results. Controlled fixtures verify target bounce/win, rail death and off-target recovery. Their screenshots may show a 0.0-second staged win; those are test setups, not a natural player session.
-- Home, settings, gameplay and target/result screenshots were visually inspected with no clipping or system-bar overlap.
+The native runner captured 112 images locally; **48 curated images** plus suite/check logs are kept under `screenshots/v2/api35/` and `api36/`. Original emulator preferences/display settings were restored and test APKs removed. Controlled target/fire fixtures do not establish natural phone play success or subjective fun.
 
-See `BUILD_STATUS.md` for the delivered APK checksum and native logs under `screenshots/v1/api35/` and `api36/`.
+## Privacy and remaining gaps
 
-## Known gaps and V2
+Preferences, stage records and sensor processing stay on the device. This build has no Internet permission, accounts, analytics, ads or backend; it does not record sensor history. Clear app data or uninstall to remove local records. Android app backup is disabled.
 
-Real-phone motion comfort, haptic/audio feel, battery cost and subjective fun still need testing. Balance is provisional; repeated air jumps can delay descent and earn survival points. Ropes do not collide with one another, and cut ropes stop catching the figure. English-only Canvas controls do not yet provide a full set of independent TalkBack controls. Android versions before 15 and tablet/landscape behavior have not been run here.
+Real-phone tilt comfort, swipe feel, haptics/audio, battery use and subjective fun still need testing. The six deterministic steering runs finished in approximately **10.1–15.4 seconds**; these are simulation test durations, not player completion times. Physics uses a compact circular proxy, simplified rope cuts and small fixed steps rather than full articulated/continuous collision. Canvas controls are English-only and do not yet offer complete independent TalkBack controls.
 
-API 36 targeting is implemented, but this release remains a debug APK: release-signed AAB generation, Google Play setup/privacy disclosures and production readiness are not completed. Motion samples and preferences stay on-device; the inspected app has no network permission, ads or analytics.
-
-**V2 adds more stages and game modes.** Before that, run short physical-phone sessions to tune motion feel, rope response, jump cadence and the target landing. Keep V1 focused on this one complete loop.
+A production release-signed AAB, Play Console setup/disclosures and production rollout remain unbuilt/unsubmitted. Target SDK and a local debug APK do not establish store or worldwide IP approval. More modes and content beyond these V2 stages remain deferred until the controls and chapter pacing are tested on phones.

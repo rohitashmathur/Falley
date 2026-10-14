@@ -1,233 +1,209 @@
 package com.perfgames.ropelab;
 
-/** Deterministic Falley V1 play scenarios on a desktop JDK, without Android. */
+/** Deterministic chapter, touch, hazard and complete-course scenarios without Android. */
 public final class PhysicsTest {
     private static int checks;
     private static void check(boolean ok, String message) {
         checks++;
         if (!ok) throw new AssertionError(message);
     }
-    private static void run(Physics p, int steps) {
-        for (int i = 0; i < steps; i++) p.step();
+    private static void run(Physics p, int steps) { for (int i=0;i<steps;i++) p.step(); }
+    private static Physics stage(int index) {
+        Physics p=new Physics(); p.reset(index); p.touchControlled(true); return p;
     }
-    private static void positionAboveFirstRope(Physics p) {
-        Physics.Rope rope = p.ropes[0];
-        p.x = rope.x[Physics.Rope.N / 2];
-        p.y = rope.y[Physics.Rope.N / 2] - p.radius() - 5;
-        p.vx = 0;
-        p.vy = 80;
+    private static void aboveRope(Physics p) {
+        Physics.Rope r=p.ropes[0]; p.x=r.x[Physics.Rope.N/2];
+        p.y=r.y[Physics.Rope.N/2]-p.radius()-5; p.vx=0; p.vy=80;
     }
-    private static void scoringAndWeight() {
-        Physics p = new Physics();
-        float initialMass = p.mass();
-        run(p, 240);
-        check(!p.lost && !p.won && p.score >= 9 && p.score <= 11, "one second of play earns about 10 points");
-        check(p.mass() > initialMass, "score increases physical weight");
-        p.score = 100;
-        float mediumMass = p.mass();
-        p.score = 300;
-        check(p.mass() > mediumMass, "larger score increases weight");
-        p.score = 100000;
-        check(p.mass() <= 6.01f && p.mass() >= 5.9f, "weight has a six-unit cap");
-        p.reset();
-        check(p.mass() == initialMass && p.score == 0 && p.brokenCount == 0, "restart clears score and weight");
-    }
-    private static void landingAnimationAndHeavyCut() {
-        Physics light = new Physics();
-        positionAboveFirstRope(light);
-        for (int i = 0; i < 120 && light.landingPulse == 0; i++) light.step();
-        check(!light.lost && light.ropes[0].cut == -1 && light.brokenCount == 0,
-                "a gentle light landing leaves the rope intact");
-        check(light.landingPulse > 0 && light.vy < -100,
-                "an intact-rope landing emits a crouch pulse and a physical automatic jump");
-        float landingY = light.y;
-        run(light, 24);
-        check(light.y < landingY - 5, "the automatic jump visibly raises the character");
-        run(light, 30);
-        check(light.landingPulse == 0, "landing animation pulse ends after its brief pose window");
-
-        Physics heavy = new Physics();
-        heavy.elapsed = 30;
-        heavy.score = 300;
-        positionAboveFirstRope(heavy);
-        float base = heavy.ropes[0].base;
-        int scoreBefore = heavy.score;
-        for (int i = 0; i < 120 && heavy.ropes[0].cut == -1; i++) heavy.step();
-        Physics.Rope broken = heavy.ropes[0];
-        check(broken.cut >= 0 && broken.cut < Physics.Rope.N - 1, "heavy load cuts a rope segment");
-        check(heavy.brokenCount == 1 && heavy.score >= scoreBefore + 30, "one cut earns a 30-point bonus");
-        int cut = broken.cut;
-        heavy.y = base - 150;
-        heavy.vx = heavy.vy = 0;
-        run(heavy, 30);
-        check(broken.cut == cut && broken.base == base && heavy.brokenCount == 1,
-                "a cut remains broken and does not repeatedly award points");
-    }
-    private static void wallsJumpAndReset() {
-        Physics p = new Physics();
-        float previousGap = p.rightWall() - p.leftWall();
-        for (int second = 1; second <= 150; second++) {
-            p.elapsed = second;
-            p.score = second * 10;
-            float gap = p.rightWall() - p.leftWall();
-            check(gap <= previousGap + .01f && gap > 0, "side walls steadily narrow without crossing");
-            previousGap = gap;
+    private static void catalogAndReset() {
+        check(StageCatalog.COUNT==6,"six stages are available");
+        float previous=0;
+        for(int i=0;i<StageCatalog.COUNT;i++) {
+            StageCatalog.Stage s=StageCatalog.get(i);
+            check(s.index==i && s.chapterIndex==i/2 && !s.title.isEmpty() && !s.chapterTitle.isEmpty(),"stages form three named chapters");
+            check(s.groundY>previous && s.groundY>=4200 && s.hazard==i/2,"stages are longer and use the chapter hazard");
+            check(s.fireRain==(i==StageCatalog.COUNT-1),"only the last stage rains fire"); previous=s.groundY;
+            Physics p=stage(i); p.score=99;p.won=true;p.reset();
+            check(p.stage.index==i && p.score==0 && !p.won && !p.lost && p.cameraY==0,"restart preserves the chosen stage and clears gameplay");
+            for(Physics.FireHazard f:p.fireHazards) check(!f.active && f.warningTime==0,"restart clears the fire pool");
         }
-        check(previousGap < Physics.R * 2 + 12, "stalling eventually leaves too little room for a heavy character");
-        p.reset();
-        float startY = p.y;
-        check(p.jump() && p.vy < 0, "manual touch jump creates real upward motion");
-        float lightImpulse = -p.vy;
-        check(!p.jump(), "the short jump cooldown prevents immediate repeats");
-        run(p, 30);
-        check(p.y < startY - 5, "manual jump visibly moves upward");
-        run(p, 45);
-        check(p.jump(), "manual jump becomes available after its cooldown");
-        p.reset();
-        p.score = 300;
-        check(p.jump() && -p.vy < lightImpulse, "weight makes a manual jump less effective");
-        p.reset();
-        p.gx = 450;
-        run(p, 30);
-        check(p.x > Physics.W / 2 + 2 && p.vx > 0, "positive steering moves right");
-        p.reset();
-        p.gx = -450;
-        run(p, 30);
-        check(p.x < Physics.W / 2 - 2 && p.vx < 0, "negative steering moves left");
-        for (boolean right : new boolean[] {false, true}) {
-            p.reset();
-            p.x = right ? p.rightWall() - p.radius() + .5f : p.leftWall() + p.radius() - .5f;
-            p.step();
-            check(p.lost && !p.won && p.blast > 0 && !p.deathReason.isEmpty(), "each sideline kills with a blast");
-            float deadX = p.x, deadY = p.y;
-            check(!p.jump(), "dead gameplay cannot jump");
-            run(p, 100);
-            check(p.x == deadX && p.y == deadY, "dead gameplay does not restart moving");
+        check(StageCatalog.get(-1).index==0 && StageCatalog.get(99).index==StageCatalog.COUNT-1,"invalid stage indices remain bounded");
+    }
+    private static void ropesMassAndJump() {
+        Physics p=stage(0);float initial=p.mass();run(p,240);
+        check(p.score>=9 && p.score<=11 && p.mass()>initial,"elapsed play earns points and weight");
+        p.score=100000;check(p.mass()>=5.9f && p.mass()<=6.01f,"weight stays capped");p.reset();
+        aboveRope(p);
+        for(int i=0;i<120 && p.landingPulse==0;i++)p.step();
+        check(p.ropes[0].cut==-1 && p.landingPulse>0 && p.vy<0,"a light landing catches, crouches and auto-jumps");
+        float landedY=p.y;run(p,24);check(p.y<landedY-5,"the rope-assisted jump causes real ascent");
+        p.reset();p.elapsed=30;p.score=300;aboveRope(p);
+        float base=p.ropes[0].base;
+        for(int i=0;i<120 && p.ropes[0].cut==-1;i++)p.step();
+        int cut=p.ropes[0].cut;
+        check(cut>=0 && p.brokenCount==1 && p.score>=320,"heavy weight cuts a segment and awards a bonus");
+        p.y=base-150;p.vy=0;run(p,30);
+        check(p.ropes[0].cut==cut && p.ropes[0].base==base && p.brokenCount==1,"a visible cut persists without repeated scoring");
+        p.reset();float initialY=p.y;
+        check(p.jump() && p.vy<0 && !p.jump(),"manual jump gives an upward impulse with cooldown");
+        run(p,30);check(p.y<initialY-5,"manual jumping visibly raises the character");run(p,45);
+        check(p.jump(),"jump becomes available after the cooldown");
+    }
+    private static void touchDirectionAndRelease() {
+        for(int direction:new int[]{-1,1}) {
+            Physics p=stage(0);aboveRope(p);p.gx=-direction*950;
+            float start=p.x;p.steerTouch(direction*160);run(p,48);
+            check((p.x-start)*direction>20 && p.vx*direction>0,"each swipe moves in its direction despite rope contact or stale sensor force");
+            p.steerTouch(0);float stopped=p.x;run(p,400);
+            check(Math.abs(p.x-stopped)<.05f && Math.abs(p.vx)<.05f,"release/cancel stops touch movement without automatic lateral drift");
         }
-        p.reset();
-        check(!p.lost && !p.won && p.blast == 0 && p.cameraY == 0 && p.elapsed == 0,
-                "restart clears terminal state, camera and difficulty");
+        Physics neutral=stage(0);aboveRope(neutral);float center=neutral.x;
+        run(neutral,1000);
+        check(Math.abs(neutral.x-center)<.05f,"touch-only neutral stays centered through repeated rope reactions");
+        neutral.touchControlled(false);neutral.gx=450;run(neutral,30);
+        check(neutral.vx>0 && neutral.x>center+2,"sensor/acceleration steering still works outside touch-only mode");
     }
-    private static Physics landInTarget() {
-        Physics p = new Physics();
-        p.y = Physics.GROUND_Y - p.radius() - 1;
-        p.vy = 500;
-        p.step();
-        check(p.won && !p.lost, "a descending central target landing wins");
-        return p;
-    }
-    private static void finiteCourseWinAndPersistentLayout() {
-        Physics p = new Physics();
-        float[] bases = new float[p.ropes.length];
-        for (int i = 0; i < bases.length; i++) bases[i] = p.ropes[i].base;
-        int steps = 0;
-        while (!p.lost && !p.won && steps++ < 240 * 60) {
-            // Real, bounded steering input corrects recoil; no state teleport or cuts are injected.
-            p.gx = Physics.clamp((Physics.W / 2 - p.x) * 18 - p.vx * 5, -450, 450);
-            p.step();
-        }
-        check(p.won && !p.lost, "the complete finite course can be won through gravity, rope progression and steering");
-        check(p.brokenCount > 0 && p.brokenCount <= p.ropes.length, "a complete course encounters and cuts a finite rope stack");
-        check(p.score >= (int)(p.elapsed * 10) + p.brokenCount * 30 + 100, "target landing awards its 100-point bonus once");
-        check(p.y + p.radius() <= Physics.GROUND_Y + .01f, "winning feet cannot overshoot the target floor");
-        check(p.cameraY <= Physics.GROUND_Y - 565 + .01f && p.cameraY > 500,
-                "the descent camera moves down and stops with the target floor visible");
-        for (int i = 0; i < bases.length; i++)
-            check(p.ropes[i].base == bases[i], "rope mounts remain fixed through the finite course");
-        int cut = p.ropes[0].cut;
-        check(cut >= 0, "the first rope remains cut after the character reaches the ground");
-        run(p, 240);
-        check(p.ropes[0].cut == cut, "a rope never recycles or repairs itself during win celebration");
-    }
-    private static void offTargetBounceAndRecovery() {
-        Physics p = new Physics();
-        p.x = 100;
-        p.y = Physics.GROUND_Y - p.radius() - 1;
-        p.vy = 600;
-        p.step();
-        check(!p.won && !p.lost && p.vy < 0 && p.groundBounce > 0,
-                "landing outside the target bounces without a false win or floor death");
-        check(p.y + p.radius() <= Physics.GROUND_Y + .01f, "off-target landing respects the floor surface");
-        p.gx = 450;
-        for (int i = 0; i < 480 && !p.lost && !p.won; i++) p.step();
-        check(p.won && !p.lost, "steering after an off-target bounce can recover into the target");
-        for (boolean right : new boolean[] {false, true}) {
-            p.reset();
-            p.x = right ? Physics.TARGET_RIGHT - p.radius() + 1 : Physics.TARGET_LEFT + p.radius() - 1;
-            p.y = Physics.GROUND_Y - p.radius();
-            p.vy = 100;
-            p.step();
-            check(!p.won && !p.lost, "a character partially outside either target edge cannot win");
-        }
-        p.reset();
-        p.x = 100;
-        p.y = Physics.GROUND_Y + 5000;
-        p.vy = 10000;
-        p.step();
-        check(!p.lost && !p.won && p.y + p.radius() <= Physics.GROUND_Y + .01f,
-                "an extreme descending overshoot is clamped back to the floor");
-        check(p.cameraY <= Physics.GROUND_Y - 565 + .01f, "floor overshoot cannot push the camera beyond its cap");
-    }
-    private static void terminalWinAndCelebration() {
-        Physics p = landInTarget();
-        int wonScore = p.score;
-        float wonElapsed = p.elapsed, wonX = p.x, floorY = p.y;
-        check(!p.jump(), "manual jump input is ignored after winning");
-        for (int i = 0; i < 60; i++) { p.gx = 10000; p.step(); }
-        check(p.y < floorY - 1 && p.winTime > .2f && p.groundBounce >= 0,
-                "a win continues a real damped celebration bounce");
-        check(p.won && !p.lost && p.score == wonScore && p.elapsed == wonElapsed && p.x == wonX && p.gx == 0,
-                "winning freezes scoring and gameplay steering while celebration runs");
-        run(p, 1000);
-        check(p.y + p.radius() <= Physics.GROUND_Y + .01f && Float.isFinite(p.vy), "celebration remains bounded at the floor");
-        check(p.score == wonScore && p.elapsed == wonElapsed, "a long celebration cannot repeatedly award points");
-        p.reset();
-        check(!p.won && !p.lost && p.winTime == 0 && p.landingPulse == 0 && p.groundBounce == 0 && p.score == 0,
-                "restart fully clears a finished win and its animations");
-        for (Physics.Rope rope : p.ropes) check(rope.cut == -1, "restart repairs each fixed rope");
-    }
-    private static void stallingAndStress() {
-        Physics stalling = new Physics();
-        for (int i = 0; i < 240 * 100 && !stalling.lost && !stalling.won; i++) {
-            if (i % 120 == 0) stalling.jump();
-            stalling.step();
-        }
-        check(stalling.lost && !stalling.won, "repeated air jumps cannot stall forever above the finite goal");
-        Physics p = new Physics();
-        java.util.Random random = new java.util.Random(7);
-        int deaths = 0, victories = 0;
-        for (int i = 0; i < 100000; i++) {
-            if (p.lost) { p.reset(); deaths++; }
-            if (p.won && p.winTime > 1.2f) { p.reset(); victories++; }
-            if (i % 6000 == 0) {
-                p.reset(); p.y = Physics.GROUND_Y - p.radius() - 1; p.vy = 1450;
-            } else {
-                if (i % 95 == 0) p.jump();
-                if (i % 180 == 0) p.gx = (random.nextFloat() * 2 - 1) * 1300;
-            }
-            p.step();
-            check(Float.isFinite(p.x) && Float.isFinite(p.y) && Float.isFinite(p.vx) && Float.isFinite(p.vy)
-                    && Float.isFinite(p.cameraY) && Float.isFinite(p.winTime)
-                    && Float.isFinite(p.landingPulse) && Float.isFinite(p.groundBounce), "all run and animation state stays finite");
-            check(!(p.won && p.lost) && p.cameraY >= 0 && p.cameraY <= Physics.GROUND_Y - 565 + .01f,
-                    "stress run preserves exclusive results and a bounded camera");
-            check(p.mass() >= 1 && p.mass() <= 6.01f && p.radius() > 0, "stress weight and radius stay bounded");
-            for (Physics.Rope rope : p.ropes) {
-                check(Float.isFinite(rope.tension) && Float.isFinite(rope.base), "stress rope properties stay finite");
-                for (int k = 0; k < Physics.Rope.N; k++)
-                    check(Float.isFinite(rope.x[k]) && Float.isFinite(rope.y[k]), "stress rope nodes stay finite");
+    private static void sideHazardsAndNarrowing() {
+        for(int i=0;i<StageCatalog.COUNT;i++) {
+            Physics p=stage(i);float initial=p.rightWall()-p.leftWall();
+            p.y=p.groundY()/2; p.elapsed=10;p.score=200;
+            check(p.rightWall()-p.leftWall()<initial-30,"the sides narrow during a long descent");
+            String reason=i<2?"LASER":i<4?"SPIKES":"FIRE";
+            for(boolean right:new boolean[]{false,true}) {
+                p.reset();p.x=right?p.rightWall()-p.hazardInset()-p.radius()+.5f:p.leftWall()+p.hazardInset()+p.radius()-.5f;
+                p.step();check(p.lost && !p.won && p.blast>0 && reason.equals(p.deathReason),"both chapter sides kill with the correct hazard reason");
+                check(!p.jump(),"a hazard death cannot jump again");
             }
         }
-        check(deaths > 0 && victories > 0, "stress exercises losses, wins, celebration and restarts");
+        Physics stalled=stage(0);
+        for(int i=0;i<240*260 && !stalled.lost && !stalled.won;i++) {
+            if(i%120==0)stalled.jump();stalled.step();
+        }
+        check(stalled.lost && !stalled.won,"repeated air jumps cannot stall the course indefinitely");
+    }
+    private static void jumpsNeverWidenHazards() {
+        Physics p=stage(0);float left=p.leftWall(),right=p.rightWall(),initialGap=right-left;int jumps=0;
+        for(int i=0;i<240*90 && !p.lost && !p.won;i++) {
+            if(i%80==0 && p.jump())jumps++;
+            p.step();
+            check(p.leftWall()>=left-.0001f && p.rightWall()<=right+.0001f,
+                    "actual manual/automatic jumps cannot reopen the narrowing sides");
+            left=p.leftWall();right=p.rightWall();
+        }
+        check(jumps>100 && right-left<initialGap-50,"a sustained real jump run keeps increasing side pressure");
+    }
+    private static void safeSteer(Physics p) {
+        float safeLeft=p.leftWall()+p.hazardInset()+p.radius()+3;
+        float safeRight=p.rightWall()-p.hazardInset()-p.radius()-3;
+        // Dodge telegraphed fire in the whole safe arena, then line up to finish.
+        if(p.y>p.groundY()-400 || !p.stage.fireRain) {
+            safeLeft=Math.max(safeLeft,p.targetLeft()+p.radius()+3);
+            safeRight=Math.min(safeRight,p.targetRight()-p.radius()-3);
+        }
+        float center=Physics.clamp((p.targetLeft()+p.targetRight())/2,safeLeft,safeRight);
+        float[] candidates={safeLeft,center,safeRight};float best=center,bestClearance=-1;
+        for(float candidate:candidates) {
+            float clearance=10000;
+            for(Physics.FireHazard f:p.fireHazards)
+                if(f.active && (f.warningTime>0 || f.y<p.y+90))clearance=Math.min(clearance,Math.abs(candidate-f.x));
+            if(clearance>bestClearance || clearance==bestClearance && candidate==center){bestClearance=clearance;best=candidate;}
+        }
+        p.steerTouch(Physics.clamp((best-p.x)*8,-220,220));
+    }
+    private static void variedTargetsRequireSteering() {
+        for(int i=0;i<StageCatalog.COUNT;i++) {
+            Physics p=stage(i);p.elapsed=30;p.score=300;
+            check(p.targetLeft()>0 && p.targetRight()<Physics.W && p.targetRight()-p.targetLeft()>p.radius()*2+12,
+                    "each stage has a bounded target corridor with room for the complete character proxy");
+            float center=(p.targetLeft()+p.targetRight())/2;
+            p.x=center;p.y=p.groundY()-p.radius()-1;p.vy=240;p.step();
+            check(p.won && !p.lost,"the center of each stage target permits a complete descending landing");
+            if(i>=1 && i<=4) {
+                p.reset();p.elapsed=30;p.score=300;p.x=240;p.y=p.groundY()-p.radius()-1;p.vy=240;p.step();
+                check(!p.won && !p.lost && p.groundBounce>0,"neutral center misses shifted/narrower stage "+i+" target and gets a forgiving bounce");
+                p.steerTouch(center<240?-140:140);
+                for(int k=0;k<240 && !p.won && !p.lost;k++)p.step();
+                check(p.won && !p.lost,"intentional steering recovers into shifted stage "+i+" target");
+            }
+        }
+    }
+    private static void allCoursesWinAndRecycle() {
+        for(int i=0;i<StageCatalog.COUNT;i++) {
+            Physics p=stage(i);float initialBase=p.ropes[0].base;
+            int steps=0,warnings=0;
+            float previousLeft=p.leftWall(),previousRight=p.rightWall();
+            while(!p.lost && !p.won && steps++<240*120) {
+                safeSteer(p);p.step();
+                check(p.leftWall()>=previousLeft-.0001f && p.rightWall()<=previousRight+.0001f,
+                        "rope landings and fire dodges cannot widen the course walls");
+                previousLeft=p.leftWall();previousRight=p.rightWall();
+                for(Physics.FireHazard f:p.fireHazards)if(f.active && f.warningTime>0)warnings++;
+            }
+            check(p.won && !p.lost,"stage "+i+" can be won by actual gravity/rope progression and bounded steering; reason="+p.deathReason+", x="+p.x+", y="+p.y+", elapsed="+p.elapsed);
+            check(p.elapsed>8 && p.brokenCount>8 && p.ropes[0].base>initialBase,"the longer course uses and recycles its rope pool");
+            check(p.groundY()-p.cameraY<=Physics.H && p.cameraY>0 && p.y+p.radius()<=p.groundY()+.01f,"camera and target landing stay bounded");
+            if(i==StageCatalog.COUNT-1)check(warnings>0,"the winning final-stage run encounters real fire warnings");
+            for(Physics.Rope r:p.ropes)check(r.base<p.groundY()-300,"recycled mounts stop above the target floor");
+            System.out.printf("Stage %d PASS: %.2fs, %d cuts, score %d%n",i+1,p.elapsed,p.brokenCount,p.score);
+        }
+    }
+    private static void fireWarningAndContact() {
+        Physics p=stage(5);p.y=1800;p.cameraY=1370;p.vy=0;
+        for(Physics.Rope r:p.ropes)r.cut=12;
+        Physics.FireHazard spawned=null;
+        for(int i=0;i<500 && !p.lost && spawned==null;i++) {
+            p.step();for(Physics.FireHazard f:p.fireHazards)if(f.active){spawned=f;break;}
+        }
+        check(spawned!=null && spawned.warningTime>.5f && !p.lost,"a fireball first appears as a substantial warning, not an instant hit");
+        float warningX=spawned.x,warningRadius=spawned.radius;
+        p.reset();p.y=1800;p.cameraY=1370;p.vy=0;for(Physics.Rope r:p.ropes)r.cut=12;
+        Physics.FireHazard repeated=null;
+        for(int i=0;i<500 && repeated==null;i++){p.step();for(Physics.FireHazard f:p.fireHazards)if(f.active){repeated=f;break;}}
+        check(repeated!=null && repeated.x==warningX && repeated.radius==warningRadius,"restart replays the deterministic warning sequence for tests");
+        p.reset();p.y=1800;p.cameraY=1370;p.vy=0;
+        Physics.FireHazard f=p.fireHazards[0];f.active=true;f.warningTime=.5f;f.x=p.x;f.y=p.y;
+        p.step();check(!p.lost && f.warningTime>0,"a warning cannot kill even when staged at the character");
+        f.warningTime=0;f.x=p.x;f.y=p.y;p.step();
+        check(p.lost && "FALLING FIRE".equals(p.deathReason),"a live falling fireball has its own collision death reason");
+        p.reset(4);p.y=1800;p.vy=0;run(p,600);
+        for(Physics.FireHazard fire:p.fireHazards)check(!fire.active,"earlier Fire stages do not unexpectedly rain fire");
+    }
+    private static void floorRecoveryAndWinFreeze() {
+        Physics p=stage(0);p.x=153;p.y=p.groundY()-p.radius()-1;p.vy=600;p.step();
+        check(!p.won && !p.lost && p.vy<0 && p.groundBounce>0,"an off-target floor landing bounces without a false win");
+        p.steerTouch(150);for(int i=0;i<240 && !p.won && !p.lost;i++)p.step();
+        check(p.won && !p.lost,"a swipe can recover from the bounce into the target");
+        int score=p.score;float elapsed=p.elapsed,x=p.x;p.steerTouch(-340);
+        check(!p.jump(),"winning locks manual jump input");run(p,60);
+        check(p.won && !p.lost && p.score==score && p.elapsed==elapsed && p.x==x && p.winTime>.2f,"winning freezes score and touch input while its bounce continues");
+        run(p,1000);check(p.y+p.radius()<=p.groundY()+.01f && Float.isFinite(p.vy),"celebration stays bounded at the floor");
+        p.reset(3);p.x=(p.targetLeft()+p.targetRight())/2;p.y=p.groundY()+5000;p.vy=10000;p.step();
+        check(p.won && p.y+p.radius()<=p.groundY()+.01f && p.cameraY<p.groundY(),"a descending floor overshoot is safely clamped");
+        p.reset();check(p.stage.index==3 && !p.won && p.winTime==0 && p.score==0,"restart clears a win and retains the stage");
+        for(boolean right:new boolean[]{false,true}) {
+            p.reset();p.x=right?p.targetRight()-p.radius()+1:p.targetLeft()+p.radius()-1;p.y=p.groundY()-p.radius();p.vy=100;p.step();
+            check(!p.won,"partial contact beyond either target edge cannot win");
+        }
+    }
+    private static void stress() {
+        Physics p=stage(0);java.util.Random random=new java.util.Random(7);int deaths=0,wins=0;
+        for(int i=0;i<100000;i++) {
+            if(p.lost){p.reset(random.nextInt(StageCatalog.COUNT));deaths++;}
+            if(p.won && p.winTime>1.2f){p.reset(random.nextInt(StageCatalog.COUNT));wins++;}
+            if(i%6000==0){p.reset(random.nextInt(StageCatalog.COUNT));p.y=p.groundY()-p.radius()-1;p.vy=800;}
+            else {if(i%95==0)p.jump();if(i%180==0)p.steerTouch((random.nextFloat()*2-1)*500);}
+            p.step();
+            check(Float.isFinite(p.x)&&Float.isFinite(p.y)&&Float.isFinite(p.vx)&&Float.isFinite(p.vy)&&Float.isFinite(p.cameraY)
+                    &&Float.isFinite(p.winTime)&&Float.isFinite(p.landingPulse)&&Float.isFinite(p.groundBounce),"all gameplay/animation state stays finite");
+            check(!(p.won&&p.lost)&&p.cameraY>=0&&p.cameraY<p.groundY()&&p.mass()>=1&&p.mass()<=6.01f,"result, camera and weight bounds hold");
+            for(Physics.Rope r:p.ropes)for(int k=0;k<Physics.Rope.N;k++)check(Float.isFinite(r.x[k])&&Float.isFinite(r.y[k]),"rope nodes stay finite");
+            for(Physics.FireHazard f:p.fireHazards)check(Float.isFinite(f.x)&&Float.isFinite(f.y)&&Float.isFinite(f.warningTime)&&f.warningTime>=0,"the fixed fire pool stays finite");
+        }
+        check(deaths>0&&wins>0,"stress exercises hazards, victories, celebrations and restarts");
     }
     public static void main(String[] args) {
-        scoringAndWeight();
-        landingAnimationAndHeavyCut();
-        wallsJumpAndReset();
-        finiteCourseWinAndPersistentLayout();
-        offTargetBounceAndRecovery();
-        terminalWinAndCelebration();
-        stallingAndStress();
-        System.out.println("PASS: complete finite course win, landing/automatic jump, weight/cuts, fixed ropes, walls, manual controls, off-target recovery, target bounds, win freeze/celebration, floor/camera caps, restart, 100000 seeded stability steps (" + checks + " checks)");
+        catalogAndReset();ropesMassAndJump();touchDirectionAndRelease();sideHazardsAndNarrowing();jumpsNeverWidenHazards();
+        variedTargetsRequireSteering();allCoursesWinAndRecycle();fireWarningAndContact();floorRecoveryAndWinFreeze();stress();
+        System.out.println("PASS: six chapter courses, touch directions/release/no drift, ropes/weight, narrowing side hazards, warning fire/contact, floor recovery, terminal wins/reset and 100000 seeded stability steps ("+checks+" checks)");
     }
 }

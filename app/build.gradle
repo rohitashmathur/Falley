@@ -2,6 +2,6 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.perfgames.ropelab'
     compileSdk 36
-    defaultConfig { applicationId 'com.perfgames.falley'; minSdk 24; targetSdk 36; versionCode 3; versionName '1.0.0' }
+    defaultConfig { applicationId 'com.perfgames.falley'; minSdk 24; targetSdk 36; versionCode 4; versionName '2.0.0' }
     compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
 }

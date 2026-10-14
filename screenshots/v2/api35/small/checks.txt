@@ -1,0 +1,417 @@
+PASS no interrupted fixture; recover with -RestoreOnly if needed
+PASS preferences committed
+PASS original preferences backed up
+PASS deterministic emulator settings installed
+PASS native Canvas view laid out
+PASS artifact directory ready
+PASS prior test artifact cleared splash.png
+PASS prior test artifact cleared home.png
+PASS prior test artifact cleared how-to-play.png
+PASS prior test artifact cleared settings-preset-0.png
+PASS prior test artifact cleared settings-preset-1.png
+PASS prior test artifact cleared settings-preset-2.png
+PASS prior test artifact cleared chapters.png
+PASS prior test artifact cleared gameplay.png
+PASS prior test artifact cleared swipe-right-held.png
+PASS prior test artifact cleared pause.png
+PASS prior test artifact cleared chapter-1-gameplay.png
+PASS prior test artifact cleared stage-1-target-bounce-controlled.png
+PASS prior test artifact cleared stage-1-victory-controlled.png
+PASS prior test artifact cleared stage-2-victory-controlled.png
+PASS prior test artifact cleared chapter-2-gameplay.png
+PASS prior test artifact cleared stage-3-victory-controlled.png
+PASS prior test artifact cleared stage-4-victory-controlled.png
+PASS prior test artifact cleared chapter-3-gameplay.png
+PASS prior test artifact cleared stage-5-victory-controlled.png
+PASS prior test artifact cleared stage-6-target-bounce-controlled.png
+PASS prior test artifact cleared stage-6-victory-controlled.png
+PASS prior test artifact cleared chapter-1-hazard-death-controlled.png
+PASS prior test artifact cleared chapter-2-hazard-death-controlled.png
+PASS prior test artifact cleared chapter-3-hazard-death-controlled.png
+PASS prior test artifact cleared last-stage-fire-warning-controlled.png
+PASS prior test artifact cleared last-stage-fire-falling-controlled.png
+PASS prior test artifact cleared last-stage-fire-death-controlled.png
+PASS prior test artifact cleared home-final.png
+PASS prior test artifact cleared checks.txt
+PASS cold launch begins custom intro (expected 6, actual 6)
+PASS custom intro remains visible before its 1.5s transition (expected 6, actual 6)
+PASS native compositor screenshot splash
+PASS screenshot saved splash
+PASS removed control absent: zero
+PASS removed control absent: play
+PASS removed control absent: settings
+PASS native screen transition 0 (expected 0, actual 0)
+PASS native compositor screenshot home
+PASS screenshot saved home
+PASS home physics frozen
+PASS removed control absent: zero
+PASS removed control absent: restart
+PASS removed control absent: pause
+PASS tap x inside display
+PASS tap x inside display
+PASS How to Play opened by touch (expected 3, actual 3)
+PASS native compositor screenshot how-to-play
+PASS screenshot saved how-to-play
+PASS help physics frozen
+PASS Android back leaves help (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS home settings opened (expected 2, actual 2)
+PASS removed control absent: zero
+PASS tap x inside display
+PASS tap x inside display
+PASS active motion preset 0
+PASS preset 0 saved
+PASS native compositor screenshot settings-preset-0
+PASS screenshot saved settings-preset-0
+PASS settings physics frozen preset 0
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreated Activity opens safe home (expected 0, actual 0)
+PASS preset 0 survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS home settings opened (expected 2, actual 2)
+PASS removed control absent: zero
+PASS tap x inside display
+PASS tap x inside display
+PASS active motion preset 1
+PASS preset 1 saved
+PASS native compositor screenshot settings-preset-1
+PASS screenshot saved settings-preset-1
+PASS settings physics frozen preset 1
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreated Activity opens safe home (expected 0, actual 0)
+PASS preset 1 survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS home settings opened (expected 2, actual 2)
+PASS removed control absent: zero
+PASS tap x inside display
+PASS tap x inside display
+PASS active motion preset 2
+PASS preset 2 saved
+PASS native compositor screenshot settings-preset-2
+PASS screenshot saved settings-preset-2
+PASS settings physics frozen preset 2
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreated Activity opens safe home (expected 0, actual 0)
+PASS preset 2 survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS settings reopened after recreation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sensor switch respects hardware availability
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting saves by touch
+PASS haptics setting saves by touch
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS sound and haptics survive Activity recreation
+PASS touch-only setting survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Done leaves home settings (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter selection opens (expected 7, actual 7)
+PASS native compositor screenshot chapters
+PASS screenshot saved chapters
+PASS chapter menu physics frozen
+PASS stage 1 has a real rendered card
+PASS stage 2 has a real rendered card
+PASS stage 3 has a real rendered card
+PASS stage 4 has a real rendered card
+PASS stage 5 has a real rendered card
+PASS stage 6 has a real rendered card
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card begins its run (expected 1, actual 1)
+PASS chapter card selects and persists stage 4
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreation skips intro and opens home (expected 0, actual 0)
+PASS selected stage survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS home Play uses selected stage (expected 1, actual 1)
+PASS home retains selected stage 4
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 1 (expected 1, actual 1)
+PASS stage selection matches card 0
+PASS stage 1 ready for touch tests (expected 1, actual 1)
+PASS native compositor screenshot gameplay
+PASS screenshot saved gameplay
+PASS removed control absent: zero
+PASS removed control absent: cycle_preset
+PASS removed control absent: motion
+PASS Restart stays in header
+PASS Pause stays in header
+PASS Jump uses full bottom width
+PASS gameplay advances under gravity
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS touch down alone does not jump
+PASS tap x inside display
+PASS right swipe chooses positive touch velocity
+PASS right swipe moves right without an automatic jump
+PASS native compositor screenshot swipe-right-held
+PASS screenshot saved swipe-right-held
+PASS tap x inside display
+PASS swipe release clears touch velocity
+PASS release stops horizontal drift
+PASS tap x inside display
+PASS tap x inside display
+PASS left swipe moves left without an automatic jump
+PASS tap x inside display
+PASS cancel clears swipe velocity
+PASS cancel stops horizontal drift
+PASS rope contact cannot push an idle touch-only avatar sideways
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Jump button sends character upward
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS short arena tap jumps on release
+PASS tap x inside display
+PASS tap x inside display
+PASS Pause opens by touch (expected 4, actual 4)
+PASS native compositor screenshot pause
+PASS screenshot saved pause
+PASS pause physics frozen
+PASS tap x inside display
+PASS tap x inside display
+PASS pause settings opened (expected 2, actual 2)
+PASS removed control absent: zero
+PASS pause settings physics frozen
+PASS Android back returns settings to pause (expected 4, actual 4)
+PASS return to pause stays frozen
+PASS Android back resumes pause (expected 1, actual 1)
+PASS resume advances the gameplay clock
+PASS tap x inside display
+PASS tap x inside display
+PASS header Restart starts a fresh run (expected 1, actual 1)
+PASS Restart resets elapsed time
+PASS Restart clears terminal states
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS pause Restart resumes fresh run (expected 1, actual 1)
+PASS pause Restart resets elapsed time
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS home freezes an abandoned run
+PASS tap x inside display
+PASS tap x inside display
+PASS new run begins from home (expected 1, actual 1)
+PASS new home run resets timer
+PASS next stage is 1
+PASS native compositor screenshot chapter-1-gameplay
+PASS screenshot saved chapter-1-gameplay
+PASS native frame transition won=true
+PASS stage 1 target landing wins
+PASS stage 1 target physically bounces
+PASS native compositor screenshot stage-1-target-bounce-controlled
+PASS screenshot saved stage-1-target-bounce-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-1-victory-controlled
+PASS screenshot saved stage-1-victory-controlled
+PASS stage 1 records a single win
+PASS stage 1 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 2
+PASS native frame transition won=true
+PASS stage 2 target landing wins
+PASS stage 2 target physically bounces
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-2-victory-controlled
+PASS screenshot saved stage-2-victory-controlled
+PASS stage 2 records a single win
+PASS stage 2 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 3
+PASS native compositor screenshot chapter-2-gameplay
+PASS screenshot saved chapter-2-gameplay
+PASS native frame transition won=true
+PASS stage 3 target landing wins
+PASS stage 3 target physically bounces
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-3-victory-controlled
+PASS screenshot saved stage-3-victory-controlled
+PASS stage 3 records a single win
+PASS stage 3 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 4
+PASS native frame transition won=true
+PASS stage 4 target landing wins
+PASS stage 4 target physically bounces
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-4-victory-controlled
+PASS screenshot saved stage-4-victory-controlled
+PASS stage 4 records a single win
+PASS stage 4 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 5
+PASS native compositor screenshot chapter-3-gameplay
+PASS screenshot saved chapter-3-gameplay
+PASS native frame transition won=true
+PASS stage 5 target landing wins
+PASS stage 5 target physically bounces
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-5-victory-controlled
+PASS screenshot saved stage-5-victory-controlled
+PASS stage 5 records a single win
+PASS stage 5 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 6
+PASS native frame transition won=true
+PASS stage 6 target landing wins
+PASS stage 6 target physically bounces
+PASS native compositor screenshot stage-6-target-bounce-controlled
+PASS screenshot saved stage-6-target-bounce-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-6-victory-controlled
+PASS screenshot saved stage-6-victory-controlled
+PASS stage 6 records a single win
+PASS stage 6 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS removed control absent: next_stage
+PASS tap x inside display
+PASS tap x inside display
+PASS last stage Replay restarts (expected 1, actual 1)
+PASS replay clears terminal victory
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS records survive recreation (expected 0, actual 0)
+PASS last selected stage persists
+PASS persisted record for stage 1
+PASS persisted record for stage 2
+PASS persisted record for stage 3
+PASS persisted record for stage 4
+PASS persisted record for stage 5
+PASS persisted record for stage 6
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 1 (expected 1, actual 1)
+PASS stage selection matches card 0
+PASS native screen transition 5 (expected 5, actual 5)
+PASS chapter 1 hazard collision loses
+PASS chapter hazard reason matches its visuals: LASER
+PASS native compositor screenshot chapter-1-hazard-death-controlled
+PASS screenshot saved chapter-1-hazard-death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 3 (expected 1, actual 1)
+PASS stage selection matches card 2
+PASS native screen transition 5 (expected 5, actual 5)
+PASS chapter 2 hazard collision loses
+PASS chapter hazard reason matches its visuals: SPIKES
+PASS native compositor screenshot chapter-2-hazard-death-controlled
+PASS screenshot saved chapter-2-hazard-death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 5 (expected 1, actual 1)
+PASS stage selection matches card 4
+PASS native screen transition 5 (expected 5, actual 5)
+PASS chapter 3 hazard collision loses
+PASS chapter hazard reason matches its visuals: FIRE
+PASS native compositor screenshot chapter-3-hazard-death-controlled
+PASS screenshot saved chapter-3-hazard-death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 6 (expected 1, actual 1)
+PASS stage selection matches card 5
+PASS last stage enables falling fire
+PASS native compositor screenshot last-stage-fire-warning-controlled
+PASS screenshot saved last-stage-fire-warning-controlled
+PASS warning telegraph is safe before fire falls
+PASS warning countdown remains visible
+PASS active fire actually descends
+PASS visible falling fire starts clear of avatar
+PASS native compositor screenshot last-stage-fire-falling-controlled
+PASS screenshot saved last-stage-fire-falling-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS falling fire overlap kills avatar
+PASS falling fire uses its specific death reason
+PASS fire death cannot add a victory
+PASS native compositor screenshot last-stage-fire-death-controlled
+PASS screenshot saved last-stage-fire-death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS native compositor screenshot home-final
+PASS screenshot saved home-final
+PASS Activity finished before preferences restored
+PASS preferences committed
+PASS original preferences restored exactly
+PASS verified backup cleared
+PASS: native Falley suite; checks=416; captures=28; viewport=small; V2 actual touch swipes, chapter navigation and Activity recreation; controlled stage landing/hazard fixtures, not a natural phone playtest; original preferences restored

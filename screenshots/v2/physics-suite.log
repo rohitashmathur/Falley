@@ -1,0 +1,10 @@
+Stage 1 PASS: 10.12s, 21 cuts, score 831
+Stage 2 PASS: 11.15s, 25 cuts, score 961
+Stage 3 PASS: 12.20s, 30 cuts, score 1121
+Stage 4 PASS: 13.25s, 35 cuts, score 1282
+Stage 5 PASS: 14.29s, 39 cuts, score 1412
+Stage 6 PASS: 15.35s, 44 cuts, score 1573
+PASS: six chapter courses, touch directions/release/no drift, ropes/weight, narrowing side hazards, warning fire/contact, floor recovery, terminal wins/reset and 100000 seeded stability steps (20640127 checks)
+PASS: touch startup/no drift, tap tremor, bilateral swipe direction, bounded velocity, release/cancel stop, reversal, return-to-start, vertical swipe and invalid coordinates (16 checks)
+PASS: sensor startup/auto-centering, accelerometer fallback, calibration, resume reset, Loose/Balanced/Tight response, sample-rate consistency, gyro reaction, invalid samples and drift correction (17 checks)
+PASS: local profile defaults/settings, sanitization, global and per-stage loss/win accounting, best score, fastest time, selected stage and independent records (21 checks)

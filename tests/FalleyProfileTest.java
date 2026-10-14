@@ -52,6 +52,31 @@ public final class FalleyProfileTest {
                 "an invalid result time cannot overwrite a valid fastest time");
         check(!profile.motion && !profile.sound && !profile.haptics,
                 "recording gameplay never changes user control/feedback settings");
-        System.out.println("PASS: local profile defaults, valid settings preservation, corrupted record sanitization, loss/win accounting, best score, fastest time and settings independence (" + checks + " checks)");
+        check(profile.best.length == StageCatalog.COUNT && profile.stageWins.length == StageCatalog.COUNT
+                && profile.stageTimes.length == StageCatalog.COUNT, "each chapter stage has its own local record");
+        int firstStageBest = profile.best[0], firstStageWins = profile.stageWins[0];
+        float firstStageTime = profile.stageTimes[0];
+        profile.recordResult(1, true, 500, 8);
+        check(profile.best[1] == 500 && profile.stageWins[1] == 1 && profile.stageTimes[1] == 8,
+                "a new stage stores its own successful result");
+        check(profile.best[0] == firstStageBest && profile.stageWins[0] == firstStageWins
+                && profile.stageTimes[0] == firstStageTime, "another stage cannot overwrite previous stage records");
+        profile.recordResult(2, false, 600, 4);
+        check(profile.best[2] == 600 && profile.stageWins[2] == 0 && profile.stageTimes[2] == 0
+                && profile.bestScore == 600 && profile.fastestWin == 8,
+                "per-stage loss scores update independently without inventing successful finishes");
+        profile.selectedStage = 99;
+        profile.best[3] = -20;
+        profile.stageWins[3] = -1;
+        profile.stageTimes[3] = Float.POSITIVE_INFINITY;
+        profile.sanitize();
+        check(profile.selectedStage >= 0 && profile.selectedStage < StageCatalog.COUNT
+                && profile.best[3] == 0 && profile.stageWins[3] == 0 && profile.stageTimes[3] == 0,
+                "invalid saved stage selection and records sanitize into safe bounds");
+        profile.selectedStage = 4;
+        profile.recordResult(true, 10, 12);
+        check(profile.stageWins[4] == 1 && profile.stageTimes[4] == 12 && profile.selectedStage == 4,
+                "the compatibility result entry point records the persisted selected stage");
+        System.out.println("PASS: local profile defaults/settings, sanitization, global and per-stage loss/win accounting, best score, fastest time, selected stage and independent records (" + checks + " checks)");
     }
 }

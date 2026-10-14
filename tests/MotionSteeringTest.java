@@ -31,7 +31,7 @@ public final class MotionSteeringTest {
                 "accelerometer-only fallback steers in both directions");
         check(Math.abs(right.acceleration() + left.acceleration()) < 1,
                 "matching opposite tilts produce symmetric steering");
-        check(right.calibrate() && right.acceleration() == 0, "ZERO centers the current pose immediately");
+        check(right.calibrate() && right.acceleration() == 0, "internal calibration centers the current pose immediately");
         for (int i = 1; i <= 60; i++) right.acceptAccelerometer(START + 2000000000L + i * 16666667L, -3, 0, 9.3f);
         check(Math.abs(right.acceleration()) < 15, "holding the calibrated pose stays near neutral");
         right.resetSamples();
@@ -78,6 +78,6 @@ public final class MotionSteeringTest {
         centeringAndFallback();
         responsePresetsAndTiming();
         gyroReactionAndInvalidSamples();
-        System.out.println("PASS: sensor startup/centering, accelerometer fallback, ZERO calibration, resume reset, Loose/Balanced/Tight response, sample-rate consistency, gyro reaction, invalid samples and drift correction (" + checks + " checks)");
+        System.out.println("PASS: sensor startup/auto-centering, accelerometer fallback, calibration, resume reset, Loose/Balanced/Tight response, sample-rate consistency, gyro reaction, invalid samples and drift correction (" + checks + " checks)");
     }
 }

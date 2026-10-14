@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: native Falley suite; checks=416; captures=28; viewport=tall; V2 actual touch swipes, chapter navigation and Activity recreation; controlled stage landing/hazard fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1

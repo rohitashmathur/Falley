@@ -14,7 +14,7 @@ $root=Split-Path -Parent $PSScriptRoot
 $frontlineRoot=Split-Path -Parent (Split-Path -Parent $root)
 if (!$SdkRoot) { $SdkRoot=Join-Path $frontlineRoot '.toolchain\android-sdk' }
 if (!$JdkRoot) { $JdkRoot=(Get-ChildItem -LiteralPath (Join-Path $frontlineRoot '.toolchain') -Directory -Filter 'jdk-*' | Select-Object -First 1).FullName }
-if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root 'releases\falley-v1-ui-tests' }
+if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root 'build\device\falley-v2-ui-tests' }
 if (!$KeyStore) { $KeyStore=Join-Path $root 'build\debug.keystore' }
 $output=Join-Path $root 'build\android-ui-falley'
 $apk=Join-Path $output 'falley-ui-tests.apk'
@@ -83,7 +83,7 @@ try {
         Start-Sleep -Milliseconds 650
         try { Instrument 'suite' $name }
         finally {
-            Adb @('pull',"/sdcard/Android/data/com.perfgames.falley/files/falley-native/$name",$ArtifactRoot) | Out-Null
+            Adb @('pull',"/sdcard/Android/data/com.perfgames.falley/files/falley-native-v2/$name",$ArtifactRoot) | Out-Null
         }
     }
 } catch { $failure=$_ }
@@ -95,4 +95,4 @@ finally {
     if ($restored) { try { Adb @('uninstall','com.perfgames.falley.tests') | Out-Null } catch { if (!$failure) { $failure=$_ } } }
 }
 if ($failure) { throw $failure }
-Write-Host "PASS: Falley V1 native touch navigation, persistence, paused timing and controlled landing fixtures. Screenshots and logs: $ArtifactRoot"
+Write-Host "PASS: Falley V2 native swipe steering, chapters, settings, stage records and controlled hazard/landing fixtures. Screenshots and logs: $ArtifactRoot"
