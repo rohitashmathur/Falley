@@ -29,7 +29,7 @@ public final class NativeFalleyTest extends Instrumentation {
     private static final String APP = "com.perfgames.falley";
     private static final String ACTIVITY = "com.perfgames.ropelab.MainActivity";
     private static final String BACKUP_MARKER = "fixture-original-ready";
-    private static final int HOME=0, PLAY=1, SETTINGS=2, HELP=3, PAUSE=4, RESULT=5, SPLASH=6, CHAPTERS=7;
+    private static final int HOME=0, PLAY=1, SETTINGS=2, HELP=3, PAUSE=4, RESULT=5, SPLASH=6, CHAPTERS=7, ARCADE_SETUP=8;
     private Activity activity;
     private View arena;
     private Object physics;
@@ -44,7 +44,7 @@ public final class NativeFalleyTest extends Instrumentation {
         super.onCreate(arguments);
         Bundle args = arguments == null ? new Bundle() : arguments;
         mode=args.getString("mode","suite"); shot=args.getString("shot","small");
-        if ((!mode.equals("suite") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
+        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
             throw new IllegalArgumentException("Falley test harness arguments");
         start();
     }
@@ -54,13 +54,16 @@ public final class NativeFalleyTest extends Instrumentation {
         backup=getTargetContext().getSharedPreferences("falley-native-original",Context.MODE_PRIVATE);
         Throwable failure=null;
         try {
-            if (mode.equals("suite")) {
+            if (mode.equals("suite")||mode.equals("effects")) {
                 require(!backup.getBoolean(BACKUP_MARKER,false),"no interrupted fixture; recover with -RestoreOnly if needed");
                 copy(backup,storage.getAll());
                 require(backup.edit().putBoolean(BACKUP_MARKER,true).commit(),"original preferences backed up");
                 require(storage.edit().clear().putInt("preset",1).putBoolean("motion",false)
-                        .putBoolean("sound",false).putBoolean("haptics",false).commit(),"deterministic emulator settings installed");
+                        .putBoolean("sound",false).putBoolean("haptics",false).putBoolean("blood",true).commit(),"deterministic emulator settings installed");
                 launch();
+                if (mode.equals("effects")) {
+                    waitScreen(HOME,4000); fireRain(); threeBeamVisuals();
+                } else {
                 homeAndHelp();
                 settingsAndRecreation();
                 chaptersAndPersistence();
@@ -68,7 +71,12 @@ public final class NativeFalleyTest extends Instrumentation {
                 allStageLandings();
                 chapterHazards();
                 fireRain();
+                fatalFloor();
+                arcadeSetupAndPersistence();
+                arcadeSurvivalAndRecords();
+                arcadeBeamHazards();
                 capture("home-final");
+                }
             }
         } catch (Throwable error) {
             failure=error;
@@ -80,9 +88,11 @@ public final class NativeFalleyTest extends Instrumentation {
             try { close(); restoreOriginal(); }
             catch (Throwable cleanup) { if (failure==null) failure=cleanup; else failure.addSuppressed(cleanup); }
         }
+        String coverage=mode.equals("effects") ? "focused fire/three-beam warnings, collisions and early/late visual effects"
+                : mode.equals("restore") ? "preference recovery only" : "V3 actual touch, Arcade setup, chapter navigation and Activity recreation";
         String summary=failure==null
             ? "PASS: native Falley "+mode+"; checks="+checks+"; captures="+captures+"; viewport="+shot
-                +"; V2 actual touch swipes, chapter navigation and Activity recreation; controlled stage landing/hazard fixtures, not a natural phone playtest; original preferences restored\n"
+                +"; "+coverage+"; controlled collision/death fixtures, not a natural phone playtest; original preferences restored\n"
             : "FAIL: native Falley "+mode+"; checks="+checks+"; captures="+captures+"; viewport="+shot
                 +"\n"+android.util.Log.getStackTraceString(failure);
         if (output!=null) {
@@ -125,12 +135,14 @@ public final class NativeFalleyTest extends Instrumentation {
         // Keep deterministic touch steering during gameplay; Android sensor comfort needs a phone.
         if (storage.getBoolean("motion",false)) click("motion");
         click("sound"); click("haptics");
+        click("blood"); require(!storage.getBoolean("blood",true),"blood effects switch saves");
         require(storage.getBoolean("sound",false),"sound setting saves by touch");
         require(storage.getBoolean("haptics",false),"haptics setting saves by touch");
         recreate();
         require(storage.getBoolean("sound",false)&&storage.getBoolean("haptics",false),"sound and haptics survive Activity recreation");
         require(!storage.getBoolean("motion",true),"touch-only setting survives Activity recreation");
-        click("settings"); click("sound"); click("haptics"); click("back");
+        require(!storage.getBoolean("blood",true),"blood effects setting survives Activity recreation");
+        click("settings"); click("sound"); click("haptics"); click("blood"); click("back");
         requireScreen(HOME,"Done leaves home settings");
     }
 
@@ -164,15 +176,23 @@ public final class NativeFalleyTest extends Instrumentation {
         require(physicsFloat("x")>240f&&physicsFloat("vy")>0,"right swipe moves right without an automatic jump");
         capture("swipe-right-held"); release(295,390); require(touchVelocity()==0,"swipe release clears touch velocity");
         float releasedX=physicsFloat("x"); runFrames(100);
-        require(Math.abs(physicsFloat("x")-releasedX)<1f,"release stops horizontal drift");
-        ui(() -> { write(physics,"x",240f); write(physics,"y",350f); write(physics,"vy",120f); });
+        require(Math.abs(physicsFloat("x")-releasedX)<20f,"released environmental drift stays bounded");
+        require(physicsCallFloat("steeringVelocity")==0,"release clears the model steering command");
+        ui(() -> { write(physics,"x",240f); write(physics,"y",350f); write(physics,"vy",120f); write(physics,"vx",0f); });
         dragHeld(240,390,185,390); runFrames(110);
         require(physicsFloat("x")<240f&&physicsFloat("vy")>0,"left swipe moves left without an automatic jump");
         pointer(MotionEvent.ACTION_CANCEL,185,390); settle(35); require(touchVelocity()==0,"cancel clears swipe velocity");
         releasedX=physicsFloat("x"); runFrames(100);
-        require(Math.abs(physicsFloat("x")-releasedX)<1f,"cancel stops horizontal drift");
-        ui(() -> { write(physics,"x",200f); write(physics,"y",447f); write(physics,"vy",120f); });
-        runFrames(260); require(Math.abs(physicsFloat("x")-200f)<1f,"rope contact cannot push an idle touch-only avatar sideways");
+        require(Math.abs(physicsFloat("x")-releasedX)<20f,"canceled environmental drift stays bounded");
+        require(physicsCallFloat("steeringVelocity")==0,"cancel clears the model steering command");
+        ui(() -> { write(physics,"x",200f); write(physics,"y",447f); write(physics,"vy",120f); write(physics,"vx",0f); });
+        runFrames(260); require(Math.abs(physicsFloat("x")-200f)<40f,"idle rope motion and wind stay controllable");
+        ui(() -> { write(physics,"x",240f); write(physics,"y",350f); write(physics,"vy",0f); write(physics,"vx",0f); });
+        float drift=physicsCallFloat("driftVelocity");
+        float counter=drift>=0?-65f:65f;
+        dragHeld(240,390,240+counter,390); runFrames(140);
+        require((physicsFloat("x")-240f)*counter>0,"countersteering overcomes environmental drift");
+        pointer(MotionEvent.ACTION_CANCEL,240+counter,390); settle(35);
         click("restart"); click("jump"); require(physicsFloat("vy")<0,"Jump button sends character upward");
         click("restart"); tap(240,390); require(physicsFloat("vy")<0,"short arena tap jumps on release");
         click("pause"); requireScreen(PAUSE,"Pause opens by touch"); capture("pause"); freeze("pause physics frozen");
@@ -230,13 +250,16 @@ public final class NativeFalleyTest extends Instrumentation {
         for (int chapter=0;chapter<3;chapter++) {
             final String reason=expected[chapter];
             selectStage(chapter*2); ui(() -> { write(physics,"x",10f); write(physics,"vx",0f); write(physics,"gx",0f); arena.invalidate(); });
-            waitScreen(RESULT,2500); require(physicsBool("lost")&&!physicsBool("won"),"chapter "+(chapter+1)+" hazard collision loses");
+            runUntilPhysics("lost",true,1500); runFrames(160);
+            capture("chapter-"+(chapter+1)+"-death-effect-controlled");
+            waitScreen(RESULT,3500); require(physicsBool("lost")&&!physicsBool("won"),"chapter "+(chapter+1)+" hazard collision loses");
             ui(() -> require(reason.equals(read(physics,"deathReason")),"chapter hazard reason matches its visuals: "+reason));
             capture("chapter-"+(chapter+1)+"-hazard-death-controlled"); click("home");
         }
     }
 
     private void fireRain() throws Exception {
+        int previousWins=storage.getInt("stage_wins_5",0);
         selectStage(5);
         ui(() -> {
             require((Boolean)read(read(physics,"stage"),"fireRain"),"last stage enables falling fire");
@@ -262,16 +285,163 @@ public final class NativeFalleyTest extends Instrumentation {
             write(fire,"x",read(physics,"x")); write(fire,"y",read(physics,"y")); write(fire,"speed",0f);
             write(fire,"warningTime",0f); arena.invalidate();
         });
-        waitScreen(RESULT,2500);
+        runUntilPhysics("lost",true,1500); runFrames(160); capture("last-stage-fire-death-effect-controlled");
+        runFrames(1240); requireScreen(PLAY,"fire dissolves before the result overlay"); capture("last-stage-fire-death-ash-controlled");
+        waitScreen(RESULT,3500);
         require(physicsBool("lost")&&!physicsBool("won"),"falling fire overlap kills avatar");
         ui(() -> require("FALLING FIRE".equals(read(physics,"deathReason")),"falling fire uses its specific death reason"));
-        require(storage.getInt("stage_wins_5",0)==1,"fire death cannot add a victory");
+        require(storage.getInt("stage_wins_5",0)==previousWins,"fire death cannot add a victory");
         capture("last-stage-fire-death-controlled"); click("home");
+    }
+
+    private void fatalFloor() throws Exception {
+        selectStage(3);
+        ui(() -> {
+            float ground=((Number)call(physics,"groundY")).floatValue(), radius=((Number)call(physics,"radius")).floatValue();
+            write(physics,"x",290f); write(physics,"y",ground-radius-4f); write(physics,"vy",120f);
+            write(physics,"vx",0f); write(physics,"cameraY",ground-660f); arena.invalidate();
+        });
+        runUntilPhysics("lost",true,1500);
+        ui(() -> require("HARD LANDING".equals(read(physics,"deathReason")),"late-stage off-target floor landing is fatal"));
+        require(!physicsBool("won"),"hard landing cannot win"); runFrames(160); capture("hard-floor-death-effect-controlled");
+        waitScreen(RESULT,3500); capture("hard-floor-result-controlled");
+        require(storage.getInt("stage_wins_3",0)==1,"hard landing leaves campaign victory count unchanged"); click("home");
+    }
+
+    private void arcadeSetupAndPersistence() throws Exception {
+        click("arcade"); requireScreen(ARCADE_SETUP,"Arcade opens its setup screen"); freeze("Arcade setup freezes gameplay");
+        for (int difficulty=0;difficulty<3;difficulty++) {
+            click("difficulty_"+difficulty);
+            require(storage.getInt("arcadeDifficulty",-1)==difficulty,"Arcade difficulty "+difficulty+" saved by touch");
+            capture("arcade-setup-difficulty-"+difficulty);
+            recreate(); requireScreen(HOME,"Arcade setup recreation returns to home"); click("arcade");
+            require(storage.getInt("arcadeDifficulty",-1)==difficulty,"Arcade difficulty survives Activity recreation");
+        }
+        click("arcade_fire"); click("arcade_top"); click("arcade_side");
+        require(storage.getInt("arcadeHazards",-1)==8,"three hazard toggles leave lightning enabled");
+        click("arcade_lightning"); require(storage.getInt("arcadeHazards",-1)==8,"last enabled hazard cannot be disabled");
+        capture("arcade-last-hazard-protected");
+        click("arcade_fire"); click("arcade_top"); click("arcade_side");
+        require(storage.getInt("arcadeHazards",-1)==15,"all four hazard groups can be re-enabled");
+        recreate(); click("arcade"); require(storage.getInt("arcadeHazards",-1)==15,"hazard configuration survives recreation");
+        back(); requireScreen(HOME,"Android Back leaves Arcade setup");
+    }
+
+    private void arcadeSurvivalAndRecords() throws Exception {
+        Map<String,Object> campaign=campaignRecords();
+        startArcade(1,15); require(physicsBool("arcade"),"Start Arcade uses survival physics");
+        runFrames(650); require(!physicsBool("won")&&!physicsBool("lost"),"Arcade run remains live after gravity frames");
+        ui(() -> {
+            write(physics,"x",240f); write(physics,"y",10000f); write(physics,"vy",0f); write(physics,"vx",0f); write(physics,"cameraY",9570f);
+            // A staged score above all campaign fixture records makes record isolation observable.
+            write(physics,"elapsed",40f);
+        });
+        runFrames(100); require(physicsFloat("y")>10000f&&!physicsBool("won")&&!physicsBool("lost"),"Arcade continues below every campaign floor");
+        capture("arcade-survival-controlled");
+        click("pause"); freeze("Arcade pause freezes survival clock"); click("settings"); requireScreen(SETTINGS,"Arcade pause opens settings");
+        freeze("Arcade settings freeze survival clock"); back(); requireScreen(PAUSE,"Arcade settings return to pause"); back(); requireScreen(PLAY,"Back resumes Arcade");
+        stageBeam(2,0f); runUntilPhysics("lost",true,1500); runFrames(160); capture("arcade-first-death-effect-controlled");
+        waitScreen(RESULT,3500); capture("arcade-result-controlled");
+        require(storage.getInt("arcade_runs_1",0)==1&&storage.getInt("arcade_best_1",0)>=400&&storage.getFloat("arcade_longest_1",0)>=40f,"Arcade writes its separate score, time and run record");
+        require(campaign.equals(campaignRecords()),"Arcade results do not alter campaign records");
+        freeze("Arcade result freezes physics"); require(storage.getInt("arcade_runs_1",0)==1,"Arcade result redraw records the run once");
+        click("restart"); requireScreen(PLAY,"Arcade Replay starts a new survival run");
+        require(physicsBool("arcade")&&!physicsBool("lost"),"Arcade Replay retains its mode and clears death");
+        ui(() -> require(((Number)read(physics,"arcadeDifficulty")).intValue()==1&&((Number)read(physics,"arcadeHazards")).intValue()==15,"Arcade Replay retains difficulty and hazard configuration"));
+        goHome(); recreate();
+        require(storage.getInt("arcade_runs_1",0)==1,"Arcade record survives Activity recreation");
+        require(campaign.equals(campaignRecords()),"Arcade recreation preserves campaign records");
+    }
+
+    private void arcadeBeamHazards() throws Exception {
+        threeBeamVisuals();
+        beamSweepFixture();
+        require(storage.getInt("arcade_runs_0",0)==0&&storage.getInt("arcade_runs_2",0)==0,"Standard Arcade records do not contaminate other difficulties");
+        click("play"); requireScreen(PLAY,"campaign Play remains available after Arcade");
+        require(!physicsBool("arcade")&&stageIndex()==storage.getInt("selectedStage",-1),"home Campaign restores the selected chapter rather than Arcade mode");
+        goHome();
+    }
+
+    private void threeBeamVisuals() throws Exception {
+        int[] kinds={2,4,8}; String[] reasons={"TOP LASER","SIDE LASER","LIGHTNING"};
+        for (int i=0;i<kinds.length;i++) {
+            int kind=kinds[i]; final String reason=reasons[i]; String name=kind==2?"top-laser":kind==4?"side-laser":"lightning";
+            startArcade(1,kind); stageBeam(kind,.5f); capture("arcade-"+name+"-warning-controlled");
+            runFrames(100); require(!physicsBool("lost"),reason+" warning is nonlethal");
+            stageBeam(kind,0f); runUntilPhysics("lost",true,1500);
+            ui(() -> require(reason.equals(read(physics,"deathReason")),"distinct Arcade collision reason: "+reason));
+            runFrames(160); capture("arcade-"+name+"-death-effect-controlled");
+            if (kind==8) { runFrames(1240); requireScreen(PLAY,"lightning disintegrates before the result overlay"); capture("arcade-lightning-death-ash-controlled"); }
+            waitScreen(RESULT,3500); capture("arcade-"+name+"-result-controlled"); click("home");
+        }
+    }
+
+    private void stageBeam(int kind,float warning) throws Exception {
+        ui(() -> {
+            Object beam=((Object[])read(physics,"beamHazards"))[0]; float x=((Number)read(physics,"x")).floatValue();
+            float y=((Number)read(physics,"y")).floatValue(),camera=((Number)read(physics,"cameraY")).floatValue();
+            write(beam,"active",true); write(beam,"followCamera",false); write(beam,"kind",kind); write(beam,"warningTime",warning); write(beam,"liveTime",1f); write(beam,"width",kind==8?14f:8f);
+            float left=((Number)call(physics,"leftWall")).floatValue()+((Number)call(physics,"hazardInset")).floatValue();
+            float right=((Number)call(physics,"rightWall")).floatValue()-((Number)call(physics,"hazardInset")).floatValue();
+            if (kind==4) {
+                float length=(right-left)*.56f;
+                write(beam,"x1",left); write(beam,"y1",y); write(beam,"x2",left+length); write(beam,"y2",y);
+                if (warning>0) write(physics,"x",left+length*.65f);
+            } else if (kind==8) {
+                float x1=left+8f,x2=right-8f,y1=camera+180f,y2=camera+710f;
+                write(beam,"x1",x1); write(beam,"y1",y1); write(beam,"x2",x2); write(beam,"y2",y2);
+                if (warning>0) write(physics,"x",x1+(x2-x1)*(y-y1)/(y2-y1));
+            } else { write(beam,"x1",x); write(beam,"y1",camera+170f); write(beam,"x2",x); write(beam,"y2",camera+700f); }
+            arena.invalidate();
+        });
+    }
+
+    private void beamSweepFixture() throws Exception {
+        startArcade(1,2);
+        ui(() -> {
+            // A tiny grazing pass is clear at BOTH endpoints but intersects a beam's round tip
+            // between them. Endpoint-only collision checks miss this at normal capped speed.
+            float dt=((Number)read(physics.getClass(),"DT")).floatValue();
+            float reach=((Number)call(physics,"radius")).floatValue()+2f;
+            float dx=950f*.9995f*dt, startX=240f-dx/2f, bodyY=350f, tipY=bodyY-reach+.005f;
+            Object beam=((Object[])read(physics,"beamHazards"))[0];
+            write(beam,"active",true); write(beam,"followCamera",false); write(beam,"kind",2); write(beam,"warningTime",0f); write(beam,"liveTime",1f); write(beam,"width",4f);
+            write(beam,"x1",240f); write(beam,"y1",200f); write(beam,"x2",240f); write(beam,"y2",tipY);
+            write(physics,"x",startX); write(physics,"y",bodyY); write(physics,"vx",950f); write(physics,"vy",-900f*dt); write(physics,"gx",0f);
+            require(Math.hypot(startX-240f,bodyY-tipY)>reach,"swept beam fixture begins outside its collision radius");
+            boolean original=(Boolean)read(arena,"motionEnabled");
+            try {
+                // Route one actual Arena frame through its normal collision/death/record path.
+                write(arena,"motionEnabled",true); write(arena,"accumulator",0f);
+                call(arena,"advance",dt,SystemClock.uptimeMillis());
+            } finally { write(arena,"motionEnabled",original); }
+            float endX=((Number)read(physics,"x")).floatValue(), endY=((Number)read(physics,"y")).floatValue();
+            require(Math.hypot(endX-240f,endY-tipY)>reach,"swept beam fixture ends outside its collision radius");
+            require((Boolean)read(physics,"lost")&&"TOP LASER".equals(read(physics,"deathReason")),"swept collision catches the between-endpoints grazing contact");
+            arena.invalidate();
+        });
+        runFrames(160); capture("arcade-swept-beam-death-effect-controlled"); waitScreen(RESULT,3500); click("home");
+    }
+
+    private Map<String,Object> campaignRecords() {
+        Map<String,Object> values=new HashMap<>();
+        for (Map.Entry<String,?> entry:storage.getAll().entrySet()) if (entry.getKey().startsWith("stage_")
+                || entry.getKey().equals("bestScore")||entry.getKey().equals("wins")||entry.getKey().equals("fastestWin")) values.put(entry.getKey(),entry.getValue());
+        return values;
+    }
+    private void startArcade(int difficulty,int hazards) throws Exception {
+        if (screen()!=HOME) goHome(); click("arcade"); requireScreen(ARCADE_SETUP,"Arcade setup opened for configured run"); click("difficulty_"+difficulty);
+        int[] bits={1,2,4,8}; String[] ids={"arcade_fire","arcade_top","arcade_side","arcade_lightning"};
+        for (int i=0;i<bits.length;i++) if ((hazards&bits[i])!=0&&(storage.getInt("arcadeHazards",15)&bits[i])==0) click(ids[i]);
+        for (int i=0;i<bits.length;i++) if ((hazards&bits[i])==0&&(storage.getInt("arcadeHazards",15)&bits[i])!=0) click(ids[i]);
+        require(storage.getInt("arcadeHazards",-1)==hazards,"requested Arcade hazard mask saved: "+hazards);
+        click("start_arcade"); requireScreen(PLAY,"Start Arcade begins gameplay");
     }
 
     private void goHome() throws Exception {
         if (screen()==PLAY) click("pause");
         if (screen()==PAUSE||screen()==RESULT) click("home");
+        else if (screen()==ARCADE_SETUP||screen()==CHAPTERS||screen()==HELP) back();
         requireScreen(HOME,"return to home");
     }
     private void selectStage(int index) throws Exception {
@@ -304,7 +474,8 @@ public final class NativeFalleyTest extends Instrumentation {
         Application.ActivityLifecycleCallbacks callback=new Application.ActivityLifecycleCallbacks() {
             @Override public void onActivityCreated(Activity a,Bundle b) { }
             @Override public void onActivityStarted(Activity a) { }
-            @Override public void onActivityResumed(Activity a) {
+            @Override public void onActivityResumed(Activity a) { }
+            @Override public void onActivityPostResumed(Activity a) {
                 if (a.getClass().getName().equals(ACTIVITY)) try {
                     Object view=read(a,"arena"); write(view,"active",false); ((View)view).invalidate();
                 } catch (Throwable error) { earlyFailure[0]=error; }
@@ -318,7 +489,7 @@ public final class NativeFalleyTest extends Instrumentation {
         try { activity=startActivitySync(new Intent().setClassName(APP,ACTIVITY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK)); }
         finally { ui(() -> app.unregisterActivityLifecycleCallbacks(callback)); }
         if (earlyFailure[0]!=null) throw new Exception("initial intro clock fixture",earlyFailure[0]);
-        bind(); output=new File(activity.getExternalFilesDir(null),"falley-native-v2/"+shot);
+        bind(); output=new File(activity.getExternalFilesDir(null),"falley-native-v3/"+shot);
         require(output.isDirectory()||output.mkdirs(),"artifact directory ready");
         // This test-owned directory must describe only this run, not retain an old failure PNG.
         File[] prior=output.listFiles();
@@ -424,6 +595,7 @@ public final class NativeFalleyTest extends Instrumentation {
     }
     private int screen() throws Exception { final int[] value={0}; ui(() -> value[0]=((Number)read(arena,"screen")).intValue()); return value[0]; }
     private float physicsFloat(String field) throws Exception { return numeric(physics,field); }
+    private float physicsCallFloat(String method) throws Exception { final float[] value={0}; ui(() -> value[0]=((Number)call(physics,method)).floatValue()); return value[0]; }
     private float numeric(Object object,String field) throws Exception { final float[] value={0}; ui(() -> value[0]=((Number)read(object,field)).floatValue()); return value[0]; }
     private boolean physicsBool(String field) throws Exception { final boolean[] value={false}; ui(() -> value[0]=(Boolean)read(physics,field)); return value[0]; }
     private boolean bool(String field) throws Exception { final boolean[] value={false}; ui(() -> value[0]=(Boolean)read(arena,field)); return value[0]; }

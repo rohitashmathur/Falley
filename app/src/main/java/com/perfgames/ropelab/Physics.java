@@ -1,6 +1,6 @@
 package com.perfgames.ropelab;
 
-/** Falley V2: long chapter descents, elastic ropes and a bouncy target floor. */
+/** Falley: elastic descents and an endless, configurable survival skirmish. */
 public final class Physics {
     public static final float W = 480, H = 820, DT = 1f / 240, R = 17;
     public static final float GRAVITY = 900, ROPE_SPACING = 170;
@@ -13,12 +13,21 @@ public final class Physics {
         private float speed;
     }
     public final FireHazard[] fireHazards = new FireHazard[4];
+    public static final class BeamHazard {
+        public float x1, y1, x2, y2, warningTime, liveTime = .4f, width = 10;
+        public int kind;
+        public boolean active, followCamera;
+        private float screenY1, screenY2;
+    }
+    public final BeamHazard[] beamHazards = new BeamHazard[3];
+    public boolean arcade;
+    public int arcadeDifficulty = 1, arcadeHazards = ArcadeRules.ALL, wave = 1;
     public float x, y, vx, vy, gx, cameraY, elapsed, flash, blast;
     public int score, brokenCount;
     public boolean lost, won;
     public float winTime, landingPulse, groundBounce;
     public String deathReason = "";
-    private float jumpCooldown, nextRopeY, fireCountdown, touchVelocity, deepestY;
+    private float jumpCooldown, nextRopeY, attackCountdown, touchVelocity, deepestY;
     private boolean touchControl;
     private java.util.Random random;
 
@@ -48,9 +57,15 @@ public final class Physics {
     public Physics() {
         for (int i = 0; i < ropes.length; i++) ropes[i] = new Rope(i);
         for (int i = 0; i < fireHazards.length; i++) fireHazards[i] = new FireHazard();
+        for (int i = 0; i < beamHazards.length; i++) beamHazards[i] = new BeamHazard();
         reset();
     }
-    public void reset(int stageIndex) { stage = StageCatalog.get(stageIndex); reset(); }
+    public void reset(int stageIndex) { arcade = false; stage = StageCatalog.get(stageIndex); reset(); }
+    public void resetArcade(int difficulty, int mask) {
+        arcade = true; arcadeDifficulty = ArcadeRules.clampDifficulty(difficulty);
+        arcadeHazards = ArcadeRules.normalizeMask(mask); stage = StageCatalog.get(arcadeDifficulty * 2);
+        reset();
+    }
     public void reset() {
         x = 240; y = 310; vx = vy = gx = cameraY = elapsed = flash = blast = 0;
         score = brokenCount = 0; lost = won = false; deathReason = ""; jumpCooldown = 0;
@@ -59,22 +74,33 @@ public final class Physics {
         deepestY = y;
         nextRopeY = 450 + ropes.length * ROPE_SPACING;
         random = new java.util.Random(7283L + stage.index * 101L);
-        fireCountdown = 1.5f;
+        attackCountdown = 2.0f;
+        wave = 1;
         for (FireHazard fire : fireHazards) { fire.active = false; fire.warningTime = 0; }
+        for (BeamHazard beam : beamHazards) {
+            beam.active = beam.followCamera = false; beam.warningTime = 0; beam.liveTime = .4f;
+        }
         for (int i = 0; i < ropes.length; i++) ropes[i].reset(450 + i * ROPE_SPACING, leftWall(), rightWall());
     }
-    public float groundY() { return stage.groundY; }
+    public float groundY() { return arcade ? 1_000_000 : stage.groundY; }
     public float targetLeft() { return stage.targetCenter - stage.targetWidth / 2; }
     public float targetRight() { return stage.targetCenter + stage.targetWidth / 2; }
     public float hazardInset() { return stage.hazard == StageCatalog.SPIKES ? 18 : stage.hazard == StageCatalog.FIRE ? 10 : 4; }
     public void touchControlled(boolean enabled) { touchControl = enabled; if (enabled) gx = 0; }
     public void steerTouch(float desiredVelocity) {
         touchVelocity = clamp(desiredVelocity, -340, 340);
-        if (touchControl && !lost && !won) vx = touchVelocity;
+        if (touchControl && !lost && !won) vx = touchVelocity + driftVelocity();
+    }
+    public float steeringVelocity() { return touchVelocity; }
+    /** A bounded, alternating air current makes idle touch-only runs require correction. */
+    public float driftVelocity() {
+        float phase = stage.index * 1.13f + (arcade ? .6f : 0);
+        return 72 * (float)Math.sin(elapsed * .63f + phase) + 28 * (float)Math.sin(elapsed * 1.17f + .8f + phase);
     }
     public float mass() { return Math.min(6, 1 + score * .012f); }
     public float radius() { return R + (mass() - 1) * 1.1f; }
     public float leftWall() {
+        if (arcade) return Math.min(145, 28 + Math.min(1, deepestY / 18000f) * 65 + elapsed * .35f + score * .008f);
         float progress = clamp((Math.max(y, deepestY) - 310) / (groundY() - 310), 0, 1);
         return Math.min(214, 28 + progress * 92 + elapsed * .7f + score * .025f);
     }
@@ -96,17 +122,19 @@ public final class Physics {
         if (won) { celebrateLanding(); return; }
         elapsed += DT;
         score = (int) (elapsed * 10) + brokenCount * 30;
+        wave = 1 + (int)(elapsed / 20);
         jumpCooldown = Math.max(0, jumpCooldown - DT);
         flash = Math.max(0, flash - DT * 2);
         float left = leftWall(), right = rightWall();
         for (Rope rope : ropes) {
-            if (rope.base < cameraY - 240 && nextRopeY < groundY() - 320) {
+            if (rope.base < cameraY - 240 && (arcade || nextRopeY < groundY() - 320)) {
                 rope.reset(nextRopeY, left, right);
                 nextRopeY += ROPE_SPACING;
             }
             simulateRope(rope, left, right);
         }
-        vx = touchControl ? touchVelocity : clamp((vx + clamp(gx, -950, 950) * DT) * .9995f, -950, 950);
+        float previousX = x, previousY = y;
+        vx = touchControl ? touchVelocity + driftVelocity() : clamp((vx + clamp(gx, -950, 950) * DT) * .9995f, -950, 950);
         vy = clamp(vy + GRAVITY * DT, -1100, 800);
         x += vx * DT;
         y += vy * DT;
@@ -116,10 +144,10 @@ public final class Physics {
         if (y - cameraY < 160 + radius()) { y = cameraY + 160 + radius(); vy = Math.abs(vy) * .25f; }
         for (Rope rope : ropes) contact(rope);
         if (lost) return;
-        contactGround();
-        if (!won) simulateFire();
+        if (!arcade) contactGround();
+        if (!won && !lost) simulateHazards(previousX, previousY);
         // Follow downwards, stopping where the target floor remains in view.
-        cameraY = Math.min(groundY() - 675, Math.max(cameraY, y - 430));
+        cameraY = arcade ? Math.max(cameraY, y - 430) : Math.min(groundY() - 675, Math.max(cameraY, y - 430));
     }
 
     private void simulateRope(Rope r, float left, float right) {
@@ -209,12 +237,16 @@ public final class Physics {
     }
     private void contactGround() {
         if (vy < 0 || y + radius() < groundY()) return;
+        boolean inside = x - radius() >= targetLeft() && x + radius() <= targetRight();
+        if (!inside && stage.fatalMiss) {
+            y = groundY() - radius(); vx = vy = 0; die("HARD LANDING"); return;
+        }
         float impact = vy;
         y = groundY() - radius();
         vy = -Math.min(350, Math.max(90, impact * .32f));
         landingPulse = .18f;
         groundBounce = 1;
-        if (x - radius() >= targetLeft() && x + radius() <= targetRight()) {
+        if (inside) {
             won = true;
             winTime = 0;
             score += 100;
@@ -241,22 +273,20 @@ public final class Physics {
     private String sideReason() {
         return stage.hazard == StageCatalog.LASER ? "LASER" : stage.hazard == StageCatalog.SPIKES ? "SPIKES" : "FIRE";
     }
-    private void simulateFire() {
-        if (!stage.fireRain) return;
-        if (y > 1300 && y < groundY() - 550) {
-            fireCountdown -= DT;
-            if (fireCountdown <= 0) {
-                for (FireHazard fire : fireHazards) if (!fire.active) {
-                    float left = leftWall() + hazardInset() + 28, right = rightWall() - hazardInset() - 28;
-                    fire.x = left + random.nextFloat() * (right - left);
-                    fire.y = cameraY + 155;
-                    fire.radius = 10 + random.nextFloat() * 4;
-                    fire.warningTime = .9f;
-                    fire.speed = 1100;
-                    fire.active = true;
-                    break;
-                }
-                fireCountdown = 2.4f + random.nextFloat() * .6f;
+    private void simulateHazards(float previousX, float previousY) {
+        int difficulty = arcade ? arcadeDifficulty : Math.min(2, stage.index / 2);
+        int mask = arcade ? arcadeHazards : stage.extraHazards;
+        boolean occupied = false;
+        for (FireHazard fire : fireHazards) if (fire.active) occupied = true;
+        for (BeamHazard beam : beamHazards) if (beam.active) occupied = true;
+        // One attack at a time preserves a readable escape route, including in mixed skirmishes.
+        if (!occupied && mask != 0 && (arcade || y < groundY() - 650)) {
+            attackCountdown -= DT;
+            if (attackCountdown <= 0) {
+                int count = Integer.bitCount(mask), choice = random.nextInt(count), kind = 1;
+                for (; kind <= ArcadeRules.LIGHTNING; kind <<= 1) if ((mask & kind) != 0 && choice-- == 0) break;
+                spawnAttack(kind, difficulty);
+                attackCountdown = ArcadeRules.attackGap(difficulty, wave) + random.nextFloat() * .3f;
             }
         }
         for (FireHazard fire : fireHazards) if (fire.active) {
@@ -265,11 +295,81 @@ public final class Physics {
                 fire.warningTime = Math.max(0, fire.warningTime - DT);
                 continue;
             }
+            float oldY = fire.y;
             fire.speed = Math.min(1400, fire.speed + 100 * DT);
             fire.y += fire.speed * DT;
-            if (Math.hypot(fire.x - x, fire.y - y) <= radius() + fire.radius) { die("FALLING FIRE"); return; }
-            if (fire.y > cameraY + H + 140 || fire.y > groundY()) fire.active = false;
+            // Relative swept motion covers the whole step, not only its end positions.
+            float reach = radius() + fire.radius;
+            if (pointSegmentDistanceSquared(0, 0, previousX - fire.x, previousY - oldY, x - fire.x, y - fire.y) <= reach * reach) {
+                die("FALLING FIRE"); return;
+            }
+            if (fire.y > cameraY + H + 140 || !arcade && fire.y > groundY()) fire.active = false;
         }
+        for (BeamHazard beam : beamHazards) if (beam.active) {
+            float oldY1 = beam.y1, oldY2 = beam.y2;
+            if (beam.followCamera) { beam.y1 = cameraY + beam.screenY1; beam.y2 = cameraY + beam.screenY2; }
+            if (beam.warningTime > 0) {
+                beam.warningTime = Math.max(0, beam.warningTime - DT);
+                continue;
+            }
+            float shift = beam.y1 - oldY1;
+            float reach = radius() + beam.width / 2;
+            if (segmentDistanceSquared(previousX, previousY + shift, x, y, beam.x1, beam.y1, beam.x2, beam.y2) <= reach * reach) {
+                die(beam.kind == ArcadeRules.LIGHTNING ? "LIGHTNING" : beam.kind == ArcadeRules.SIDE_LASERS ? "SIDE LASER" : "TOP LASER"); return;
+            }
+            beam.liveTime -= DT;
+            if (beam.liveTime <= 0) beam.active = false;
+        }
+    }
+    private void spawnAttack(int kind, int difficulty) {
+        float left = leftWall() + hazardInset(), right = rightWall() - hazardInset();
+        float warning = ArcadeRules.warning(difficulty, wave);
+        if (kind == ArcadeRules.FIREBALLS) {
+            for (FireHazard fire : fireHazards) if (!fire.active) {
+                fire.x = left + 26 + random.nextFloat() * Math.max(1, right - left - 52);
+                fire.y = cameraY + 155; fire.radius = 10 + random.nextFloat() * 4;
+                fire.warningTime = warning; fire.speed = 1050 + difficulty * 75; fire.active = true;
+                return;
+            }
+        } else for (BeamHazard beam : beamHazards) if (!beam.active) {
+            beam.kind = kind; beam.width = kind == ArcadeRules.LIGHTNING ? 14 : 10;
+            beam.warningTime = warning; beam.liveTime = ArcadeRules.beamLife(difficulty);
+            beam.followCamera = true; beam.active = true;
+            if (kind == ArcadeRules.TOP_LASERS) {
+                beam.x1 = beam.x2 = left + 25 + random.nextFloat() * Math.max(1, right - left - 50);
+                beam.screenY1 = 160; beam.screenY2 = 730;
+            } else if (kind == ArcadeRules.SIDE_LASERS) {
+                // The untouched side fits the full avatar plus a generous beam/wall margin.
+                float length = Math.min((right - left) * .56f, right - left - (radius() * 2 + beam.width + 24));
+                length = Math.max(15, length);
+                boolean fromLeft = random.nextBoolean();
+                beam.x1 = fromLeft ? left : right; beam.x2 = fromLeft ? left + length : right - length;
+                beam.screenY1 = beam.screenY2 = clamp(y - cameraY, 220, 640);
+            } else {
+                boolean fromLeft = random.nextBoolean();
+                beam.x1 = fromLeft ? left + 8 : right - 8; beam.x2 = fromLeft ? right - 8 : left + 8;
+                beam.screenY1 = 180; beam.screenY2 = 710;
+            }
+            beam.y1 = cameraY + beam.screenY1; beam.y2 = cameraY + beam.screenY2;
+            return;
+        }
+    }
+    public static float pointSegmentDistanceSquared(float px, float py, float ax, float ay, float bx, float by) {
+        float dx = bx - ax, dy = by - ay, denominator = dx * dx + dy * dy;
+        float t = denominator < .000001f ? 0 : clamp(((px - ax) * dx + (py - ay) * dy) / denominator, 0, 1);
+        float ex = px - ax - dx * t, ey = py - ay - dy * t;
+        return ex * ex + ey * ey;
+    }
+    public static float segmentDistanceSquared(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy) {
+        float abx = bx - ax, aby = by - ay, cdx = dx - cx, cdy = dy - cy;
+        float cross = abx * cdy - aby * cdx;
+        if (Math.abs(cross) > .000001f) {
+            float acx = cx - ax, acy = cy - ay;
+            float t = (acx * cdy - acy * cdx) / cross, u = (acx * aby - acy * abx) / cross;
+            if (t >= 0 && t <= 1 && u >= 0 && u <= 1) return 0;
+        }
+        return Math.min(Math.min(pointSegmentDistanceSquared(ax, ay, cx, cy, dx, dy), pointSegmentDistanceSquared(bx, by, cx, cy, dx, dy)),
+                Math.min(pointSegmentDistanceSquared(cx, cy, ax, ay, bx, by), pointSegmentDistanceSquared(dx, dy, ax, ay, bx, by)));
     }
     private void die(String reason) { lost = true; deathReason = reason; blast = 1; gx = 0; }
     public static float clamp(float value, float low, float high) { return Math.max(low, Math.min(high, value)); }

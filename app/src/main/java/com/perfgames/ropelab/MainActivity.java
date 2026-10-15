@@ -138,9 +138,10 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     static final class Arena extends View {
-        static final int HOME = 0, PLAY = 1, SETTINGS = 2, HELP = 3, PAUSE = 4, RESULT = 5, SPLASH = 6, CHAPTERS = 7;
+        static final int HOME = 0, PLAY = 1, SETTINGS = 2, HELP = 3, PAUSE = 4, RESULT = 5, SPLASH = 6, CHAPTERS = 7, ARCADE_SETUP = 8;
         private static final float TOP = 160, BOTTOM = 730;
         private static final String[] PRESETS = {"LOOSE", "BALANCED", "TIGHT"};
+        private static final String[] DIFFICULTIES = {"CHILL", "STANDARD", "BRUTAL"};
         final Physics physics = new Physics();
         final MotionSteering motion;
         final TouchSteering touch = new TouchSteering();
@@ -155,7 +156,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         int screen = SPLASH, settingsReturn = HOME;
         long last, trailTime, lastLandingCue;
         float accumulator, scale = 1, ox, oy, visualTime, splashElapsed, homeElapsed;
-        float burstTime = 10, burstX, burstY;
+        float burstTime = 10, burstX, burstY, setupMessage;
         int pointer = -1, buttonPointer = -1, safeTop, safeBottom, safeLeft, safeRight, trailIndex;
         final float[] trailX = new float[18], trailY = new float[18];
         final boolean[] trailValid = new boolean[18];
@@ -174,6 +175,14 @@ public class MainActivity extends Activity implements SensorEventListener {
             profile.haptics = storage.getBoolean("haptics",true); profile.preset = storage.getInt("preset",MotionSteering.BALANCED);
             profile.bestScore = storage.getInt("bestScore",0); profile.wins = storage.getInt("wins",0);
             profile.fastestWin = storage.getFloat("fastestWin",0);
+            profile.blood = storage.getBoolean("blood",true);
+            profile.arcadeDifficulty = storage.getInt("arcadeDifficulty",1);
+            profile.arcadeHazards = storage.getInt("arcadeHazards",15);
+            for (int i = 0; i < 3; i++) {
+                profile.arcadeBest[i] = storage.getInt("arcade_best_"+i,0);
+                profile.arcadeRuns[i] = storage.getInt("arcade_runs_"+i,0);
+                profile.arcadeLongest[i] = storage.getFloat("arcade_longest_"+i,0);
+            }
             profile.selectedStage = storage.getInt("selectedStage",0);
             for (int i = 0; i < StageCatalog.COUNT; i++) {
                 profile.best[i] = storage.getInt("stage_best_"+i,i == 0 ? profile.bestScore : 0);
@@ -193,6 +202,9 @@ public class MainActivity extends Activity implements SensorEventListener {
                     .putBoolean("haptics",profile.haptics).putInt("preset",profile.preset)
                     .putInt("bestScore",profile.bestScore).putInt("wins",profile.wins)
                     .putFloat("fastestWin",profile.fastestWin).putInt("selectedStage",profile.selectedStage);
+            editor.putBoolean("blood",profile.blood).putInt("arcadeDifficulty",profile.arcadeDifficulty).putInt("arcadeHazards",profile.arcadeHazards);
+            for (int i = 0; i < 3; i++)
+                editor.putInt("arcade_best_"+i,profile.arcadeBest[i]).putInt("arcade_runs_"+i,profile.arcadeRuns[i]).putFloat("arcade_longest_"+i,profile.arcadeLongest[i]);
             for (int i = 0; i < StageCatalog.COUNT; i++)
                 editor.putInt("stage_best_"+i,profile.best[i]).putInt("stage_wins_"+i,profile.stageWins[i]).putFloat("stage_time_"+i,profile.stageTimes[i]);
             editor.apply();
@@ -243,7 +255,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             long now = SystemClock.uptimeMillis();
             float frameDt = last == 0 ? 0 : Math.min((now-last)/1000f,.05f);
             if (active) {
-                last = now; visualTime += frameDt;
+                last = now; visualTime += frameDt; setupMessage = Math.max(0,setupMessage-frameDt);
                 if (screen == SPLASH) {
                     splashElapsed += frameDt;
                     if (splashElapsed >= 1.5f) enterHome();
@@ -263,6 +275,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (screen == SETTINGS) drawSettings(c);
             else if (screen == HELP) drawHelp(c);
             else if (screen == CHAPTERS) drawChapters(c);
+            else if (screen == ARCADE_SETUP) drawArcadeSetup(c);
             else {
                 drawPlay(c);
                 if (screen == PAUSE || screen == RESULT) { buttons.clear(); drawOverlay(c); }
@@ -283,10 +296,12 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
             if (physics.won && !oldWon) { clearTouch(); cue(2); }
             if ((physics.won || physics.lost) && !resultRecorded) {
-                if (profile.recordResult(physics.stage.index,physics.won,physics.score,physics.elapsed)) saveProfile();
+                boolean changed = physics.arcade ? profile.recordArcadeResult(physics.arcadeDifficulty,physics.score,physics.elapsed) :
+                        profile.recordResult(physics.stage.index,physics.won,physics.score,physics.elapsed);
+                if (changed) saveProfile();
                 resultRecorded = true;
             }
-            if (physics.won && physics.winTime > 1.2f || physics.lost && burstTime > .8f) {
+            if (physics.won && physics.winTime > 1.2f || physics.lost && burstTime > 2f) {
                 screen = RESULT; clearTouch();
             }
             if (!physics.lost && now-trailTime > 30) {
@@ -315,23 +330,44 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         private void drawHome(Canvas c) {
             titleLetters(c,100,49,homeElapsed);
-            rect(c,24,140,456,376,16,panel);
-            for (float y = 165; y < 345; y += 38) line(c,46,y,434,y,0xff2d3438,1);
-            line(c,68,170,68,337,coral,3); line(c,412,170,412,337,coral,3);
-            path.reset(); path.moveTo(68,234); path.quadTo(240,276,412,234);
+            rect(c,24,132,456,318,16,panel);
+            for (float y = 153; y < 289; y += 34) line(c,46,y,434,y,0xff2d3438,1);
+            line(c,68,153,68,282,coral,3); line(c,412,153,412,282,coral,3);
+            path.reset(); path.moveTo(68,211); path.quadTo(240,249,412,211);
             paint.setStyle(Paint.Style.STROKE); paint.setColor(mint); paint.setStrokeWidth(4); c.drawPath(path,paint); paint.setStyle(Paint.Style.FILL);
-            drawHuman(c,242,220+(float)Math.sin(visualTime*3)*7,25,-150,0);
-            rect(c,68,322,412,342,8,border); rect(c,180,322,300,333,4,mint);
-            circle(c,240,328,15,0xff29584d); circle(c,240,328,10,mint); circle(c,240,328,4,panel);
-            center(c,"LASER / SPIKES / FIRE",240,362,13,muted);
-            rect(c,24,398,456,492,14,mint); buttons.add(new Hit("play",24,398,456,492));
-            text(c,"PLAY",45,439,25,background);
-            text(c,"STAGE "+(profile.selectedStage+1)+" / "+StageCatalog.get(profile.selectedStage).title,45,470,14,background);
-            line(c,412,446,432,446,background,3); line(c,432,446,422,436,background,3); line(c,432,446,422,456,background,3);
-            button(c,"chapters",24,510,456,584,"CHAPTERS",white,17);
-            button(c,"help",24,598,456,672,"HOW TO PLAY",white,17);
-            button(c,"settings",24,686,456,760,"SETTINGS",white,17);
+            drawHuman(c,242,202+(float)Math.sin(visualTime*3)*7,22,-150,0);
+            rect(c,68,268,412,286,8,border); rect(c,180,268,300,279,4,mint);
+            circle(c,240,274,14,0xff29584d); circle(c,240,274,9,mint); circle(c,240,274,4,panel);
+            center(c,"CAMPAIGN / ARCADE SURVIVAL",240,305,12,muted);
+            rect(c,24,338,456,420,14,mint); buttons.add(new Hit("play",24,338,456,420));
+            text(c,"CAMPAIGN",45,372,22,background);
+            text(c,"STAGE "+(profile.selectedStage+1)+" / "+StageCatalog.get(profile.selectedStage).title,45,402,14,background);
+            line(c,412,381,432,381,background,3); line(c,432,381,422,371,background,3); line(c,432,381,422,391,background,3);
+            button(c,"arcade",24,434,456,508,"ARCADE / SKIRMISH",gold,18);
+            button(c,"chapters",24,522,456,596,"CHAPTERS",white,17);
+            button(c,"help",24,610,456,684,"HOW TO PLAY",white,17);
+            button(c,"settings",24,698,456,772,"SETTINGS",white,17);
             center(c,"BEST "+profile.best[profile.selectedStage]+" / "+profile.stageWins[profile.selectedStage]+" LANDINGS",240,796,12,muted);
+        }
+        private void drawArcadeSetup(Canvas c) {
+            header(c,"ARCADE"); text(c,"Survive the hazards. Chase a better run.",24,137,15,muted);
+            text(c,"DIFFICULTY",24,171,13,muted);
+            for (int i = 0; i < 3; i++) {
+                float left = i == 0 ? 24 : i == 1 ? 164 : 312, right = i == 0 ? 154 : i == 1 ? 302 : 456;
+                button(c,"difficulty_"+i,left,184,right,258,DIFFICULTIES[i],profile.arcadeDifficulty == i ? gold : muted,14);
+                if (profile.arcadeDifficulty == i) {
+                    rect(c,left+3,187,right-3,255,8,gold);
+                    center(c,DIFFICULTIES[i],(left+right)/2,226,14,background);
+                }
+            }
+            toggleRow(c,"arcade_fire","Fireballs",298,(profile.arcadeHazards & ArcadeRules.FIREBALLS) != 0,true);
+            toggleRow(c,"arcade_top","Top Lasers",386,(profile.arcadeHazards & ArcadeRules.TOP_LASERS) != 0,true);
+            toggleRow(c,"arcade_side","Side Lasers",474,(profile.arcadeHazards & ArcadeRules.SIDE_LASERS) != 0,true);
+            toggleRow(c,"arcade_lightning","Lightning",562,(profile.arcadeHazards & ArcadeRules.LIGHTNING) != 0,true);
+            text(c,setupMessage > 0 ? "Keep at least one hazard enabled." : "No finish line. New attacks arrive in waves.",24,667,14,setupMessage > 0 ? coral : muted);
+            button(c,"start_arcade",24,698,456,772,"START SURVIVAL",gold,18);
+            center(c,String.format(Locale.US,"BEST %d / LONGEST %.1fs",profile.arcadeBest[profile.arcadeDifficulty],
+                    profile.arcadeLongest[profile.arcadeDifficulty]),240,798,12,muted);
         }
         private void drawChapters(Canvas c) {
             header(c,"CHAPTERS"); text(c,"Pick a fall. Every stage is ready to play.",24,137,15,muted);
@@ -375,17 +411,16 @@ public class MainActivity extends Activity implements SensorEventListener {
             line(c,24,405,456,405,border,1); text(c,"FEEDBACK",24,433,13,muted);
             toggleRow(c,"sound","Sound Effects",444,profile.sound,true);
             toggleRow(c,"haptics","Vibration",532,profile.haptics,true);
-            text(c,!motionEnabled ? "Swipe to steer. Release to stop." : "Hold comfortably when returning to the app.",24,643,14,muted);
-            text(c,"Motion auto-centers each time the app resumes.",24,671,13,muted);
+            toggleRow(c,"blood","Blood Effects",620,profile.blood,true);
             button(c,"back",24,734,456,808,"DONE",mint,17);
         }
         private void drawHelp(Canvas c) {
             header(c,"HOW TO PLAY"); text(c,"Longer falls. One bouncy target.",24,157,22,mint);
             helpStep(c,"01","TAP TO JUMP","Tap the arena or the Jump button.",198);
-            helpStep(c,"02","SWIPE LEFT OR RIGHT","Swipe to steer. Release to stop. Swipes never jump.",304);
+            helpStep(c,"02","STEER AGAINST THE DRIFT","Air currents push you. Swipe against the drift.",304);
             helpStep(c,"03","LET THE ROPES BOUNCE","Landing bends your knees, then springs you up.",410);
-            helpStep(c,"04","LAND ON THE TARGET","Avoid laser, spikes and fire on the narrowing rails.",516);
-            text(c,"Weight grows with score and can snap ropes.",24,658,15,muted);
+            helpStep(c,"04","LAND SOFTLY OR SURVIVE","Campaign: land on the target. Arcade: stay alive.",516);
+            text(c,"Hard floor outside the target is dangerous.",24,658,15,muted);
             text(c,"Motion ON? Tilt to steer. Adjust feel in Settings.",24,686,14,muted);
             button(c,"back",24,734,456,808,"GOT IT",mint,17);
         }
@@ -395,8 +430,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             line(c,24,y+83,456,y+83,border,1);
         }
         private void drawPlay(Canvas c) {
-            text(c,"FALLEY / STAGE "+(physics.stage.index+1),24,29,12,mint);
-            text(c,physics.stage.title,24,67,24,white);
+            text(c,physics.arcade ? "FALLEY / ARCADE" : "FALLEY / STAGE "+(physics.stage.index+1),24,29,12,mint);
+            text(c,physics.arcade ? DIFFICULTIES[physics.arcadeDifficulty] : physics.stage.title,24,67,24,white);
             button(c,"restart",300,20,374,94,"",white,17);
             paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(2); paint.setColor(white);
             c.drawArc(323,43,351,71,40,295,false,paint); paint.setStyle(Paint.Style.FILL);
@@ -405,14 +440,16 @@ public class MainActivity extends Activity implements SensorEventListener {
             line(c,413,45,413,69,white,5); line(c,425,45,425,69,white,5);
             text(c,"SCORE "+physics.score,24,104,13,gold);
             text(c,String.format(Locale.US,"WEIGHT %.1fx",physics.mass()),171,104,13,white);
-            text(c,"CUTS "+physics.brokenCount,367,104,13,mint);
-            float progress = clamp((physics.y-310)/(physics.groundY()-physics.radius()-310),0,1);
+            text(c,physics.arcade ? "WAVE "+physics.wave : "CUTS "+physics.brokenCount,367,104,13,mint);
+            float progress = physics.arcade ? (physics.elapsed%20)/20 : clamp((physics.y-310)/(physics.groundY()-physics.radius()-310),0,1);
             rect(c,24,116,456,122,3,panel); rect(c,24,116,24+432*progress,122,3,mint);
             float targetCenter = (physics.targetLeft()+physics.targetRight())/2;
             String landingSide = targetCenter < 239 ? "LEFT" : targetCenter > 241 ? "RIGHT" : "CENTER";
-            text(c,physics.won ? "LANDED!" : Math.max(0,(int)((physics.groundY()-physics.y-physics.radius())/10))+"m / LAND "+landingSide,24,144,12,physics.won ? mint : muted);
+            String objective = physics.arcade ? String.format(Locale.US,"%.1fs SURVIVED",physics.elapsed) :
+                    physics.won ? "LANDED!" : Math.max(0,(int)((physics.groundY()-physics.y-physics.radius())/10))+"m / LAND "+landingSide;
+            text(c,objective,24,144,12,physics.won ? mint : muted);
             paint.setTextAlign(Paint.Align.RIGHT);
-            text(c,motionEnabled ? "MOTION ON" : "SWIPE TO STEER",456,144,11,muted);
+            text(c,motionEnabled ? "MOTION ON" : "SWIPE + DRIFT",456,144,11,muted);
             paint.setTextAlign(Paint.Align.LEFT);
             drawArena(c); drawPlayControls(c);
         }
@@ -443,7 +480,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     circle(c,rope.x[i],rope.y[i]-physics.cameraY,3.5f,gold);
                 }
             }
-            drawFireHazards(c);
+            drawFireHazards(c); drawBeamHazards(c);
             if (!physics.lost) {
                 for (int k = 0; k < trailX.length; k++) {
                     int i = (trailIndex+k)%trailX.length;
@@ -452,14 +489,21 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
                 drawHuman(c,physics.x,physics.y-physics.cameraY,physics.radius(),physics.vy,physics.landingPulse);
             }
-            drawBurst(c); c.restore();
+            drawDeath(c); c.restore();
             line(c,20,TOP,460,TOP,border,1); line(c,20,BOTTOM,460,BOTTOM,border,1);
         }
         private void drawFloor(Canvas c) {
+            if (physics.arcade) return;
             float y = physics.groundY()-physics.cameraY;
             if (y > BOTTOM+24 || y < TOP-50) return;
             float squash = physics.groundBounce*6;
             rect(c,24,y+squash,456,y+34,10,border);
+            if (physics.stage.fatalMiss) {
+                rect(c,24,y,physics.targetLeft(),y+34,7,0xff663541);
+                rect(c,physics.targetRight(),y,456,y+34,7,0xff663541);
+                center(c,"HARD FLOOR",(24+physics.targetLeft())/2,y+25,9,coral);
+                center(c,"HARD FLOOR",(456+physics.targetRight())/2,y+25,9,coral);
+            }
             rect(c,physics.targetLeft(),y+squash,physics.targetRight(),y+12,5,mint);
             line(c,physics.targetLeft(),y-3,physics.targetRight(),y-3,0x885de0ba,4);
             float middle = (physics.targetLeft()+physics.targetRight())/2;
@@ -528,6 +572,36 @@ public class MainActivity extends Activity implements SensorEventListener {
                 circle(c,fire.x,y+2,fire.radius*.48f,gold);
             }
         }
+        private void drawBeamHazards(Canvas c) {
+            for (Physics.BeamHazard beam : physics.beamHazards) {
+                if (!beam.active) continue;
+                float y1 = beam.y1-physics.cameraY, y2 = beam.y2-physics.cameraY;
+                int color = beam.kind == ArcadeRules.LIGHTNING ? 0xff8fd7ff : 0xffff5f9a;
+                if (beam.warningTime > 0) {
+                    float dx = beam.x2-beam.x1, dy = y2-y1;
+                    float length = (float)Math.hypot(dx,dy);
+                    for (float d = 0; d < length; d += 26) {
+                        float a = d/Math.max(1,length), b = Math.min(length,d+13)/Math.max(1,length);
+                        line(c,beam.x1+dx*a,y1+dy*a,beam.x1+dx*b,y1+dy*b,(color & 0xffffff)|0x99000000,2);
+                    }
+                    float markerX = clamp(beam.x1,40,440), markerY = clamp(y1,TOP+24,BOTTOM-24);
+                    circle(c,markerX,markerY,16,0xff49313e); center(c,"!",markerX,markerY+7,20,color);
+                } else if (beam.kind == ArcadeRules.LIGHTNING) {
+                    path.reset(); path.moveTo(beam.x1,y1);
+                    for (int i = 1; i <= 18; i++) {
+                        float f = i/18f, jitter = i == 18 ? 0 : (float)Math.sin(visualTime*28+i*2.1f)*beam.width*.15f;
+                        path.lineTo(beam.x1+(beam.x2-beam.x1)*f+jitter,y1+(y2-y1)*f);
+                    }
+                    paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(beam.width+8); paint.setColor(0x448fd7ff);
+                    c.drawPath(path,paint); paint.setStrokeWidth(beam.width*.65f); paint.setColor(color); c.drawPath(path,paint);
+                    paint.setStrokeWidth(2); paint.setColor(white); c.drawPath(path,paint); paint.setStyle(Paint.Style.FILL);
+                } else {
+                    line(c,beam.x1,y1,beam.x2,y2,0x55ff5f9a,beam.width+10);
+                    line(c,beam.x1,y1,beam.x2,y2,color,beam.width);
+                    line(c,beam.x1,y1,beam.x2,y2,0xffffd4e6,2);
+                }
+            }
+        }
         /** Feet align with y+radius, the same proxy used by rope/floor contact. */
         private void drawHuman(Canvas c,float x,float y,float r,float vy,float landingPulse) {
             float crouch = clamp(landingPulse/.18f,0,1), pelvis = .28f+crouch*.22f;
@@ -555,21 +629,86 @@ public class MainActivity extends Activity implements SensorEventListener {
             line(c,-.08f,head+.17f,.08f,head+.17f,0xff9b6653,.035f);
             c.restore();
         }
-        private void drawBurst(Canvas c) {
-            if (burstTime >= 1.6f) return;
-            float t = burstTime, alpha = Math.max(0,1-t/1.6f);
-            for (int i = 0; i < 24; i++) {
-                double a = i*2.399963; float speed = 65+(i%7)*24;
-                int color = i%3 == 0 ? gold : i%3 == 1 ? hazardColor() : white;
-                float x = burstX+(float)Math.cos(a)*speed*t,
-                        y = burstY-physics.cameraY+(float)Math.sin(a)*speed*t+75*t*t;
-                int faded = (color & 0xffffff)|((int)(alpha*220)<<24);
-                if (physics.stage.hazard == StageCatalog.SPIKES) {
-                    path.reset(); path.moveTo(x-3*alpha,y+3*alpha); path.lineTo(x,y-5*alpha);
-                    path.lineTo(x+3*alpha,y+3*alpha); path.close(); paint.setColor(faded); c.drawPath(path,paint);
-                } else if (physics.stage.hazard == StageCatalog.LASER)
-                    line(c,x,y,x+(float)Math.cos(a)*6*alpha,y+(float)Math.sin(a)*6*alpha,faded,2);
-                else circle(c,x,y,Math.max(1,4*alpha),faded);
+        private void deadFigure(Canvas c,float x,float y,float r,float angle,boolean charred,boolean crumpled) {
+            c.save(); c.translate(x,y); c.rotate(angle); c.scale(r,r);
+            int body = charred ? 0xff1e1c20 : coral, skin = charred ? 0xff302b30 : 0xffffd4ae;
+            int legs = charred ? 0xff242329 : 0xff65b9f2;
+            circle(c,.08f,-.83f,.33f,skin);
+            line(c,0,-.42f,.05f,.33f,body,.54f);
+            line(c,-.15f,-.3f,-.62f,.25f,skin,.15f); line(c,.18f,-.3f,.69f,.38f,skin,.15f);
+            line(c,.02f,.31f,crumpled ? -.75f : -.27f,.62f,legs,.21f);
+            line(c,.06f,.31f,.56f,crumpled ? .43f : .72f,legs,.21f);
+            line(c,crumpled ? -.75f : -.27f,.62f,crumpled ? -.38f : -.35f,.96f,skin,.14f);
+            line(c,.56f,crumpled ? .43f : .72f,crumpled ? .78f : .38f,.98f,skin,.14f);
+            if (charred) {
+                line(c,-.11f,-.14f,.19f,.03f,0xff9b5b38,.04f);
+                circle(c,.17f,-.7f,.045f,gold);
+            }
+            c.restore();
+        }
+        private void drawDeath(Canvas c) {
+            if (!physics.lost) return;
+            float t = burstTime, y = burstY-physics.cameraY, r = physics.radius();
+            String reason = physics.deathReason;
+            boolean spikes = reason.contains("SPIKE"), floor = reason.contains("FLOOR") || reason.contains("HARD LANDING"),
+                    laser = reason.contains("LASER"), thunder = reason.contains("LIGHTNING") || reason.contains("THUNDER");
+            int blood = 0xffa62b3b;
+            if (spikes) {
+                float pinnedX = clamp(burstX,physics.leftWall()+physics.hazardInset()+r*.25f,
+                        physics.rightWall()-physics.hazardInset()-r*.25f);
+                deadFigure(c,pinnedX,y,r,burstX < 240 ? -75 : 75,false,true);
+                if (profile.blood) {
+                    float side = burstX < 240 ? physics.leftWall()+physics.hazardInset() : physics.rightWall()-physics.hazardInset();
+                    for (int i = 0; i < 8; i++)
+                        line(c,side+(i%3-1)*3,y-8+i*3,side+(i%3-1)*3,y+Math.min(65,t*30)+i*3,blood,2+i%3);
+                }
+            } else if (floor) {
+                y = physics.groundY()-physics.cameraY-7;
+                deadFigure(c,burstX,y,r,88,false,true);
+                if (profile.blood) {
+                    paint.setColor(blood); c.drawOval(burstX-r*1.5f,y-1,burstX+r*1.5f,y+9,paint);
+                }
+            } else if (laser) {
+                float melt = clamp(t/1.2f,0,1);
+                c.save(); c.translate(burstX,y+r); c.scale(1,1-melt*.9f);
+                deadFigure(c,0,-r,r,0,false,true); c.restore();
+                if (profile.blood) {
+                    paint.setColor(blood); c.drawOval(burstX-r*(.5f+melt),y+r-3,burstX+r*(.5f+melt),y+r+5,paint);
+                    line(c,burstX-r*.55f,y-r*.2f,burstX+r*.55f,y-r*.2f,(blood & 0xffffff)|0xcc000000,3);
+                }
+            } else {
+                float dissolved = clamp((t-.25f)/1.25f,0,1), size = r*(1-.9f*dissolved), ashBase = y+r*.7f;
+                deadFigure(c,burstX,ashBase-size*.75f,size,thunder ? -10 : 12,true,true);
+                paint.setColor(0xff18161b);
+                c.drawOval(burstX-r*(.25f+dissolved*.7f),ashBase-2,
+                        burstX+r*(.25f+dissolved*.7f),ashBase+4+dissolved*3,paint);
+                for (int i = 0; i < 7; i++)
+                    circle(c,burstX+(i-3)*r*.22f*dissolved,ashBase-(i%3)*2,1.5f+dissolved,0xff302a31);
+                for (int i = 0; i < 9; i++) {
+                    float ashX = burstX+(float)Math.sin(i*2.1f+t)*r*(.5f+t*.4f);
+                    float ashY = y-r*.5f-i*3-Math.min(t,3)*18;
+                    circle(c,ashX,ashY,2+i%2,0xff373138);
+                }
+            }
+            if (t > 2.7f) return;
+            float fade = clamp(1-t/2.7f,0,1), age = Math.min(t,2.1f);
+            for (int i = 0; i < 28; i++) {
+                double a = i*2.399963; float speed = 23+(i%7)*17;
+                float x = burstX+(float)Math.cos(a)*speed*age,
+                        py = y+(float)Math.sin(a)*speed*age+(floor || spikes || laser ? 70 : -14)*age*age;
+                if (floor && profile.blood && i%4 == 0) {
+                    int bone = (white & 0xffffff)|((int)(fade*240)<<24);
+                    float dx = (float)Math.cos(a)*4, dy = (float)Math.sin(a)*4;
+                    line(c,x-dx,py-dy,x+dx,py+dy,bone,2);
+                    circle(c,x-dx,py-dy,1.7f,bone); circle(c,x+dx,py+dy,1.7f,bone);
+                } else if (floor || spikes || laser) {
+                    int color = profile.blood ? blood : muted;
+                    circle(c,x,py,profile.blood ? 2+i%3 : 1.5f,(color & 0xffffff)|((int)(fade*220)<<24));
+                } else {
+                    int spark = thunder ? 0xff8fd7ff : i%2 == 0 ? gold : 0xffff9c52;
+                    line(c,x,py,x+2,py-4,(spark & 0xffffff)|((int)(fade*240)<<24),1.5f);
+                    circle(c,x+(i%3)*2,py+8,2,0xff242127);
+                }
             }
         }
         private void drawPlayControls(Canvas c) {
@@ -579,8 +718,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             rect(c,52,802,428,806,2,0x44f6d477); rect(c,52,802,52+376*progress,806,2,gold);
         }
         private void drawOverlay(Canvas c) {
-            boolean hasNext = physics.won && physics.stage.index < StageCatalog.COUNT-1;
-            rect(c,0,0,480,820,0,0xb317191b); rect(c,52,220,428,hasNext && screen == RESULT ? 744 : 675,17,panel);
+            boolean hasNext = !physics.arcade && physics.won && physics.stage.index < StageCatalog.COUNT-1;
+            rect(c,0,0,480,820,0,0xb317191b); rect(c,52,220,428,(hasNext || physics.arcade) && screen == RESULT ? 744 : 675,17,panel);
             if (screen == PAUSE) {
                 center(c,"PAUSED",240,267,29,white);
                 button(c,"resume",74,292,406,366,"RESUME",mint,18);
@@ -588,18 +727,21 @@ public class MainActivity extends Activity implements SensorEventListener {
                 button(c,"settings",74,468,406,542,"SETTINGS",white,18);
                 button(c,"home",74,556,406,630,"HOME",muted,18);
             } else {
-                center(c,physics.won ? "LANDED!" : "FALL ENDED",240,280,35,physics.won ? mint : coral);
+                center(c,physics.won ? "LANDED!" : physics.arcade ? "RUN ENDED" : "FALL ENDED",240,280,35,physics.won ? mint : coral);
                 center(c,physics.won ? "A soft landing. A good bounce." : "HIT BY "+physics.deathReason,240,319,15,white);
                 center(c,"SCORE "+physics.score,240,371,27,gold);
-                center(c,String.format(Locale.US,"%.1fs / %d ROPES CUT",physics.elapsed,physics.brokenCount),240,404,14,muted);
-                center(c,"STAGE "+(physics.stage.index+1)+" BEST "+profile.best[physics.stage.index],240,435,12,muted);
+                center(c,physics.arcade ? String.format(Locale.US,"%.1fs / WAVE %d",physics.elapsed,physics.wave) :
+                        String.format(Locale.US,"%.1fs / %d ROPES CUT",physics.elapsed,physics.brokenCount),240,404,14,muted);
+                center(c,physics.arcade ? "ARCADE BEST "+profile.arcadeBest[physics.arcadeDifficulty] :
+                        "STAGE "+(physics.stage.index+1)+" BEST "+profile.best[physics.stage.index],240,435,12,muted);
                 if (hasNext) {
                     button(c,"next_stage",74,468,406,542,"NEXT STAGE",mint,18);
                     button(c,"restart",74,556,406,630,"REPLAY",white,18);
                     button(c,"home",74,644,406,718,"HOME",muted,18);
                 } else {
-                    button(c,"restart",74,468,406,542,"REPLAY",mint,18);
+                    button(c,"restart",74,468,406,542,physics.arcade ? "TRY AGAIN" : "REPLAY",mint,18);
                     button(c,"home",74,556,406,630,"HOME",white,18);
+                    if (physics.arcade) button(c,"arcade",74,644,406,718,"CHANGE SETUP",muted,18);
                 }
             }
         }
@@ -617,11 +759,15 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         void clearTouch() {
             pointer = buttonPointer = -1; pressed = null; touch.cancel();
-            physics.touchControlled(true); physics.steerTouch(0); physics.touchControlled(!motionEnabled); physics.gx = 0;
+            physics.steerTouch(0); physics.touchControlled(!motionEnabled); physics.gx = 0;
         }
         private void enterHome() { screen = HOME; homeElapsed = 0; clearTouch(); }
         private void restart() {
-            physics.reset(profile.selectedStage); clearTouch(); accumulator = 0; Arrays.fill(trailValid,false); trailIndex = 0;
+            physics.reset(); beginRun();
+        }
+        private void startCampaign() { physics.reset(profile.selectedStage); beginRun(); }
+        private void beginRun() {
+            clearTouch(); accumulator = 0; Arrays.fill(trailValid,false); trailIndex = 0;
             burstTime = 10; resultRecorded = false; lastLandingCue = 0; screen = PLAY;
         }
         private void jump() { if (screen == PLAY && !physics.won && physics.jump()) cue(1); }
@@ -633,14 +779,26 @@ public class MainActivity extends Activity implements SensorEventListener {
             clearTouch(); accumulator = 0; invalidate();
         }
         void activate(String id) {
-            if (id.equals("play") || id.equals("restart")) restart();
+            if (id.equals("play")) startCampaign();
+            else if (id.equals("restart")) restart();
+            else if (id.equals("arcade")) { screen = ARCADE_SETUP; setupMessage = 0; clearTouch(); }
+            else if (id.equals("start_arcade")) { physics.resetArcade(profile.arcadeDifficulty,profile.arcadeHazards); beginRun(); }
+            else if (id.startsWith("difficulty_")) {
+                profile.arcadeDifficulty = ArcadeRules.clampDifficulty(Integer.parseInt(id.substring(11))); saveProfile();
+            } else if (id.startsWith("arcade_")) {
+                int bit = id.equals("arcade_fire") ? ArcadeRules.FIREBALLS : id.equals("arcade_top") ? ArcadeRules.TOP_LASERS :
+                        id.equals("arcade_side") ? ArcadeRules.SIDE_LASERS : ArcadeRules.LIGHTNING;
+                int next = profile.arcadeHazards ^ bit;
+                if (next == 0) setupMessage = 2.5f;
+                else { profile.arcadeHazards = next; setupMessage = 0; saveProfile(); }
+            }
             else if (id.equals("home")) enterHome();
             else if (id.equals("chapters")) { screen = CHAPTERS; clearTouch(); }
             else if (id.startsWith("stage_")) {
                 profile.selectedStage = Math.max(0,Math.min(StageCatalog.COUNT-1,Integer.parseInt(id.substring(6))));
-                saveProfile(); restart();
+                saveProfile(); startCampaign();
             } else if (id.equals("next_stage") && physics.won && physics.stage.index < StageCatalog.COUNT-1) {
-                profile.selectedStage = physics.stage.index+1; saveProfile(); restart();
+                profile.selectedStage = physics.stage.index+1; saveProfile(); startCampaign();
             }
             else if (id.equals("help")) { screen = HELP; clearTouch(); }
             else if (id.equals("settings")) { settingsReturn = screen == HOME ? HOME : PAUSE; screen = SETTINGS; clearTouch(); }
@@ -655,6 +813,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
             else if (id.equals("sound")) { profile.sound = !profile.sound; if (!profile.sound) owner.stopEffects(); saveProfile(); }
             else if (id.equals("haptics")) { profile.haptics = !profile.haptics; saveProfile(); }
+            else if (id.equals("blood")) { profile.blood = !profile.blood; saveProfile(); }
             cue(0); accumulator = 0; invalidate();
         }
         @Override public boolean performClick() { super.performClick(); return true; }
@@ -684,7 +843,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
                 if (id == pointer) {
                     boolean tap = touch.release(x,y); pointer = -1;
-                    physics.touchControlled(true); physics.steerTouch(0); applySteering();
+                    physics.steerTouch(0); applySteering();
                     if (tap) jump();
                     performClick();
                 }

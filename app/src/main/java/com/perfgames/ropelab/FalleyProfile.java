@@ -1,6 +1,6 @@
 package com.perfgames.ropelab;
 
-/** Small portable profile following Frontline's preferences/result-record pattern. */
+/** Portable local preferences plus independent campaign and arcade records. */
 public final class FalleyProfile {
     public boolean motion = true, sound = true, haptics = true;
     public int preset = MotionSteering.BALANCED, bestScore, wins;
@@ -8,6 +8,10 @@ public final class FalleyProfile {
     public int selectedStage;
     public final int[] best = new int[StageCatalog.COUNT], stageWins = new int[StageCatalog.COUNT];
     public final float[] stageTimes = new float[StageCatalog.COUNT];
+    public boolean blood = true;
+    public int arcadeDifficulty = 1, arcadeHazards = 15;
+    public final int[] arcadeBest = new int[3], arcadeRuns = new int[3];
+    public final float[] arcadeLongest = new float[3];
 
     public void sanitize() {
         if (preset < MotionSteering.LOOSE || preset > MotionSteering.TIGHT) preset = MotionSteering.BALANCED;
@@ -15,6 +19,14 @@ public final class FalleyProfile {
         wins = Math.max(0, wins);
         if (!Float.isFinite(fastestWin) || fastestWin <= 0f) fastestWin = 0f;
         selectedStage = Math.max(0, Math.min(StageCatalog.COUNT-1, selectedStage));
+        arcadeDifficulty = Math.max(0, Math.min(2, arcadeDifficulty));
+        arcadeHazards &= 15;
+        if (arcadeHazards == 0) arcadeHazards = 15;
+        for (int i = 0; i < arcadeBest.length; i++) {
+            arcadeBest[i] = Math.max(0, arcadeBest[i]);
+            arcadeRuns[i] = Math.max(0, arcadeRuns[i]);
+            if (!Float.isFinite(arcadeLongest[i]) || arcadeLongest[i] <= 0f) arcadeLongest[i] = 0f;
+        }
         for (int i = 0; i < StageCatalog.COUNT; i++) {
             best[i] = Math.max(0, best[i]);
             stageWins[i] = Math.max(0, stageWins[i]);
@@ -41,5 +53,13 @@ public final class FalleyProfile {
                 stageTimes[index] = elapsed;
         }
         return changed;
+    }
+    /** Called once for an arcade death; campaign wins/finish times remain independent. */
+    public boolean recordArcadeResult(int difficulty, int score, float elapsed) {
+        int index = Math.max(0, Math.min(2, difficulty));
+        arcadeRuns[index]++;
+        arcadeBest[index] = Math.max(arcadeBest[index], Math.max(0, score));
+        if (Float.isFinite(elapsed) && elapsed > arcadeLongest[index]) arcadeLongest[index] = elapsed;
+        return true;
     }
 }

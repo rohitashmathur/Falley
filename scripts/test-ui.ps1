@@ -1,6 +1,7 @@
 param(
     [switch]$BuildOnly,
     [switch]$RestoreOnly,
+    [switch]$EffectsOnly,
     [string]$SdkRoot=$env:ANDROID_HOME,
     [string]$JdkRoot=$env:JAVA_HOME,
     [string]$Device='emulator-5580',
@@ -14,7 +15,7 @@ $root=Split-Path -Parent $PSScriptRoot
 $frontlineRoot=Split-Path -Parent (Split-Path -Parent $root)
 if (!$SdkRoot) { $SdkRoot=Join-Path $frontlineRoot '.toolchain\android-sdk' }
 if (!$JdkRoot) { $JdkRoot=(Get-ChildItem -LiteralPath (Join-Path $frontlineRoot '.toolchain') -Directory -Filter 'jdk-*' | Select-Object -First 1).FullName }
-if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root 'build\device\falley-v2-ui-tests' }
+if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root 'build\device\falley-v3-ui-tests' }
 if (!$KeyStore) { $KeyStore=Join-Path $root 'build\debug.keystore' }
 $output=Join-Path $root 'build\android-ui-falley'
 $apk=Join-Path $output 'falley-ui-tests.apk'
@@ -81,9 +82,9 @@ try {
         Adb @('shell','wm','size',$dimensions[0]) | Out-Null
         Adb @('shell','wm','density',$dimensions[1]) | Out-Null
         Start-Sleep -Milliseconds 650
-        try { Instrument 'suite' $name }
+        try { Instrument $(if ($EffectsOnly) { 'effects' } else { 'suite' }) $name }
         finally {
-            Adb @('pull',"/sdcard/Android/data/com.perfgames.falley/files/falley-native-v2/$name",$ArtifactRoot) | Out-Null
+            Adb @('pull',"/sdcard/Android/data/com.perfgames.falley/files/falley-native-v3/$name",$ArtifactRoot) | Out-Null
         }
     }
 } catch { $failure=$_ }
@@ -95,4 +96,5 @@ finally {
     if ($restored) { try { Adb @('uninstall','com.perfgames.falley.tests') | Out-Null } catch { if (!$failure) { $failure=$_ } } }
 }
 if ($failure) { throw $failure }
-Write-Host "PASS: Falley V2 native swipe steering, chapters, settings, stage records and controlled hazard/landing fixtures. Screenshots and logs: $ArtifactRoot"
+if ($EffectsOnly) { Write-Host "PASS: Falley V3 focused fire/three-beam warning, collision and early/late visual fixtures. Screenshots and logs: $ArtifactRoot" }
+else { Write-Host "PASS: Falley V3 native Arcade setup, touch steering, campaign records and controlled collision/death fixtures. Screenshots and logs: $ArtifactRoot" }

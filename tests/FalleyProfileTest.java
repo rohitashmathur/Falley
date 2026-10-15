@@ -77,6 +77,53 @@ public final class FalleyProfileTest {
         profile.recordResult(true, 10, 12);
         check(profile.stageWins[4] == 1 && profile.stageTimes[4] == 12 && profile.selectedStage == 4,
                 "the compatibility result entry point records the persisted selected stage");
-        System.out.println("PASS: local profile defaults/settings, sanitization, global and per-stage loss/win accounting, best score, fastest time, selected stage and independent records (" + checks + " checks)");
+        check(profile.blood && profile.arcadeDifficulty == 1 && profile.arcadeHazards == 15
+                && profile.arcadeBest.length == 3 && profile.arcadeRuns.length == 3 && profile.arcadeLongest.length == 3,
+                "new arcade preferences default to blood, Standard and all four hazards");
+        profile.blood = false;
+        profile.arcadeDifficulty = 2;
+        profile.arcadeHazards = 6;
+        profile.sanitize();
+        check(!profile.blood && profile.arcadeDifficulty == 2 && profile.arcadeHazards == 6,
+                "loaded blood/custom hazard/difficulty choices remain unchanged");
+        profile.arcadeDifficulty = 99;
+        profile.arcadeHazards = 16;
+        profile.arcadeBest[0] = -20;
+        profile.arcadeRuns[0] = -3;
+        profile.arcadeLongest[0] = Float.NaN;
+        profile.sanitize();
+        check(profile.arcadeDifficulty == 2 && profile.arcadeHazards == 15 && profile.arcadeBest[0] == 0
+                && profile.arcadeRuns[0] == 0 && profile.arcadeLongest[0] == 0,
+                "invalid arcade preferences/records sanitize without leaving an empty hazard set");
+        profile.arcadeDifficulty = -8;
+        profile.arcadeHazards = 17;
+        profile.sanitize();
+        check(profile.arcadeDifficulty == 0 && profile.arcadeHazards == 1,
+                "difficulty remains bounded and unknown mask bits are discarded while valid choices survive");
+        int campaignBest = profile.bestScore, campaignWins = profile.wins;
+        float campaignFastest = profile.fastestWin;
+        int[] stageBest = profile.best.clone(), stageWins = profile.stageWins.clone();
+        float[] stageTimes = profile.stageTimes.clone();
+        check(profile.recordArcadeResult(0, 200, 10.5f) && profile.arcadeBest[0] == 200
+                && profile.arcadeRuns[0] == 1 && profile.arcadeLongest[0] == 10.5f,
+                "an arcade result records its own score, run and survival duration");
+        profile.recordArcadeResult(0, 100, 15);
+        check(profile.arcadeBest[0] == 200 && profile.arcadeRuns[0] == 2 && profile.arcadeLongest[0] == 15,
+                "longest survival and best score improve independently");
+        profile.recordArcadeResult(0, 300, Float.NaN);
+        profile.recordArcadeResult(0, -9, Float.POSITIVE_INFINITY);
+        check(profile.arcadeBest[0] == 300 && profile.arcadeRuns[0] == 4 && profile.arcadeLongest[0] == 15,
+                "invalid scores/times cannot corrupt arcade records while completed runs still count");
+        profile.recordArcadeResult(1, 50, 4);
+        check(profile.arcadeBest[1] == 50 && profile.arcadeRuns[1] == 1 && profile.arcadeLongest[1] == 4
+                && profile.arcadeBest[2] == 0 && profile.arcadeRuns[2] == 0 && profile.arcadeLongest[2] == 0,
+                "each survival difficulty keeps separate records");
+        check(profile.bestScore == campaignBest && profile.wins == campaignWins && profile.fastestWin == campaignFastest
+                && java.util.Arrays.equals(profile.best, stageBest) && java.util.Arrays.equals(profile.stageWins, stageWins)
+                && java.util.Arrays.equals(profile.stageTimes, stageTimes),
+                "arcade survival never creates campaign wins or changes campaign records");
+        check(!profile.blood && !profile.motion && !profile.sound && !profile.haptics,
+                "arcade record updates preserve the user's feedback/control choices");
+        System.out.println("PASS: local preferences/blood, campaign and per-stage records, Arcade mask/difficulty sanitization, independent survival score/runs/longest time and campaign isolation (" + checks + " checks)");
     }
 }

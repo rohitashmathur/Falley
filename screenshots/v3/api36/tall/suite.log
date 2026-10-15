@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: native Falley suite; checks=652; captures=53; viewport=tall; V3 actual touch, Arcade setup, chapter navigation and Activity recreation; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1

@@ -1,0 +1,174 @@
+PASS no interrupted fixture; recover with -RestoreOnly if needed
+PASS preferences committed
+PASS original preferences backed up
+PASS deterministic emulator settings installed
+PASS native Canvas view laid out
+PASS artifact directory ready
+PASS prior test artifact cleared splash.png
+PASS prior test artifact cleared home.png
+PASS prior test artifact cleared how-to-play.png
+PASS prior test artifact cleared settings-preset-0.png
+PASS prior test artifact cleared settings-preset-1.png
+PASS prior test artifact cleared settings-preset-2.png
+PASS prior test artifact cleared chapters.png
+PASS prior test artifact cleared gameplay.png
+PASS prior test artifact cleared swipe-right-held.png
+PASS prior test artifact cleared pause.png
+PASS prior test artifact cleared chapter-1-gameplay.png
+PASS prior test artifact cleared stage-1-target-bounce-controlled.png
+PASS prior test artifact cleared stage-1-victory-controlled.png
+PASS prior test artifact cleared stage-2-victory-controlled.png
+PASS prior test artifact cleared chapter-2-gameplay.png
+PASS prior test artifact cleared stage-3-victory-controlled.png
+PASS prior test artifact cleared stage-4-victory-controlled.png
+PASS prior test artifact cleared chapter-3-gameplay.png
+PASS prior test artifact cleared stage-5-victory-controlled.png
+PASS prior test artifact cleared stage-6-target-bounce-controlled.png
+PASS prior test artifact cleared stage-6-victory-controlled.png
+PASS prior test artifact cleared chapter-1-death-effect-controlled.png
+PASS prior test artifact cleared chapter-1-hazard-death-controlled.png
+PASS prior test artifact cleared chapter-2-death-effect-controlled.png
+PASS prior test artifact cleared chapter-2-hazard-death-controlled.png
+PASS prior test artifact cleared chapter-3-death-effect-controlled.png
+PASS prior test artifact cleared chapter-3-hazard-death-controlled.png
+PASS prior test artifact cleared last-stage-fire-warning-controlled.png
+PASS prior test artifact cleared last-stage-fire-falling-controlled.png
+PASS prior test artifact cleared last-stage-fire-death-effect-controlled.png
+PASS prior test artifact cleared last-stage-fire-death-controlled.png
+PASS prior test artifact cleared hard-floor-death-effect-controlled.png
+PASS prior test artifact cleared hard-floor-result-controlled.png
+PASS prior test artifact cleared arcade-setup-difficulty-0.png
+PASS prior test artifact cleared arcade-setup-difficulty-1.png
+PASS prior test artifact cleared arcade-setup-difficulty-2.png
+PASS prior test artifact cleared arcade-last-hazard-protected.png
+PASS prior test artifact cleared arcade-survival-controlled.png
+PASS prior test artifact cleared arcade-first-death-effect-controlled.png
+PASS prior test artifact cleared arcade-result-controlled.png
+PASS prior test artifact cleared arcade-top-laser-warning-controlled.png
+PASS prior test artifact cleared arcade-top-laser-death-effect-controlled.png
+PASS prior test artifact cleared arcade-top-laser-result-controlled.png
+PASS prior test artifact cleared arcade-side-laser-warning-controlled.png
+PASS prior test artifact cleared arcade-side-laser-death-effect-controlled.png
+PASS prior test artifact cleared arcade-side-laser-result-controlled.png
+PASS prior test artifact cleared arcade-lightning-warning-controlled.png
+PASS prior test artifact cleared arcade-lightning-death-effect-controlled.png
+PASS prior test artifact cleared arcade-lightning-result-controlled.png
+PASS prior test artifact cleared arcade-swept-beam-death-effect-controlled.png
+PASS prior test artifact cleared home-final.png
+PASS prior test artifact cleared checks.txt
+PASS native screen transition 0 (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 6 (expected 1, actual 1)
+PASS stage selection matches card 5
+PASS last stage enables falling fire
+PASS native compositor screenshot last-stage-fire-warning-controlled
+PASS screenshot saved last-stage-fire-warning-controlled
+PASS warning telegraph is safe before fire falls
+PASS warning countdown remains visible
+PASS active fire actually descends
+PASS visible falling fire starts clear of avatar
+PASS native compositor screenshot last-stage-fire-falling-controlled
+PASS screenshot saved last-stage-fire-falling-controlled
+PASS native frame transition lost=true
+PASS native compositor screenshot last-stage-fire-death-effect-controlled
+PASS screenshot saved last-stage-fire-death-effect-controlled
+PASS fire dissolves before the result overlay (expected 1, actual 1)
+PASS native compositor screenshot last-stage-fire-death-ash-controlled
+PASS screenshot saved last-stage-fire-death-ash-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS falling fire overlap kills avatar
+PASS falling fire uses its specific death reason
+PASS fire death cannot add a victory
+PASS native compositor screenshot last-stage-fire-death-controlled
+PASS screenshot saved last-stage-fire-death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 2
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS native compositor screenshot arcade-top-laser-warning-controlled
+PASS screenshot saved arcade-top-laser-warning-controlled
+PASS TOP LASER warning is nonlethal
+PASS native frame transition lost=true
+PASS distinct Arcade collision reason: TOP LASER
+PASS native compositor screenshot arcade-top-laser-death-effect-controlled
+PASS screenshot saved arcade-top-laser-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot arcade-top-laser-result-controlled
+PASS screenshot saved arcade-top-laser-result-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 4
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS native compositor screenshot arcade-side-laser-warning-controlled
+PASS screenshot saved arcade-side-laser-warning-controlled
+PASS SIDE LASER warning is nonlethal
+PASS native frame transition lost=true
+PASS distinct Arcade collision reason: SIDE LASER
+PASS native compositor screenshot arcade-side-laser-death-effect-controlled
+PASS screenshot saved arcade-side-laser-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot arcade-side-laser-result-controlled
+PASS screenshot saved arcade-side-laser-result-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 8
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS native compositor screenshot arcade-lightning-warning-controlled
+PASS screenshot saved arcade-lightning-warning-controlled
+PASS LIGHTNING warning is nonlethal
+PASS native frame transition lost=true
+PASS distinct Arcade collision reason: LIGHTNING
+PASS native compositor screenshot arcade-lightning-death-effect-controlled
+PASS screenshot saved arcade-lightning-death-effect-controlled
+PASS lightning disintegrates before the result overlay (expected 1, actual 1)
+PASS native compositor screenshot arcade-lightning-death-ash-controlled
+PASS screenshot saved arcade-lightning-death-ash-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot arcade-lightning-result-controlled
+PASS screenshot saved arcade-lightning-result-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS Activity finished before preferences restored
+PASS preferences committed
+PASS original preferences restored exactly
+PASS verified backup cleared
+PASS: native Falley effects; checks=173; captures=15; viewport=small; V3 actual touch, Arcade setup, chapter navigation and Activity recreation; controlled collision/death fixtures, not a natural phone playtest; original preferences restored

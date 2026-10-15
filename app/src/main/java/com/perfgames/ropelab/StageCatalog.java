@@ -8,11 +8,16 @@ public final class StageCatalog {
         public final String title, chapterTitle;
         public final float groundY, targetCenter, targetWidth;
         public final boolean fireRain;
+        public final int extraHazards;
+        public final boolean fatalMiss;
         private Stage(int index, String title, String chapterTitle, int hazard, float groundY, boolean rain,
                       float targetCenter, float targetWidth) {
             this.index = index; this.title = title; this.chapterIndex = index / 2;
             this.chapterTitle = chapterTitle; this.hazard = hazard; this.groundY = groundY; this.fireRain = rain;
             this.targetCenter = targetCenter; this.targetWidth = targetWidth;
+            extraHazards = index == 1 ? ArcadeRules.TOP_LASERS : index == 3 ? ArcadeRules.SIDE_LASERS :
+                    index == 4 ? ArcadeRules.LIGHTNING : index == 5 ? ArcadeRules.ALL : 0;
+            fatalMiss = index >= 3;
         }
     }
     private static final Stage[] STAGES = {

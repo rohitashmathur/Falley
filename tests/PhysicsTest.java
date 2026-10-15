@@ -23,6 +23,7 @@ public final class PhysicsTest {
             check(s.index==i && s.chapterIndex==i/2 && !s.title.isEmpty() && !s.chapterTitle.isEmpty(),"stages form three named chapters");
             check(s.groundY>previous && s.groundY>=4200 && s.hazard==i/2,"stages are longer and use the chapter hazard");
             check(s.fireRain==(i==StageCatalog.COUNT-1),"only the last stage rains fire"); previous=s.groundY;
+            check(s.fatalMiss==(i>=3),"only the latter three campaign stages make a floor miss fatal");
             Physics p=stage(i); p.score=99;p.won=true;p.reset();
             check(p.stage.index==i && p.score==0 && !p.won && !p.lost && p.cameraY==0,"restart preserves the chosen stage and clears gameplay");
             for(Physics.FireHazard f:p.fireHazards) check(!f.active && f.warningTime==0,"restart clears the fire pool");
@@ -54,12 +55,14 @@ public final class PhysicsTest {
             Physics p=stage(0);aboveRope(p);p.gx=-direction*950;
             float start=p.x;p.steerTouch(direction*160);run(p,48);
             check((p.x-start)*direction>20 && p.vx*direction>0,"each swipe moves in its direction despite rope contact or stale sensor force");
-            p.steerTouch(0);float stopped=p.x;run(p,400);
-            check(Math.abs(p.x-stopped)<.05f && Math.abs(p.vx)<.05f,"release/cancel stops touch movement without automatic lateral drift");
+            p.steerTouch(0);float released=p.x;run(p,200);
+            check(p.steeringVelocity()==0 && Math.abs(p.vx-p.driftVelocity())<.1f,
+                    "release/cancel removes player steering while the intentional air current remains");
+            check(Math.abs(p.x-released)>5 && Math.abs(p.driftVelocity())<=100.01f,"the visible air current requires a correction after release");
         }
         Physics neutral=stage(0);aboveRope(neutral);float center=neutral.x;
-        run(neutral,1000);
-        check(Math.abs(neutral.x-center)<.05f,"touch-only neutral stays centered through repeated rope reactions");
+        for(int i=0;i<1000 && !neutral.lost;i++){neutral.steerTouch(-neutral.driftVelocity());neutral.step();}
+        check(!neutral.lost && Math.abs(neutral.x-center)<1,"countersteering can hold position through air current and rope reactions");
         neutral.touchControlled(false);neutral.gx=450;run(neutral,30);
         check(neutral.vx>0 && neutral.x>center+2,"sensor/acceleration steering still works outside touch-only mode");
     }
@@ -77,14 +80,14 @@ public final class PhysicsTest {
         }
         Physics stalled=stage(0);
         for(int i=0;i<240*260 && !stalled.lost && !stalled.won;i++) {
-            if(i%120==0)stalled.jump();stalled.step();
+            stalled.steerTouch(-stalled.driftVelocity());if(i%120==0)stalled.jump();stalled.step();
         }
         check(stalled.lost && !stalled.won,"repeated air jumps cannot stall the course indefinitely");
     }
     private static void jumpsNeverWidenHazards() {
         Physics p=stage(0);float left=p.leftWall(),right=p.rightWall(),initialGap=right-left;int jumps=0;
         for(int i=0;i<240*90 && !p.lost && !p.won;i++) {
-            if(i%80==0 && p.jump())jumps++;
+            p.steerTouch(-p.driftVelocity());if(i%80==0 && p.jump())jumps++;
             p.step();
             check(p.leftWall()>=left-.0001f && p.rightWall()<=right+.0001f,
                     "actual manual/automatic jumps cannot reopen the narrowing sides");
@@ -96,7 +99,7 @@ public final class PhysicsTest {
         float safeLeft=p.leftWall()+p.hazardInset()+p.radius()+3;
         float safeRight=p.rightWall()-p.hazardInset()-p.radius()-3;
         // Dodge telegraphed fire in the whole safe arena, then line up to finish.
-        if(p.y>p.groundY()-400 || !p.stage.fireRain) {
+        if(p.y>p.groundY()-350) {
             safeLeft=Math.max(safeLeft,p.targetLeft()+p.radius()+3);
             safeRight=Math.min(safeRight,p.targetRight()-p.radius()-3);
         }
@@ -106,9 +109,22 @@ public final class PhysicsTest {
             float clearance=10000;
             for(Physics.FireHazard f:p.fireHazards)
                 if(f.active && (f.warningTime>0 || f.y<p.y+90))clearance=Math.min(clearance,Math.abs(candidate-f.x));
+            for(Physics.BeamHazard b:p.beamHazards)if(b.active) {
+                if(b.warningTime>0 && b.warningTime>(p.groundY()-p.y)/Math.max(100,p.vy))continue;
+                clearance=Math.min(clearance,(float)Math.sqrt(Physics.pointSegmentDistanceSquared(candidate,p.y,b.x1,b.y1,b.x2,b.y2))-b.width/2);
+            }
             if(clearance>bestClearance || clearance==bestClearance && candidate==center){bestClearance=clearance;best=candidate;}
         }
-        p.steerTouch(Physics.clamp((best-p.x)*8,-220,220));
+        // Prefer the finish lane whenever its clearance is sufficient; only dodge a real threat.
+        float centerClearance=10000;
+        for(Physics.FireHazard f:p.fireHazards)if(f.active && (f.warningTime>0 || f.y<p.y+90))
+            centerClearance=Math.min(centerClearance,Math.abs(center-f.x)-f.radius);
+        for(Physics.BeamHazard b:p.beamHazards)if(b.active) {
+            if(b.warningTime>0 && b.warningTime>(p.groundY()-p.y)/Math.max(100,p.vy))continue;
+            centerClearance=Math.min(centerClearance,(float)Math.sqrt(Physics.pointSegmentDistanceSquared(center,p.y,b.x1,b.y1,b.x2,b.y2))-b.width/2);
+        }
+        if(centerClearance>p.radius()+9)best=center;
+        p.steerTouch(Physics.clamp((best-p.x)*10-p.driftVelocity(),-300,300));
     }
     private static void variedTargetsRequireSteering() {
         for(int i=0;i<StageCatalog.COUNT;i++) {
@@ -120,10 +136,13 @@ public final class PhysicsTest {
             check(p.won && !p.lost,"the center of each stage target permits a complete descending landing");
             if(i>=1 && i<=4) {
                 p.reset();p.elapsed=30;p.score=300;p.x=240;p.y=p.groundY()-p.radius()-1;p.vy=240;p.step();
-                check(!p.won && !p.lost && p.groundBounce>0,"neutral center misses shifted/narrower stage "+i+" target and gets a forgiving bounce");
-                p.steerTouch(center<240?-140:140);
-                for(int k=0;k<240 && !p.won && !p.lost;k++)p.step();
-                check(p.won && !p.lost,"intentional steering recovers into shifted stage "+i+" target");
+                if(p.stage.fatalMiss) {
+                    check(!p.won && p.lost && "HARD LANDING".equals(p.deathReason),"a late-stage target miss causes the required hard landing");
+                } else {
+                    check(!p.won && !p.lost && p.groundBounce>0,"an early target miss gets a forgiving bounce");
+                    for(int k=0;k<240 && !p.won && !p.lost;k++){p.steerTouch((center<240?-140:140)-p.driftVelocity());p.step();}
+                    check(p.won && !p.lost,"intentional steering recovers into an early shifted target");
+                }
             }
         }
     }
@@ -138,27 +157,28 @@ public final class PhysicsTest {
                         "rope landings and fire dodges cannot widen the course walls");
                 previousLeft=p.leftWall();previousRight=p.rightWall();
                 for(Physics.FireHazard f:p.fireHazards)if(f.active && f.warningTime>0)warnings++;
+                for(Physics.BeamHazard b:p.beamHazards)if(b.active && b.warningTime>0)warnings++;
             }
             check(p.won && !p.lost,"stage "+i+" can be won by actual gravity/rope progression and bounded steering; reason="+p.deathReason+", x="+p.x+", y="+p.y+", elapsed="+p.elapsed);
             check(p.elapsed>8 && p.brokenCount>8 && p.ropes[0].base>initialBase,"the longer course uses and recycles its rope pool");
             check(p.groundY()-p.cameraY<=Physics.H && p.cameraY>0 && p.y+p.radius()<=p.groundY()+.01f,"camera and target landing stay bounded");
-            if(i==StageCatalog.COUNT-1)check(warnings>0,"the winning final-stage run encounters real fire warnings");
+            if(i==StageCatalog.COUNT-1)check(warnings>0,"the winning final-stage run encounters mixed hazard warnings");
             for(Physics.Rope r:p.ropes)check(r.base<p.groundY()-300,"recycled mounts stop above the target floor");
             System.out.printf("Stage %d PASS: %.2fs, %d cuts, score %d%n",i+1,p.elapsed,p.brokenCount,p.score);
         }
     }
     private static void fireWarningAndContact() {
-        Physics p=stage(5);p.y=1800;p.cameraY=1370;p.vy=0;
+        Physics p=stage(5);p.resetArcade(0,ArcadeRules.FIREBALLS);p.y=1800;p.cameraY=1370;p.vy=0;
         for(Physics.Rope r:p.ropes)r.cut=12;
         Physics.FireHazard spawned=null;
-        for(int i=0;i<500 && !p.lost && spawned==null;i++) {
-            p.step();for(Physics.FireHazard f:p.fireHazards)if(f.active){spawned=f;break;}
+        for(int i=0;i<720 && !p.lost && spawned==null;i++) {
+            p.steerTouch(-p.driftVelocity());p.step();for(Physics.FireHazard f:p.fireHazards)if(f.active){spawned=f;break;}
         }
         check(spawned!=null && spawned.warningTime>.5f && !p.lost,"a fireball first appears as a substantial warning, not an instant hit");
         float warningX=spawned.x,warningRadius=spawned.radius;
         p.reset();p.y=1800;p.cameraY=1370;p.vy=0;for(Physics.Rope r:p.ropes)r.cut=12;
         Physics.FireHazard repeated=null;
-        for(int i=0;i<500 && repeated==null;i++){p.step();for(Physics.FireHazard f:p.fireHazards)if(f.active){repeated=f;break;}}
+        for(int i=0;i<720 && repeated==null;i++){p.steerTouch(-p.driftVelocity());p.step();for(Physics.FireHazard f:p.fireHazards)if(f.active){repeated=f;break;}}
         check(repeated!=null && repeated.x==warningX && repeated.radius==warningRadius,"restart replays the deterministic warning sequence for tests");
         p.reset();p.y=1800;p.cameraY=1370;p.vy=0;
         Physics.FireHazard f=p.fireHazards[0];f.active=true;f.warningTime=.5f;f.x=p.x;f.y=p.y;
@@ -171,7 +191,7 @@ public final class PhysicsTest {
     private static void floorRecoveryAndWinFreeze() {
         Physics p=stage(0);p.x=153;p.y=p.groundY()-p.radius()-1;p.vy=600;p.step();
         check(!p.won && !p.lost && p.vy<0 && p.groundBounce>0,"an off-target floor landing bounces without a false win");
-        p.steerTouch(150);for(int i=0;i<240 && !p.won && !p.lost;i++)p.step();
+        for(int i=0;i<240 && !p.won && !p.lost;i++){p.steerTouch(150-p.driftVelocity());p.step();}
         check(p.won && !p.lost,"a swipe can recover from the bounce into the target");
         int score=p.score;float elapsed=p.elapsed,x=p.x;p.steerTouch(-340);
         check(!p.jump(),"winning locks manual jump input");run(p,60);
@@ -198,12 +218,14 @@ public final class PhysicsTest {
             check(!(p.won&&p.lost)&&p.cameraY>=0&&p.cameraY<p.groundY()&&p.mass()>=1&&p.mass()<=6.01f,"result, camera and weight bounds hold");
             for(Physics.Rope r:p.ropes)for(int k=0;k<Physics.Rope.N;k++)check(Float.isFinite(r.x[k])&&Float.isFinite(r.y[k]),"rope nodes stay finite");
             for(Physics.FireHazard f:p.fireHazards)check(Float.isFinite(f.x)&&Float.isFinite(f.y)&&Float.isFinite(f.warningTime)&&f.warningTime>=0,"the fixed fire pool stays finite");
+            for(Physics.BeamHazard b:p.beamHazards)check(Float.isFinite(b.x1)&&Float.isFinite(b.y1)&&Float.isFinite(b.x2)&&Float.isFinite(b.y2)
+                    &&Float.isFinite(b.warningTime)&&Float.isFinite(b.liveTime),"beam geometry/timers remain finite");
         }
         check(deaths>0&&wins>0,"stress exercises hazards, victories, celebrations and restarts");
     }
     public static void main(String[] args) {
         catalogAndReset();ropesMassAndJump();touchDirectionAndRelease();sideHazardsAndNarrowing();jumpsNeverWidenHazards();
         variedTargetsRequireSteering();allCoursesWinAndRecycle();fireWarningAndContact();floorRecoveryAndWinFreeze();stress();
-        System.out.println("PASS: six chapter courses, touch directions/release/no drift, ropes/weight, narrowing side hazards, warning fire/contact, floor recovery, terminal wins/reset and 100000 seeded stability steps ("+checks+" checks)");
+        System.out.println("PASS: six chapter courses, intentional drift/countersteer/release, ropes/weight, narrowing hazards, warning fire/contact, forgiving and fatal floors, terminal wins/reset and 100000 seeded stability steps ("+checks+" checks)");
     }
 }

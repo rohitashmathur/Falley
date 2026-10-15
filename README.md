@@ -1,28 +1,28 @@
-# Falley — V2
+# Falley — V3
 
-**Physics at play.** An offline Android game about guiding a falling human through elastic ropes to a bouncy ground target. V2 expands the descent into **six stages across three chapters**: Laser, Spikes and Fire. The final Fire stage adds falling fireballs with warnings before they drop.
+**Physics at play.** An offline Android physics game with elastic ropes, a falling human and two ways to play: a six-stage campaign and configurable Arcade survival.
 
-This repository shares source and test evidence. **APKs are built and kept locally; no public APK download is provided.** This is a debug testing build, not a Google Play production submission.
+APKs are built and kept locally. Source, screenshots and test evidence may be shared; no public APK download or Google Play production release is provided.
 
 ## Play
 
-Choose a chapter and stage from Home, then descend to its marked target. Tap the arena or **Jump** for an upward impulse; intact-rope landings also produce a small natural jump. Points increase weight, heavy contacts snap ropes, and the side hazards gradually close in.
+**Campaign:** choose one of six stages across Laser, Spike and Fire chapters. Survive the narrowing sides, cut ropes as weight increases, and land with the whole contact area inside the stage's target. Later stages shift and narrow the target. Stages 1–3 allow an off-target bounce and recovery; **stages 4–6 make a missed floor target fatal**.
 
-Tilt to steer when motion is enabled. With motion off, swipe left/right to move in that direction; release or cancel ends touch steering. Touch steering remains available without motion sensors. The taller play area keeps attention on the descent; motion feel belongs in Settings rather than the gameplay screen.
+**Arcade:** configure **Chill / Standard / Brutal** and enable one or more incoming attacks: falling fire, top laser, side laser and diagonal lightning. These toggles select incoming attacks; the narrowing boundary hazards always remain lethal. Survive for score and time; there is no campaign finish or win. Warning cues precede active hazards. Arcade records are separate for each difficulty and never increase campaign wins.
 
-Land with the whole character contact area inside the ground target to win. Later stages shift and narrow the target, requiring an intentional finish rather than staying at the arena center. A miss bounces without a false win, allowing another attempt. A short physical finish bounce precedes the result. Pause, restart, replay and Home navigation are available. The human uses distinct falling, jumping and crouched landing poses rather than a ragdoll.
+Tap to jump and swipe horizontally to steer, or enable phone motion. In non-motion play, deliberate drift requires continued steering; leaving the figure idle is not an automatic route to a win. Pause, restart and Home navigation remain available. The human uses jumping, falling and crouched landing poses, plus hazard-specific death reactions.
 
-Home has an animated Falley title. Startup shows the Falley icon and **Falley by Perf Games**; returning from the background does not replay the intro.
+## Settings and records
 
-## Settings and local records
+Motion uses gyro plus accelerometer when available and filtered accelerometer fallback otherwise. Loose / Balanced / Tight tune sensor response in Settings. The first valid sample automatically centers the current phone pose; no manual centering control is shown.
 
-Motion steering uses gyro plus accelerometer when available, with filtered accelerometer fallback. **Loose / Balanced / Tight** adjust sensor gain, dead zone and smoothing; they are motion feel choices, not difficulty presets. The first valid sample automatically centers the comfortable phone pose; resume starts from a fresh sensor reference. There is no manual centering control.
+Motion feel, sound effects, vibration and **Blood effects** persist locally. Blood effects can be turned off. There is no music setting, downloaded audio, account, advertising or backend.
 
-Motion, feel, short sound effects and vibration settings persist on the device. There is no music setting or downloaded audio. Best score, wins and fastest finish are kept globally and per stage; the selected stage persists too. An unfinished run is not saved across process death.
+Campaign best scores, wins and fastest finishes are stored globally and per stage. Arcade stores best score, run count and longest survival separately for Chill, Standard and Brutal. Selected campaign stage and Arcade difficulty/hazard choices persist. At least one Arcade hazard must remain enabled. Unfinished runs are not restored after process death.
 
 ## Build and install locally
 
-Requires JDK 17, Android SDK **platform 36**, **build-tools 35.0.0**, and an Android 7.0/API 24 or newer phone. Run from this project root:
+Requires JDK 17, Android SDK **platform 36**, **build-tools 35.0.0**, and Android 7.0/API 24 or newer. From this project root:
 
 ```powershell
 .\scripts\build-android.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
@@ -31,32 +31,32 @@ adb install -r .\Falley-debug.apk
 adb shell am start -n com.perfgames.falley/com.perfgames.ropelab.MainActivity
 ```
 
-Alternatively set `ANDROID_HOME` and `JAVA_HOME`. The builder emits `Falley-debug.apk` locally and uses fresh staging under `build/`. Preserve the ignored `build/debug.keystore` to install future debug updates over this one; never publish that key or APK binaries. Application ID remains `com.perfgames.falley`; its legacy internal Java namespace is intentional.
+Alternatively set `ANDROID_HOME` and `JAVA_HOME`. The builder emits `Falley-debug.apk` locally with fresh staging under `build/`. Preserve the ignored `build/debug.keystore` to install later updates; never publish the key or APK/AAB binaries. Application ID remains `com.perfgames.falley`.
 
-Gradle configuration uses AGP 8.10.1, Gradle 8.11.1 compatibility, JDK 17 and compile/target SDK 36. A wrapper is not bundled; the alternate `gradle :app:assembleDebug` path requires the SDK and plugin-repository access. [Official AGP compatibility](https://developer.android.com/build/releases/agp-8-10-0-release-notes) supports this combination. The portable builder is the validation path used here.
+Gradle configuration remains AGP 8.10.1, Gradle 8.11.1 compatibility, JDK 17 and compile/target SDK 36. A wrapper is not bundled; the alternate `gradle :app:assembleDebug` route requires the SDK and plugin-repository access. The portable builder is the validation path used here.
 
-The native regression runner needs an already running disposable emulator, an installed Falley APK and **SDK platform 35** in addition to the app builder's platform 36. Platform 35 supplies `android.jar` for compiling the reflection-only harness:
+Native regressions require a running disposable emulator, the installed APK and **SDK platform 35** for the reflection-only test harness, in addition to the app builder's platform 36:
 
 ```powershell
 .\scripts\test-ui.ps1 -Device emulator-5584 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
 ```
 
-Its controlled target/death fixtures are test setups, not evidence of natural phone play. Source lives in `android-tests/`; portable simulation/profile tests live in `tests/`.
+Controlled hazard/floor fixtures are test setups, not natural phone play sessions. Portable source tests live in `tests/`; native tests live in `android-tests/`.
 
-## Rules and verification
+## V3 verification
 
-`StageCatalog.java` describes the finite stages. `Physics.java` handles fixed 240 Hz gravity, elastic ropes, load/cuts, steering, closing side hazards, fireball warning/drop behavior, floor contact and win/loss state. A small rope pool recycles during longer descents and stops before the ground. Winning freezes gameplay input and score while the celebration bounce continues. `MotionSteering.java` filters sensors; `FalleyProfile.java` handles safe local result accounting.
+**Portable V3 tests: PASS.** All six campaign courses were completed through real gravity/rope progression and bounded steering, including the new hazards and fatal later-stage floor misses. Idle touch-only runs lose; countersteering controls the intentional current. Campaign and Arcade each passed **100,000 seeded stability steps**.
 
-**Portable tests: PASS.** All six complete courses were won using actual gravity/rope progression and bounded steering; final-stage fire warnings were encountered and avoided. Physics checks cover touch direction/release/no drift, rope recycling/cuts, chapter hazards, warning/fire collision, shifted target recovery, complete contact-area bounds, sides remaining closed through actual jumps, result/reset state and **100,000 seeded stability steps**. Touch gestures have 16 cases, motion filtering 17 and global/per-stage profiles 21. See `BUILD_STATUS.md` and `screenshots/v2/physics-suite.log` for the final local APK/build evidence.
+Arcade tests cover selected hazard families at every difficulty, warning reaction time, reachable full-body refuges, locked telegraphs, rounded beam endpoints/near misses, swept diagonal/parallel geometry, distinct collision reasons and mode/reset isolation. A bounded test controller survived **25 seconds into wave 2 with all four hazards at each difficulty**. These are deterministic simulation results, not human success rates or a guarantee that every possible situation is avoidable.
 
-**Native final APK checks: PASS.** Android 15/API 35 and Android 16/API 36, each at 480x800/240 dpi and 720x1600/320 dpi: four suites with 416 logged checks each (**1,664 total**). Actual swipe/tap/Jump, release/cancel/no drift, system Back, pause, settings/preset persistence, chapter/stage selection and replay were exercised. Controlled fixtures verify all six target finishes, Next Stage, per-stage records, three side-hazard reasons and final-stage fire warnings/drop/collision. Home, chapter selection, gameplay and results were visually reviewed without clipping or system-bar overlap.
+Gesture policy has 16 cases, motion filtering 17 and local preferences/independent campaign-and-Arcade records 31. **The local 3.0.0/code 5 APK build and v2/v3 signatures pass.** The same APK passed four native suites on Android 15/API 35 and Android 16/API 36 at 480x800 and 720x1600: **2,600 checks and 208 captures**. Separate focused API 35 effects suites added **346 checks and 30 captures**, covering partial side beams, diagonal lightning and lingering fire/lightning ash.
 
-The native runner captured 112 images locally; **48 curated images** plus suite/check logs are kept under `screenshots/v2/api35/` and `api36/`. Original emulator preferences/display settings were restored and test APKs removed. Controlled target/fire fixtures do not establish natural phone play success or subjective fun.
+Native checks exercised swipes, countersteering, release behavior, Back/pause navigation, settings/record persistence, campaign targets and strict floor misses, Arcade setup and distinct hazard deaths. Collision, target and 40-second Arcade fixtures use controlled states; they are not natural phone play sessions. Curated screenshots and suite logs are under `screenshots/v3/`. `BUILD_STATUS.md` records the checksum and evidence. Real-phone play remains untested.
 
-## Privacy and remaining gaps
+## Privacy and known gaps
 
-Preferences, stage records and sensor processing stay on the device. This build has no Internet permission, accounts, analytics, ads or backend; it does not record sensor history. Clear app data or uninstall to remove local records. Android app backup is disabled.
+Preferences, campaign/Arcade records and sensor processing stay on the device. The app has no Internet permission, analytics or backend and does not save sensor history. Clear app data or uninstall to remove local records; Android app backup is disabled.
 
-Real-phone tilt comfort, swipe feel, haptics/audio, battery use and subjective fun still need testing. The six deterministic steering runs finished in approximately **10.1–15.4 seconds**; these are simulation test durations, not player completion times. Physics uses a compact circular proxy, simplified rope cuts and small fixed steps rather than full articulated/continuous collision. Canvas controls are English-only and do not yet offer complete independent TalkBack controls.
+Real-phone motion/swipe comfort, blood-effect readability, haptics/audio, battery use and subjective fun still need testing. Balance and difficulty are provisional. Physics uses a compact contact proxy, simplified rope cuts and fixed substeps rather than a full articulated ragdoll or continuous-collision engine. Canvas controls remain English-only without complete independent TalkBack navigation.
 
-A production release-signed AAB, Play Console setup/disclosures and production rollout remain unbuilt/unsubmitted. Target SDK and a local debug APK do not establish store or worldwide IP approval. More modes and content beyond these V2 stages remain deferred until the controls and chapter pacing are tested on phones.
+Release-signed AAB generation, Play Console declarations/content rating and production rollout remain outside this debug prototype. No store submission or public binary publication is performed.

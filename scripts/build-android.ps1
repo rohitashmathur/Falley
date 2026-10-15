@@ -15,7 +15,7 @@ New-Item -ItemType Directory -Force "$stage\generated","$stage\classes","$stage\
 function Run([string]$exe,[string[]]$argsList){ & $exe @argsList; if($LASTEXITCODE -ne 0){throw "$exe failed ($LASTEXITCODE)"} }
 $manifest=(Get-Content "$root\app\src\main\AndroidManifest.xml" -Raw).Replace('<manifest ', '<manifest package="com.perfgames.falley" ')
 $manifest | Set-Content -Encoding utf8 "$stage\AndroidManifest.xml"
-Run "$tools\aapt.exe" @('package','-f','-m','--debug-mode','-J',"$stage\generated",'-M',"$stage\AndroidManifest.xml",'-S',"$root\app\src\main\res",'-I',$androidJar,'-F',"$stage\unsigned.apk",'--version-code','4','--version-name','2.0.0')
+Run "$tools\aapt.exe" @('package','-f','-m','--debug-mode','-J',"$stage\generated",'-M',"$stage\AndroidManifest.xml",'-S',"$root\app\src\main\res",'-I',$androidJar,'-F',"$stage\unsigned.apk",'--version-code','5','--version-name','3.0.0')
 $files=@((Get-ChildItem "$root\app\src\main\java","$stage\generated" -Recurse -Filter '*.java').FullName)
 Run 'javac.exe' (@('-encoding','UTF-8','-source','8','-target','8','-classpath',$androidJar,'-d',"$stage\classes")+$files)
 Run 'jar.exe' @('cf',"$stage\classes.jar",'-C',"$stage\classes",'.')
