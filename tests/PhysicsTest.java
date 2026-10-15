@@ -111,8 +111,10 @@ public final class PhysicsTest {
                 if(f.active && (f.warningTime>0 || f.y<p.y+90))clearance=Math.min(clearance,Math.abs(candidate-f.x));
             for(Physics.BeamHazard b:p.beamHazards)if(b.active) {
                 if(b.warningTime>0 && b.warningTime>(p.groundY()-p.y)/Math.max(100,p.vy))continue;
-                clearance=Math.min(clearance,(float)Math.sqrt(Physics.pointSegmentDistanceSquared(candidate,p.y,b.x1,b.y1,b.x2,b.y2))-b.width/2);
+                clearance=Math.min(clearance,beamClearance(candidate,p.y,b));
             }
+            for(Physics.SawHazard s:p.sawHazards)if(s.active)
+                clearance=Math.min(clearance,Math.abs(candidate-Physics.clamp(candidate,Math.min(s.warningTime>0?s.pathX1:s.x,s.pathX2),Math.max(s.warningTime>0?s.pathX1:s.x,s.pathX2)))-s.radius);
             if(clearance>bestClearance || clearance==bestClearance && candidate==center){bestClearance=clearance;best=candidate;}
         }
         // Prefer the finish lane whenever its clearance is sufficient; only dodge a real threat.
@@ -121,8 +123,10 @@ public final class PhysicsTest {
             centerClearance=Math.min(centerClearance,Math.abs(center-f.x)-f.radius);
         for(Physics.BeamHazard b:p.beamHazards)if(b.active) {
             if(b.warningTime>0 && b.warningTime>(p.groundY()-p.y)/Math.max(100,p.vy))continue;
-            centerClearance=Math.min(centerClearance,(float)Math.sqrt(Physics.pointSegmentDistanceSquared(center,p.y,b.x1,b.y1,b.x2,b.y2))-b.width/2);
+            centerClearance=Math.min(centerClearance,beamClearance(center,p.y,b));
         }
+        for(Physics.SawHazard s:p.sawHazards)if(s.active)
+            centerClearance=Math.min(centerClearance,Math.abs(center-Physics.clamp(center,Math.min(s.warningTime>0?s.pathX1:s.x,s.pathX2),Math.max(s.warningTime>0?s.pathX1:s.x,s.pathX2)))-s.radius);
         if(centerClearance>p.radius()+9)best=center;
         p.steerTouch(Physics.clamp((best-p.x)*10-p.driftVelocity(),-300,300));
     }
@@ -149,7 +153,7 @@ public final class PhysicsTest {
     private static void allCoursesWinAndRecycle() {
         for(int i=0;i<StageCatalog.COUNT;i++) {
             Physics p=stage(i);float initialBase=p.ropes[0].base;
-            int steps=0,warnings=0;
+            int steps=0,warnings=0,sawWarnings=0;
             float previousLeft=p.leftWall(),previousRight=p.rightWall();
             while(!p.lost && !p.won && steps++<240*120) {
                 safeSteer(p);p.step();
@@ -158,11 +162,13 @@ public final class PhysicsTest {
                 previousLeft=p.leftWall();previousRight=p.rightWall();
                 for(Physics.FireHazard f:p.fireHazards)if(f.active && f.warningTime>0)warnings++;
                 for(Physics.BeamHazard b:p.beamHazards)if(b.active && b.warningTime>0)warnings++;
+                for(Physics.SawHazard s:p.sawHazards)if(s.active && s.warningTime>0){warnings++;sawWarnings++;}
             }
             check(p.won && !p.lost,"stage "+i+" can be won by actual gravity/rope progression and bounded steering; reason="+p.deathReason+", x="+p.x+", y="+p.y+", elapsed="+p.elapsed);
             check(p.elapsed>8 && p.brokenCount>8 && p.ropes[0].base>initialBase,"the longer course uses and recycles its rope pool");
             check(p.groundY()-p.cameraY<=Physics.H && p.cameraY>0 && p.y+p.radius()<=p.groundY()+.01f,"camera and target landing stay bounded");
             if(i==StageCatalog.COUNT-1)check(warnings>0,"the winning final-stage run encounters mixed hazard warnings");
+            if(i==3)check(sawWarnings>0,"the actual winning Needle run introduces telegraphed saws before landing");
             for(Physics.Rope r:p.ropes)check(r.base<p.groundY()-300,"recycled mounts stop above the target floor");
             System.out.printf("Stage %d PASS: %.2fs, %d cuts, score %d%n",i+1,p.elapsed,p.brokenCount,p.score);
         }
@@ -222,6 +228,12 @@ public final class PhysicsTest {
                     &&Float.isFinite(b.warningTime)&&Float.isFinite(b.liveTime),"beam geometry/timers remain finite");
         }
         check(deaths>0&&wins>0,"stress exercises hazards, victories, celebrations and restarts");
+    }
+    private static float beamClearance(float candidate,float y,Physics.BeamHazard b) {
+        // Hold the horizontal refuge through a bounce, rather than recentering into a live lane.
+        if(b.kind==ArcadeRules.SIDE_LASERS)
+            return Math.abs(candidate-Physics.clamp(candidate,Math.min(b.x1,b.x2),Math.max(b.x1,b.x2)))-b.width/2;
+        return (float)Math.sqrt(Physics.pointSegmentDistanceSquared(candidate,y,b.x1,b.y1,b.x2,b.y2))-b.width/2;
     }
     public static void main(String[] args) {
         catalogAndReset();ropesMassAndJump();touchDirectionAndRelease();sideHazardsAndNarrowing();jumpsNeverWidenHazards();

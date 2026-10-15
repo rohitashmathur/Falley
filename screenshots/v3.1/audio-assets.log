@@ -1,0 +1,12 @@
+PASS fire_launch: mono PCM16/24000Hz, 0.850s, peak 0.5500, RMS 0.1623
+PASS fire_burn: mono PCM16/24000Hz, 1.050s, peak 0.5500, RMS 0.1928
+PASS laser_zap: mono PCM16/24000Hz, 0.360s, peak 0.5500, RMS 0.1675
+PASS lightning_crack: mono PCM16/24000Hz, 0.720s, peak 0.5500, RMS 0.0820
+PASS saw_motor: mono PCM16/24000Hz, 1.000s, peak 0.5500, RMS 0.2571
+PASS saw_impact: mono PCM16/24000Hz, 0.550s, peak 0.5500, RMS 0.1396
+PASS ui: mono PCM16/24000Hz, 0.045s, peak 0.5500, RMS 0.2631
+PASS jump: mono PCM16/24000Hz, 0.150s, peak 0.5500, RMS 0.2859
+PASS win: mono PCM16/24000Hz, 0.360s, peak 0.5500, RMS 0.3475
+PASS loss: mono PCM16/24000Hz, 0.210s, peak 0.5500, RMS 0.2491
+PASS rope: mono PCM16/24000Hz, 0.090s, peak 0.5500, RMS 0.2266
+PASS: 11 distinct original clips, faded edges, no clipped PCM samples; max three-voice summed peak <= 0.743.

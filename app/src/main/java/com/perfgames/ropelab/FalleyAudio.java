@@ -1,0 +1,84 @@
+package com.perfgames.ropelab;
+
+import android.content.Context;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
+import java.util.HashSet;
+
+/** Small, bounded, one-shot effect player. No loops, music, or delayed playback. */
+public final class FalleyAudio {
+    private static final String[] CLIPS = {"fire_launch","fire_burn","laser_zap","lightning_crack","saw_motor","saw_impact",
+            "ui","jump","win","loss","rope"};
+    private final Context context;
+    private SoundPool pool;
+    private final int[] samples = new int[CLIPS.length], streams = new int[3];
+    private final HashSet<Integer> loaded = new HashSet<>();
+    private int nextStream, played;
+    private boolean enabled = true, foreground, released, unavailable;
+
+    public FalleyAudio(Context context) { this.context = context.getApplicationContext(); }
+    public synchronized void setEnabled(boolean value) {
+        enabled = value;
+        if (!value) stopAll(); else if (foreground) preload();
+    }
+    public synchronized void setForeground(boolean value) {
+        foreground = value;
+        if (!value) stopAll(); else if (enabled) preload();
+    }
+    private void preload() {
+        if (pool != null || released || unavailable) return;
+        try {
+            pool = new SoundPool.Builder().setMaxStreams(3).setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()).build();
+            pool.setOnLoadCompleteListener((source,id,status) -> {
+                synchronized (FalleyAudio.this) {
+                    if (!released && source == pool && status == 0) loaded.add(id);
+                }
+            });
+            for (int i = 0; i < CLIPS.length; i++) {
+                // Runtime lookup supports both Gradle's namespace and the standalone
+                // Android build script's application package without generated-R coupling.
+                int resource = context.getResources().getIdentifier("falley_"+CLIPS[i],"raw",context.getPackageName());
+                if (resource != 0) samples[i] = pool.load(context,resource,1);
+            }
+        } catch (RuntimeException noAudio) { unavailable = true; releasePool(); }
+    }
+    public synchronized void hazard(int event) { if (event >= 1 && event <= 6) play(event-1); }
+    public synchronized void generic(int kind) {
+        int clip = kind == 1 ? 7 : kind == 2 ? 8 : kind == 3 ? 9 : kind == 4 ? 10 : 6;
+        play(clip);
+    }
+    private void play(int clip) {
+        if (!enabled || !foreground || released || unavailable) return;
+        preload();
+        // An unloaded sample is dropped rather than queued: a pause or restart
+        // must never cause stale hazard audio to arrive after loading completes.
+        if (pool == null || samples[clip] == 0 || !loaded.contains(samples[clip])) return;
+        try {
+            if (streams[nextStream] != 0) pool.stop(streams[nextStream]);
+            int stream = pool.play(samples[clip],.45f,.45f,1,0,1f);
+            streams[nextStream] = stream; nextStream = (nextStream+1)%streams.length;
+            if (stream != 0) played++;
+        } catch (RuntimeException noAudio) { unavailable = true; releasePool(); }
+    }
+    public synchronized void stopAll() {
+        for (int i = 0; i < streams.length; i++) {
+            try { if (pool != null && streams[i] != 0) pool.stop(streams[i]); } catch (RuntimeException ignored) { }
+            streams[i] = 0;
+        }
+    }
+    private void releasePool() {
+        stopAll();
+        if (pool != null) {
+            try { pool.setOnLoadCompleteListener(null); pool.release(); } catch (RuntimeException ignored) { }
+            pool = null;
+        }
+        loaded.clear();
+    }
+    public synchronized void release() { released = true; foreground = false; releasePool(); }
+    public synchronized int loadedCount() { return loaded.size(); }
+    public synchronized int playedCount() { return played; }
+    public synchronized boolean isForeground() { return foreground; }
+    public synchronized boolean isEnabled() { return enabled; }
+    public synchronized boolean isReleased() { return released; }
+}

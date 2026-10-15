@@ -44,7 +44,7 @@ public final class NativeFalleyTest extends Instrumentation {
         super.onCreate(arguments);
         Bundle args = arguments == null ? new Bundle() : arguments;
         mode=args.getString("mode","suite"); shot=args.getString("shot","small");
-        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
+        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
             throw new IllegalArgumentException("Falley test harness arguments");
         start();
     }
@@ -54,7 +54,7 @@ public final class NativeFalleyTest extends Instrumentation {
         backup=getTargetContext().getSharedPreferences("falley-native-original",Context.MODE_PRIVATE);
         Throwable failure=null;
         try {
-            if (mode.equals("suite")||mode.equals("effects")) {
+            if (mode.equals("suite")||mode.equals("effects")||mode.equals("v31")) {
                 require(!backup.getBoolean(BACKUP_MARKER,false),"no interrupted fixture; recover with -RestoreOnly if needed");
                 copy(backup,storage.getAll());
                 require(backup.edit().putBoolean(BACKUP_MARKER,true).commit(),"original preferences backed up");
@@ -63,6 +63,8 @@ public final class NativeFalleyTest extends Instrumentation {
                 launch();
                 if (mode.equals("effects")) {
                     waitScreen(HOME,4000); fireRain(); threeBeamVisuals();
+                } else if (mode.equals("v31")) {
+                    waitScreen(HOME,4000); legacyMaskMigration(); fifthHazardGuard(); sawVisuals(); audioLifecycle();
                 } else {
                 homeAndHelp();
                 settingsAndRecreation();
@@ -75,6 +77,7 @@ public final class NativeFalleyTest extends Instrumentation {
                 arcadeSetupAndPersistence();
                 arcadeSurvivalAndRecords();
                 arcadeBeamHazards();
+                legacyMaskMigration(); sawVisuals(); audioLifecycle();
                 capture("home-final");
                 }
             }
@@ -89,7 +92,8 @@ public final class NativeFalleyTest extends Instrumentation {
             catch (Throwable cleanup) { if (failure==null) failure=cleanup; else failure.addSuppressed(cleanup); }
         }
         String coverage=mode.equals("effects") ? "focused fire/three-beam warnings, collisions and early/late visual effects"
-                : mode.equals("restore") ? "preference recovery only" : "V3 actual touch, Arcade setup, chapter navigation and Activity recreation";
+                : mode.equals("v31") ? "focused V3.1 mask migration, five hazards, saw physics and native SoundPool counters/lifecycle; audibility not assessed"
+                : mode.equals("restore") ? "preference recovery only" : "V3.1 full touch/Arcade/campaign, saw physics, SoundPool counters and lifecycle; audibility not assessed";
         String summary=failure==null
             ? "PASS: native Falley "+mode+"; checks="+checks+"; captures="+captures+"; viewport="+shot
                 +"; "+coverage+"; controlled collision/death fixtures, not a natural phone playtest; original preferences restored\n"
@@ -317,19 +321,19 @@ public final class NativeFalleyTest extends Instrumentation {
             recreate(); requireScreen(HOME,"Arcade setup recreation returns to home"); click("arcade");
             require(storage.getInt("arcadeDifficulty",-1)==difficulty,"Arcade difficulty survives Activity recreation");
         }
-        click("arcade_fire"); click("arcade_top"); click("arcade_side");
-        require(storage.getInt("arcadeHazards",-1)==8,"three hazard toggles leave lightning enabled");
-        click("arcade_lightning"); require(storage.getInt("arcadeHazards",-1)==8,"last enabled hazard cannot be disabled");
+        click("arcade_fire"); click("arcade_top"); click("arcade_side"); click("arcade_lightning");
+        require(storage.getInt("arcadeHazards",-1)==16,"four hazard toggles leave only buzzsaws enabled");
+        click("arcade_saw"); require(storage.getInt("arcadeHazards",-1)==16,"last enabled saw hazard cannot be disabled");
         capture("arcade-last-hazard-protected");
-        click("arcade_fire"); click("arcade_top"); click("arcade_side");
-        require(storage.getInt("arcadeHazards",-1)==15,"all four hazard groups can be re-enabled");
-        recreate(); click("arcade"); require(storage.getInt("arcadeHazards",-1)==15,"hazard configuration survives recreation");
+        click("arcade_fire"); click("arcade_top"); click("arcade_side"); click("arcade_lightning");
+        require(storage.getInt("arcadeHazards",-1)==31,"all five hazard groups can be re-enabled");
+        recreate(); click("arcade"); require(storage.getInt("arcadeHazards",-1)==31,"hazard configuration survives recreation");
         back(); requireScreen(HOME,"Android Back leaves Arcade setup");
     }
 
     private void arcadeSurvivalAndRecords() throws Exception {
         Map<String,Object> campaign=campaignRecords();
-        startArcade(1,15); require(physicsBool("arcade"),"Start Arcade uses survival physics");
+        startArcade(1,31); require(physicsBool("arcade"),"Start Arcade uses survival physics");
         runFrames(650); require(!physicsBool("won")&&!physicsBool("lost"),"Arcade run remains live after gravity frames");
         ui(() -> {
             write(physics,"x",240f); write(physics,"y",10000f); write(physics,"vy",0f); write(physics,"vx",0f); write(physics,"cameraY",9570f);
@@ -347,7 +351,7 @@ public final class NativeFalleyTest extends Instrumentation {
         freeze("Arcade result freezes physics"); require(storage.getInt("arcade_runs_1",0)==1,"Arcade result redraw records the run once");
         click("restart"); requireScreen(PLAY,"Arcade Replay starts a new survival run");
         require(physicsBool("arcade")&&!physicsBool("lost"),"Arcade Replay retains its mode and clears death");
-        ui(() -> require(((Number)read(physics,"arcadeDifficulty")).intValue()==1&&((Number)read(physics,"arcadeHazards")).intValue()==15,"Arcade Replay retains difficulty and hazard configuration"));
+        ui(() -> require(((Number)read(physics,"arcadeDifficulty")).intValue()==1&&((Number)read(physics,"arcadeHazards")).intValue()==31,"Arcade Replay retains difficulty and hazard configuration"));
         goHome(); recreate();
         require(storage.getInt("arcade_runs_1",0)==1,"Arcade record survives Activity recreation");
         require(campaign.equals(campaignRecords()),"Arcade recreation preserves campaign records");
@@ -423,6 +427,145 @@ public final class NativeFalleyTest extends Instrumentation {
         runFrames(160); capture("arcade-swept-beam-death-effect-controlled"); waitScreen(RESULT,3500); click("home");
     }
 
+    private void legacyMaskMigration() throws Exception {
+        goHome(); close();
+        Map<String,Object> saved=new HashMap<>(storage.getAll());
+        require(storage.edit().putInt("arcadeHazards",15).commit(),"legacy four-family mask fixture stored");
+        launch(false); waitScreen(HOME,4000); click("arcade");
+        requireScreen(ARCADE_SETUP,"legacy profile opens five-family setup");
+        require(storage.getInt("arcadeHazards",-1)==15,"saved legacy mask 15 preserves original choices");
+        ui(() -> {
+            require(((Number)read(read(arena,"profile"),"arcadeHazards")).intValue()==15,"loaded legacy mask does not silently enable saws");
+            require(button("arcade_saw")!=null,"new saw toggle available for legacy profile");
+        });
+        Map<String,Object> actual=new HashMap<>(storage.getAll()), expected=new HashMap<>(saved);
+        expected.put("arcadeHazards",15);
+        require(actual.equals(expected),"legacy migration preserves every unrelated saved choice and record");
+        capture("legacy-mask-15-preserved");
+        close(); copy(storage,saved); launch(false); waitScreen(HOME,4000);
+        require(storage.getAll().equals(saved),"legacy fixture restores current test profile exactly");
+    }
+
+    private void fifthHazardGuard() throws Exception {
+        click("arcade"); requireScreen(ARCADE_SETUP,"five-family setup opens by pointer");
+        String[] ids={"arcade_fire","arcade_top","arcade_side","arcade_lightning"};
+        if ((storage.getInt("arcadeHazards",31)&16)==0) click("arcade_saw");
+        for (int i=0;i<4;i++) if ((storage.getInt("arcadeHazards",31)&(1<<i))!=0) click(ids[i]);
+        require(storage.getInt("arcadeHazards",-1)==16,"saw-only Arcade configuration is allowed");
+        click("arcade_saw"); require(storage.getInt("arcadeHazards",-1)==16,"last enabled saw toggle cannot disable all hazards");
+        capture("arcade-saw-only-protected");
+        for (String id:ids) click(id);
+        require(storage.getInt("arcadeHazards",-1)==31,"all five Arcade families can be enabled together");
+        capture("arcade-five-hazards"); back();
+    }
+
+    private void stageSaw(float warning) throws Exception {
+        ui(() -> {
+            write(physics,"x",240f); write(physics,"y",310f); write(physics,"vy",0f); write(physics,"cameraY",0f);
+            Object saw=((Object[])read(physics,"sawHazards"))[0];
+            write(saw,"active",true); write(saw,"followCamera",false); write(saw,"warningTime",warning);
+            write(saw,"x",90f); write(saw,"previousX",90f); write(saw,"y",430f); write(saw,"previousY",430f);
+            write(saw,"pathX1",90f); write(saw,"pathX2",340f); write(saw,"velocityX",520f); write(saw,"radius",16f); write(saw,"liveTime",2f);
+            arena.invalidate();
+        });
+    }
+
+    private void sawVisuals() throws Exception {
+        Map<String,Object> campaign=campaignRecords(); int runs=storage.getInt("arcade_runs_1",0);
+        startArcade(1,16); stageSaw(.5f);
+        // Present a real warning frame before the compositor screenshot; an
+        // invalidate on a deliberately frozen fixture can leave the old frame visible.
+        runFrames(40);
+        require(numeric(((Object[])read(physics,"sawHazards"))[0],"warningTime")>0,"saw remains in warning phase for its screenshot");
+        capture("arcade-saw-warning-controlled");
+        runFrames(100); require(!physicsBool("lost"),"saw warning is safe while its advertised path is visible");
+        final Object[] saw={null}; ui(() -> { saw[0]=((Object[])read(physics,"sawHazards"))[0]; write(saw[0],"warningTime",0f); });
+        float x=numeric(saw[0],"x"); runFrames(60);
+        require(numeric(saw[0],"x")>x&&!physicsBool("lost"),"live saw travels along its announced path");
+        capture("arcade-saw-active-controlled"); x=numeric(saw[0],"x"); float clock=numeric(arena,"visualTime"); runFrames(80);
+        require(numeric(saw[0],"x")>x&&numeric(arena,"visualTime")>clock,"second live frame advances saw travel and its spin clock");
+        capture("arcade-saw-spinning-controlled");
+        ui(() -> {
+            float px=((Number)read(physics,"x")).floatValue(),py=((Number)read(physics,"y")).floatValue();
+            write(saw[0],"x",px); write(saw[0],"previousX",px); write(saw[0],"y",py); write(saw[0],"previousY",py); write(saw[0],"velocityX",0f);
+        });
+        runUntilPhysics("lost",true,1000);
+        ui(() -> require("BUZZSAW".equals(read(physics,"deathReason")),"saw contact uses BUZZSAW collision reason"));
+        runFrames(160); capture("arcade-saw-impact-controlled"); waitScreen(RESULT,3500); capture("arcade-saw-result-controlled");
+        require(storage.getInt("arcade_runs_1",0)==runs+1,"saw loss records exactly one Arcade run");
+        require(campaignRecords().equals(campaign),"saw Arcade loss preserves campaign records");
+        click("home");
+    }
+
+    private Object audio() throws Exception { final Object[] value={null}; ui(() -> value[0]=read(activity,"audio")); return value[0]; }
+    private int audioCount(Object audio,String method) throws Exception { final int[] value={0}; ui(() -> value[0]=((Number)call(audio,method)).intValue()); return value[0]; }
+    private boolean audioFlag(Object audio,String method) throws Exception { final boolean[] value={false}; ui(() -> value[0]=(Boolean)call(audio,method)); return value[0]; }
+    private void awaitAudio(Object audio) throws Exception {
+        long deadline=SystemClock.uptimeMillis()+7000;
+        while (audioCount(audio,"loadedCount")<11&&SystemClock.uptimeMillis()<deadline) settle(30);
+        require(audioCount(audio,"loadedCount")==11,"all 11 native SoundPool samples completed asynchronous loading");
+    }
+    private void actualPhysicsFrame() throws Exception {
+        ui(() -> {
+            float dt=((Number)read(physics.getClass(),"DT")).floatValue();
+            write(arena,"active",true); write(arena,"accumulator",0f);
+            try { call(arena,"advance",dt,SystemClock.uptimeMillis()); }
+            finally { write(arena,"active",false); }
+            arena.invalidate();
+        });
+    }
+    private void soundSetting(boolean enabled) throws Exception {
+        if (screen()==PLAY) click("pause");
+        click("settings"); requireScreen(SETTINGS,"sound controls open through actual navigation");
+        if (storage.getBoolean("sound",false)!=enabled) click("sound");
+        require(storage.getBoolean("sound",!enabled)==enabled,"sound setting is "+enabled);
+    }
+    private void audioLifecycle() throws Exception {
+        goHome(); soundSetting(true); Object audio=audio(); awaitAudio(audio);
+        require(audioFlag(audio,"isEnabled")&&audioFlag(audio,"isForeground"),"native audio enabled only in foreground");
+        capture("settings-sound-on"); back(); startArcade(1,16); stageSaw(0f);
+        int before=audioCount(audio,"playedCount"); actualPhysicsFrame();
+        require(physicsFloat("soundEvent")==5&&physicsFloat("soundSequence")>0,"actual saw activation produces its physics motor cue");
+        require(audioCount(audio,"playedCount")==before+1,"actual physics cue starts exactly one native SoundPool stream ("+before+" -> "+audioCount(audio,"playedCount")+")");
+        actualPhysicsFrame(); actualPhysicsFrame();
+        require(audioCount(audio,"playedCount")==before+1,"subsequent physics frames do not duplicate the consumed cue");
+        soundSetting(false); capture("settings-muted-audio"); back(); click("resume"); click("restart"); stageSaw(0f);
+        before=audioCount(audio,"playedCount"); actualPhysicsFrame();
+        require(physicsFloat("soundEvent")==5,"muted live physics still emits the source event");
+        require(audioCount(audio,"playedCount")==before,"sound off suppresses native hazard playback");
+        soundSetting(true); back(); click("resume"); before=audioCount(audio,"playedCount"); actualPhysicsFrame();
+        require(audioCount(audio,"playedCount")==before,"unmuting does not replay an already consumed physics cue");
+        click("pause"); before=audioCount(audio,"playedCount");
+        ui(() -> { write(arena,"active",true); try { call(activity,"hazardEffect",5); } finally { write(arena,"active",false); } });
+        require(audioCount(audio,"playedCount")==before,"pause screen suppresses hazard audio even if active flag is set");
+        click("home"); before=audioCount(audio,"playedCount");
+        ui(() -> { write(arena,"active",true); try { call(activity,"hazardEffect",5); } finally { write(arena,"active",false); } });
+        require(audioCount(audio,"playedCount")==before,"home screen suppresses hazard audio even if active flag is set");
+        startArcade(1,16); before=audioCount(audio,"playedCount");
+        final Activity foregroundActivity=activity;
+        sendKeyDownUpSync(KeyEvent.KEYCODE_HOME); settle(150);
+        long deadline=SystemClock.uptimeMillis()+5000;
+        while (audioFlag(audio,"isForeground")&&SystemClock.uptimeMillis()<deadline) settle(30);
+        require(!audioFlag(audio,"isForeground")&&!audioFlag(audio,"isReleased"),"actual Android background stops streams without destroying the reusable pool");
+        final Object backgroundAudio=audio;
+        ui(() -> { call(foregroundActivity,"hazardEffect",5); call(backgroundAudio,"hazard",5); });
+        require(audioCount(audio,"playedCount")==before,"background owner and SoundPool guards suppress playback");
+        ui(() -> getTargetContext().startActivity(new Intent().setClassName(APP,ACTIVITY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
+        deadline=SystemClock.uptimeMillis()+5000;
+        while ((!audioFlag(audio,"isForeground")||!activity.hasWindowFocus())&&SystemClock.uptimeMillis()<deadline) SystemClock.sleep(25);
+        animation(false); require(audioFlag(audio,"isForeground")&&audioFlag(audio,"isEnabled"),"foreground resume re-enables the retained audio pool");
+        requireScreen(PAUSE,"backgrounding live gameplay resumes safely paused");
+        require(audioCount(audio,"playedCount")==before,"foreground resume does not replay stale hazard audio");
+        goHome(); final Object oldAudio=audio; recreate(); audio=audio();
+        require(audio!=oldAudio&&audioFlag(oldAudio,"isReleased")&&audioCount(oldAudio,"loadedCount")==0,"destroyed Activity releases its SoundPool and sample handles");
+        before=audioCount(oldAudio,"playedCount"); ui(() -> call(oldAudio,"hazard",5));
+        require(audioCount(oldAudio,"playedCount")==before,"released SoundPool cannot play a stale event");
+        awaitAudio(audio); require(audioFlag(audio,"isForeground")&&audioFlag(audio,"isEnabled"),"recreated Activity owns a fresh foreground audio pool");
+        require(audioCount(audio,"playedCount")==0,"fresh Activity does not replay old hazard events");
+        soundSetting(false); capture("settings-muted-after-recreation"); back();
+        requireScreen(HOME,"audio lifecycle checks return to home");
+    }
+
     private Map<String,Object> campaignRecords() {
         Map<String,Object> values=new HashMap<>();
         for (Map.Entry<String,?> entry:storage.getAll().entrySet()) if (entry.getKey().startsWith("stage_")
@@ -431,9 +574,9 @@ public final class NativeFalleyTest extends Instrumentation {
     }
     private void startArcade(int difficulty,int hazards) throws Exception {
         if (screen()!=HOME) goHome(); click("arcade"); requireScreen(ARCADE_SETUP,"Arcade setup opened for configured run"); click("difficulty_"+difficulty);
-        int[] bits={1,2,4,8}; String[] ids={"arcade_fire","arcade_top","arcade_side","arcade_lightning"};
-        for (int i=0;i<bits.length;i++) if ((hazards&bits[i])!=0&&(storage.getInt("arcadeHazards",15)&bits[i])==0) click(ids[i]);
-        for (int i=0;i<bits.length;i++) if ((hazards&bits[i])==0&&(storage.getInt("arcadeHazards",15)&bits[i])!=0) click(ids[i]);
+        int[] bits={1,2,4,8,16}; String[] ids={"arcade_fire","arcade_top","arcade_side","arcade_lightning","arcade_saw"};
+        for (int i=0;i<bits.length;i++) if ((hazards&bits[i])!=0&&(storage.getInt("arcadeHazards",31)&bits[i])==0) click(ids[i]);
+        for (int i=0;i<bits.length;i++) if ((hazards&bits[i])==0&&(storage.getInt("arcadeHazards",31)&bits[i])!=0) click(ids[i]);
         require(storage.getInt("arcadeHazards",-1)==hazards,"requested Arcade hazard mask saved: "+hazards);
         click("start_arcade"); requireScreen(PLAY,"Start Arcade begins gameplay");
     }
@@ -467,7 +610,8 @@ public final class NativeFalleyTest extends Instrumentation {
         } });
     }
 
-    private void launch() throws Exception {
+    private void launch() throws Exception { launch(true); }
+    private void launch(boolean prepareArtifacts) throws Exception {
         // Stop the intro clock immediately after actual onResume, before slow emulator idle waits
         // can consume the entire splash. Native frames then verify the real timed transition.
         final Throwable[] earlyFailure={null}; Application app=(Application)getTargetContext().getApplicationContext();
@@ -489,7 +633,8 @@ public final class NativeFalleyTest extends Instrumentation {
         try { activity=startActivitySync(new Intent().setClassName(APP,ACTIVITY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK)); }
         finally { ui(() -> app.unregisterActivityLifecycleCallbacks(callback)); }
         if (earlyFailure[0]!=null) throw new Exception("initial intro clock fixture",earlyFailure[0]);
-        bind(); output=new File(activity.getExternalFilesDir(null),"falley-native-v3/"+shot);
+        bind(); if (!prepareArtifacts) return;
+        output=new File(activity.getExternalFilesDir(null),"falley-native-v31/"+shot);
         require(output.isDirectory()||output.mkdirs(),"artifact directory ready");
         // This test-owned directory must describe only this run, not retain an old failure PNG.
         File[] prior=output.listFiles();

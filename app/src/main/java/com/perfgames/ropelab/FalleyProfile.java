@@ -9,7 +9,7 @@ public final class FalleyProfile {
     public final int[] best = new int[StageCatalog.COUNT], stageWins = new int[StageCatalog.COUNT];
     public final float[] stageTimes = new float[StageCatalog.COUNT];
     public boolean blood = true;
-    public int arcadeDifficulty = 1, arcadeHazards = 15;
+    public int arcadeDifficulty = 1, arcadeHazards = ArcadeRules.ALL;
     public final int[] arcadeBest = new int[3], arcadeRuns = new int[3];
     public final float[] arcadeLongest = new float[3];
 
@@ -20,8 +20,7 @@ public final class FalleyProfile {
         if (!Float.isFinite(fastestWin) || fastestWin <= 0f) fastestWin = 0f;
         selectedStage = Math.max(0, Math.min(StageCatalog.COUNT-1, selectedStage));
         arcadeDifficulty = Math.max(0, Math.min(2, arcadeDifficulty));
-        arcadeHazards &= 15;
-        if (arcadeHazards == 0) arcadeHazards = 15;
+        arcadeHazards = ArcadeRules.normalizeMask(arcadeHazards);
         for (int i = 0; i < arcadeBest.length; i++) {
             arcadeBest[i] = Math.max(0, arcadeBest[i]);
             arcadeRuns[i] = Math.max(0, arcadeRuns[i]);

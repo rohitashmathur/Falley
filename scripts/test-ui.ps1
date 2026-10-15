@@ -2,6 +2,7 @@ param(
     [switch]$BuildOnly,
     [switch]$RestoreOnly,
     [switch]$EffectsOnly,
+    [switch]$V31Only,
     [string]$SdkRoot=$env:ANDROID_HOME,
     [string]$JdkRoot=$env:JAVA_HOME,
     [string]$Device='emulator-5580',
@@ -11,11 +12,12 @@ param(
 )
 $ErrorActionPreference='Stop'
 if ($BuildOnly -and $RestoreOnly) { throw 'Choose BuildOnly or RestoreOnly.' }
+if ($EffectsOnly -and $V31Only) { throw 'Choose EffectsOnly or V31Only.' }
 $root=Split-Path -Parent $PSScriptRoot
 $frontlineRoot=Split-Path -Parent (Split-Path -Parent $root)
 if (!$SdkRoot) { $SdkRoot=Join-Path $frontlineRoot '.toolchain\android-sdk' }
 if (!$JdkRoot) { $JdkRoot=(Get-ChildItem -LiteralPath (Join-Path $frontlineRoot '.toolchain') -Directory -Filter 'jdk-*' | Select-Object -First 1).FullName }
-if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root 'build\device\falley-v3-ui-tests' }
+if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root $(if ($V31Only) { 'build\device\v31-focused' } elseif ($EffectsOnly) { 'build\device\v31-effects' } else { 'build\device\v31' }) }
 if (!$KeyStore) { $KeyStore=Join-Path $root 'build\debug.keystore' }
 $output=Join-Path $root 'build\android-ui-falley'
 $apk=Join-Path $output 'falley-ui-tests.apk'
@@ -40,6 +42,7 @@ if (!$RestoreOnly) {
     $jar=Join-Path $staging 'classes.jar'
     Checked (Join-Path $JdkRoot 'bin\jar.exe') @('cf',$jar,'-C',$classes,'.')
     Checked (Join-Path $buildTools 'd8.bat') @('--lib',$androidJar,'--min-api','24','--output',$dex,$jar)
+    Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archive=[IO.Compression.ZipFile]::Open($unsigned,[IO.Compression.ZipArchiveMode]::Update)
     try { [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive,(Join-Path $dex 'classes.dex'),'classes.dex') | Out-Null }
@@ -82,9 +85,9 @@ try {
         Adb @('shell','wm','size',$dimensions[0]) | Out-Null
         Adb @('shell','wm','density',$dimensions[1]) | Out-Null
         Start-Sleep -Milliseconds 650
-        try { Instrument $(if ($EffectsOnly) { 'effects' } else { 'suite' }) $name }
+        try { Instrument $(if ($V31Only) { 'v31' } elseif ($EffectsOnly) { 'effects' } else { 'suite' }) $name }
         finally {
-            Adb @('pull',"/sdcard/Android/data/com.perfgames.falley/files/falley-native-v3/$name",$ArtifactRoot) | Out-Null
+            Adb @('pull',"/sdcard/Android/data/com.perfgames.falley/files/falley-native-v31/$name",$ArtifactRoot) | Out-Null
         }
     }
 } catch { $failure=$_ }
@@ -96,5 +99,6 @@ finally {
     if ($restored) { try { Adb @('uninstall','com.perfgames.falley.tests') | Out-Null } catch { if (!$failure) { $failure=$_ } } }
 }
 if ($failure) { throw $failure }
-if ($EffectsOnly) { Write-Host "PASS: Falley V3 focused fire/three-beam warning, collision and early/late visual fixtures. Screenshots and logs: $ArtifactRoot" }
-else { Write-Host "PASS: Falley V3 native Arcade setup, touch steering, campaign records and controlled collision/death fixtures. Screenshots and logs: $ArtifactRoot" }
+if ($V31Only) { Write-Host "PASS: Falley V3.1 focused five-hazard migration, saw visuals/collision and SoundPool counters/lifecycle. Audibility not assessed. Artifacts: $ArtifactRoot" }
+elseif ($EffectsOnly) { Write-Host "PASS: Falley focused fire/three-beam warning, collision and early/late visual fixtures. Artifacts: $ArtifactRoot" }
+else { Write-Host "PASS: Falley V3.1 full Arcade/touch/campaign, saw physics and SoundPool counters/lifecycle. Audibility not assessed. Artifacts: $ArtifactRoot" }

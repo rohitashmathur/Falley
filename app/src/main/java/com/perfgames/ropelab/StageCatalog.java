@@ -15,7 +15,7 @@ public final class StageCatalog {
             this.index = index; this.title = title; this.chapterIndex = index / 2;
             this.chapterTitle = chapterTitle; this.hazard = hazard; this.groundY = groundY; this.fireRain = rain;
             this.targetCenter = targetCenter; this.targetWidth = targetWidth;
-            extraHazards = index == 1 ? ArcadeRules.TOP_LASERS : index == 3 ? ArcadeRules.SIDE_LASERS :
+            extraHazards = index == 1 ? ArcadeRules.TOP_LASERS : index == 3 ? (ArcadeRules.SIDE_LASERS | ArcadeRules.BUZZSAWS) :
                     index == 4 ? ArcadeRules.LIGHTNING : index == 5 ? ArcadeRules.ALL : 0;
             fatalMiss = index >= 3;
         }

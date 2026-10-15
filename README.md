@@ -1,4 +1,4 @@
-# Falley — V3
+# Falley — V3.1
 
 **Physics at play.** An offline Android physics game with elastic ropes, a falling human and two ways to play: a six-stage campaign and configurable Arcade survival.
 
@@ -8,7 +8,9 @@ APKs are built and kept locally. Source, screenshots and test evidence may be sh
 
 **Campaign:** choose one of six stages across Laser, Spike and Fire chapters. Survive the narrowing sides, cut ropes as weight increases, and land with the whole contact area inside the stage's target. Later stages shift and narrow the target. Stages 1–3 allow an off-target bounce and recovery; **stages 4–6 make a missed floor target fatal**.
 
-**Arcade:** configure **Chill / Standard / Brutal** and enable one or more incoming attacks: falling fire, top laser, side laser and diagonal lightning. These toggles select incoming attacks; the narrowing boundary hazards always remain lethal. Survive for score and time; there is no campaign finish or win. Warning cues precede active hazards. Arcade records are separate for each difficulty and never increase campaign wins.
+Stage 4, **Needle run**, introduces a guaranteed telegraphed buzzsaw before mixing saws with side lasers. Stage 6 mixes all five incoming attack families. Incoming attacks retire within the final 650 world units so they cannot conflict with the target approach; narrowing boundaries and floor rules remain active.
+
+**Arcade:** configure **Chill / Standard / Brutal** and enable one or more incoming attacks: falling fire, top laser, side laser, diagonal lightning and **buzzsaws**. A saw warns along a locked lateral path, then sweeps across part of the corridor while leaving an escape side. These toggles select incoming attacks; the narrowing boundary hazards always remain lethal. Survive for score and time; there is no campaign finish or win. Warning cues precede active hazards. Arcade records are separate for each difficulty and never increase campaign wins.
 
 Tap to jump and swipe horizontally to steer, or enable phone motion. In non-motion play, deliberate drift requires continued steering; leaving the figure idle is not an automatic route to a win. Pause, restart and Home navigation remain available. The human uses jumping, falling and crouched landing poses, plus hazard-specific death reactions.
 
@@ -18,7 +20,11 @@ Motion uses gyro plus accelerometer when available and filtered accelerometer fa
 
 Motion feel, sound effects, vibration and **Blood effects** persist locally. Blood effects can be turned off. There is no music setting, downloaded audio, account, advertising or backend.
 
+V3.1 bundles **11 original synthesized effects** for fire launch/burning, laser, lightning, saw motor/impact, UI, jump, rope, win and loss. Android SoundPool plays bounded one-shots with at most three voices. Sound off stops active effects; pause/background/restart clears playback and destruction releases the player. Samples still loading are dropped rather than queued, so an early cue may be silent and cannot arrive late after a pause. Real-device audibility and mix quality have not been verified.
+
 Campaign best scores, wins and fastest finishes are stored globally and per stage. Arcade stores best score, run count and longest survival separately for Chill, Standard and Brutal. Selected campaign stage and Arcade difficulty/hazard choices persist. At least one Arcade hazard must remain enabled. Unfinished runs are not restored after process death.
+
+Existing saved four-family selections (mask `15`) stay unchanged after updating. New profiles enable all five (mask `31`); an empty or invalid-only mask falls back to all five.
 
 ## Build and install locally
 
@@ -43,15 +49,24 @@ Native regressions require a running disposable emulator, the installed APK and 
 
 Controlled hazard/floor fixtures are test setups, not natural phone play sessions. Portable source tests live in `tests/`; native tests live in `android-tests/`.
 
-## V3 verification
+The bundled WAVs are generated from oscillators and deterministic noise, without external recordings or samples. Python's standard library is sufficient to validate or regenerate them:
 
-**Portable V3 tests: PASS.** All six campaign courses were completed through real gravity/rope progression and bounded steering, including the new hazards and fatal later-stage floor misses. Idle touch-only runs lose; countersteering controls the intentional current. Campaign and Arcade each passed **100,000 seeded stability steps**.
+```powershell
+python .\scripts\generate_audio.py --check
+python .\scripts\generate_audio.py
+```
 
-Arcade tests cover selected hazard families at every difficulty, warning reaction time, reachable full-body refuges, locked telegraphs, rounded beam endpoints/near misses, swept diagonal/parallel geometry, distinct collision reasons and mode/reset isolation. A bounded test controller survived **25 seconds into wave 2 with all four hazards at each difficulty**. These are deterministic simulation results, not human success rates or a guarantee that every possible situation is avoidable.
+## V3.1 verification
 
-Gesture policy has 16 cases, motion filtering 17 and local preferences/independent campaign-and-Arcade records 31. **The local 3.0.0/code 5 APK build and v2/v3 signatures pass.** The same APK passed four native suites on Android 15/API 35 and Android 16/API 36 at 480x800 and 720x1600: **2,600 checks and 208 captures**. Separate focused API 35 effects suites added **346 checks and 30 captures**, covering partial side beams, diagonal lightning and lingering fire/lightning ash.
+**Portable V3.1 tests: PASS.** All six courses complete through gravity/rope progression and bounded steering, including the actual saw introduction. Campaign and Arcade each pass **100,000 seeded stability steps**. Focused tests cover harmless saw warnings, fast swept hits and near misses, reachable narrow-corridor refuges, locked/exclusive attacks, saved masks, clear landing approaches and one-shot audio events. A bounded controller survives **25 seconds into wave 2 with all five hazards at every difficulty**. These simulation results are not human success rates or a guarantee that every possible situation is avoidable.
 
-Native checks exercised swipes, countersteering, release behavior, Back/pause navigation, settings/record persistence, campaign targets and strict floor misses, Arcade setup and distinct hazard deaths. Collision, target and 40-second Arcade fixtures use controlled states; they are not natural phone play sessions. Curated screenshots and suite logs are under `screenshots/v3/`. `BUILD_STATUS.md` records the checksum and evidence. Real-phone play remains untested.
+Campaign has 20,939,979 checks, Arcade 21,000,408, focused saw/cues 879, audio event consumption 20, gestures 16, motion 17 and preferences/records 33. Audio asset validation reports all 11 files valid, distinct, faded and within the generator's PCM peak/headroom bounds. Evidence belongs under `screenshots/v3.1/physics-suite.log` and `audio-assets.log`; raw simulation output is `build/physics-v3.1.log`.
+
+**The V3.1/code 6 local APK build and v2/v3 signature checks pass.** The same APK passed full native Android 16/API 36 suites at 480x800 and 720x1600: **799 checks/62 captures each, 1,598 checks/124 captures total**. Focused Android 15/API 35 saw/audio suites passed **185 checks/11 captures each, 370 checks/22 captures total**. All four current runs total **1,968 checks/146 captures**, with 40 curated PNGs and run logs under `screenshots/v3.1/`.
+
+All 11 SoundPool samples loaded; actual physics cues incremented native playback once, and mute, menu/background, recreation and release checks passed. Saw warning/active/impact frames were visually reviewed. This verifies software playback behavior, not audible output or mix quality. Native collision/hazard fixtures use controlled states rather than natural phone play sessions.
+
+Historical V3.0/code 5 passed four API 35/36 suites with 2,600 checks/208 captures, plus 346 focused effects checks/30 captures. Its evidence remains under `screenshots/v3/`; it does not validate V3.1 audio or saws. [Build status](BUILD_STATUS.md) records the current artifact and verification state.
 
 ## Privacy and known gaps
 
@@ -59,4 +74,6 @@ Preferences, campaign/Arcade records and sensor processing stay on the device. T
 
 Real-phone motion/swipe comfort, blood-effect readability, haptics/audio, battery use and subjective fun still need testing. Balance and difficulty are provisional. Physics uses a compact contact proxy, simplified rope cuts and fixed substeps rather than a full articulated ragdoll or continuous-collision engine. Canvas controls remain English-only without complete independent TalkBack navigation.
 
-Release-signed AAB generation, Play Console declarations/content rating and production rollout remain outside this debug prototype. No store submission or public binary publication is performed.
+This source is ready for continued local testing, not a production advertising launch. **AdMob and consent handling are not integrated.** See the [Play Store readiness review](docs/PLAY_STORE_READINESS.md) for source findings and release gates; it provides no blanket copyright, trademark or store-approval assurance.
+
+Next, test real-phone audio, interruptions, motion/swipe feel and frame pacing; then establish a release-signed AAB and truthful privacy/content-rating declarations. Any later advertising release needs a separately implemented and tested consent/privacy flow. No store submission or public binary publication is performed.

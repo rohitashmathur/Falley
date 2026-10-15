@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: native Falley suite; checks=799; captures=62; viewport=small; V3.1 full touch/Arcade/campaign, saw physics, SoundPool counters and lifecycle; audibility not assessed; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1

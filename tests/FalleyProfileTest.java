@@ -77,9 +77,9 @@ public final class FalleyProfileTest {
         profile.recordResult(true, 10, 12);
         check(profile.stageWins[4] == 1 && profile.stageTimes[4] == 12 && profile.selectedStage == 4,
                 "the compatibility result entry point records the persisted selected stage");
-        check(profile.blood && profile.arcadeDifficulty == 1 && profile.arcadeHazards == 15
+        check(profile.blood && profile.arcadeDifficulty == 1 && profile.arcadeHazards == 31
                 && profile.arcadeBest.length == 3 && profile.arcadeRuns.length == 3 && profile.arcadeLongest.length == 3,
-                "new arcade preferences default to blood, Standard and all four hazards");
+                "new arcade preferences default to blood, Standard and all five hazards");
         profile.blood = false;
         profile.arcadeDifficulty = 2;
         profile.arcadeHazards = 6;
@@ -87,19 +87,25 @@ public final class FalleyProfileTest {
         check(!profile.blood && profile.arcadeDifficulty == 2 && profile.arcadeHazards == 6,
                 "loaded blood/custom hazard/difficulty choices remain unchanged");
         profile.arcadeDifficulty = 99;
-        profile.arcadeHazards = 16;
+        profile.arcadeHazards = 32;
         profile.arcadeBest[0] = -20;
         profile.arcadeRuns[0] = -3;
         profile.arcadeLongest[0] = Float.NaN;
         profile.sanitize();
-        check(profile.arcadeDifficulty == 2 && profile.arcadeHazards == 15 && profile.arcadeBest[0] == 0
+        check(profile.arcadeDifficulty == 2 && profile.arcadeHazards == 31 && profile.arcadeBest[0] == 0
                 && profile.arcadeRuns[0] == 0 && profile.arcadeLongest[0] == 0,
                 "invalid arcade preferences/records sanitize without leaving an empty hazard set");
         profile.arcadeDifficulty = -8;
-        profile.arcadeHazards = 17;
+        profile.arcadeHazards = 33;
         profile.sanitize();
         check(profile.arcadeDifficulty == 0 && profile.arcadeHazards == 1,
                 "difficulty remains bounded and unknown mask bits are discarded while valid choices survive");
+        profile.arcadeHazards = 15;
+        profile.sanitize();
+        check(profile.arcadeHazards == 15, "an existing four-family saved mask is preserved without silently enabling saws");
+        profile.arcadeHazards = 16;
+        profile.sanitize();
+        check(profile.arcadeHazards == 16, "a saved saw-only choice remains selected");
         int campaignBest = profile.bestScore, campaignWins = profile.wins;
         float campaignFastest = profile.fastestWin;
         int[] stageBest = profile.best.clone(), stageWins = profile.stageWins.clone();

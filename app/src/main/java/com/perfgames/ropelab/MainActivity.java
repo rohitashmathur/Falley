@@ -12,8 +12,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.media.AudioManager;
-import android.media.ToneGenerator;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -31,7 +29,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     private Arena arena;
     private SensorManager sensors;
     private Sensor accelerometer, gyroscope;
-    private ToneGenerator effects;
+    private FalleyAudio audio;
     private Object backCallback;
     private boolean resumed;
 
@@ -44,6 +42,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             gyroscope = sensors.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         }
         arena = new Arena(this, accelerometer != null, gyroscope != null);
+        audio = new FalleyAudio(this);
         if (state != null) arena.screen = Arena.HOME;
         setContentView(arena);
         arena.setOnApplyWindowInsetsListener((view, insets) -> {
@@ -57,7 +56,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override protected void onResume() {
         super.onResume(); resumed = true; arena.active = true; arena.last = 0;
         arena.accumulator = 0; arena.motion.resetSamples();
-        try { effects = new ToneGenerator(AudioManager.STREAM_MUSIC, 30); } catch (RuntimeException unavailable) { effects = null; }
+        arena.soundCue.reset(arena.physics.soundSequence);
+        audio.setEnabled(arena.profile.sound); audio.setForeground(true);
         registerMotion(); arena.invalidate();
     }
     @Override protected void onPause() {
@@ -65,7 +65,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         if (arena.screen == Arena.PLAY) arena.screen = Arena.PAUSE;
         arena.clearTouch(); arena.motion.resetSamples(); arena.saveProfile();
         if (sensors != null) sensors.unregisterListener(this);
-        if (effects != null) { effects.release(); effects = null; }
+        audio.setForeground(false);
         super.onPause();
     }
     @Override protected void onSaveInstanceState(Bundle state) {
@@ -80,6 +80,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         if (arena.screen == Arena.HOME) finish(); else arena.back();
     }
     @Override protected void onDestroy() {
+        if (audio != null) audio.release();
         if (Build.VERSION.SDK_INT >= 33 && backCallback != null) {
             Api33Back.unregister(this, backCallback);
             backCallback = null;
@@ -114,12 +115,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         arena.motion.resetSamples(); arena.physics.gx = 0; arena.saveProfile(); registerMotion();
     }
     void effect(int kind) {
-        if (effects == null || !arena.profile.sound) return;
-        int tone = kind == 2 ? ToneGenerator.TONE_PROP_ACK : kind == 3 ? ToneGenerator.TONE_PROP_NACK
-                : kind == 1 ? ToneGenerator.TONE_PROP_BEEP2 : ToneGenerator.TONE_PROP_BEEP;
-        effects.startTone(tone, kind == 2 ? 140 : kind == 3 ? 100 : kind == 4 ? 25 : 45);
+        if (audio != null && arena.profile.sound) audio.generic(kind);
     }
-    void stopEffects() { if (effects != null) effects.stopTone(); }
+    void hazardEffect(int kind) {
+        if (audio != null && resumed && arena.active && arena.screen == Arena.PLAY && arena.profile.sound) audio.hazard(kind);
+    }
+    void stopEffects() { if (audio != null) audio.stopAll(); }
+    void setSoundEnabled(boolean enabled) { if (audio != null) audio.setEnabled(enabled); }
     @Override public void onAccuracyChanged(Sensor sensor, int accuracy) { }
     @Override public void onSensorChanged(SensorEvent event) {
         if (!resumed || !arena.motionEnabled) return;
@@ -145,6 +147,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         final Physics physics = new Physics();
         final MotionSteering motion;
         final TouchSteering touch = new TouchSteering();
+        final HazardAudioCue soundCue = new HazardAudioCue();
         final FalleyProfile profile = new FalleyProfile();
         final MainActivity owner;
         final SharedPreferences storage;
@@ -177,7 +180,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             profile.fastestWin = storage.getFloat("fastestWin",0);
             profile.blood = storage.getBoolean("blood",true);
             profile.arcadeDifficulty = storage.getInt("arcadeDifficulty",1);
-            profile.arcadeHazards = storage.getInt("arcadeHazards",15);
+            profile.arcadeHazards = storage.getInt("arcadeHazards",ArcadeRules.ALL);
             for (int i = 0; i < 3; i++) {
                 profile.arcadeBest[i] = storage.getInt("arcade_best_"+i,0);
                 profile.arcadeRuns[i] = storage.getInt("arcade_runs_"+i,0);
@@ -287,7 +290,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             boolean oldWon = physics.won, oldLost = physics.lost;
             burstTime += dt; accumulator += dt;
             applySteering();
-            while (accumulator >= Physics.DT) { physics.step(); accumulator -= Physics.DT; }
+            while (accumulator >= Physics.DT) { physics.step(); pollHazardAudio(); accumulator -= Physics.DT; }
+            pollHazardAudio();
             if (physics.landingPulse > oldPulse+.015f && now-lastLandingCue > 160) {
                 cue(4); lastLandingCue = now;
             }
@@ -308,6 +312,10 @@ public class MainActivity extends Activity implements SensorEventListener {
                 trailTime = now; trailX[trailIndex] = physics.x; trailY[trailIndex] = physics.y;
                 trailValid[trailIndex] = true; trailIndex = (trailIndex+1)%trailX.length;
             }
+        }
+        private void pollHazardAudio() {
+            int event = soundCue.consume(physics.soundSequence,physics.soundEvent);
+            if (event != 0 && active && screen == PLAY && profile.sound) owner.hazardEffect(event);
         }
         private void titleLetters(Canvas c,float baseline,float size,float elapsed) {
             String title = "FALLEY";
@@ -351,20 +359,21 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         private void drawArcadeSetup(Canvas c) {
             header(c,"ARCADE"); text(c,"Survive the hazards. Chase a better run.",24,137,15,muted);
-            text(c,"DIFFICULTY",24,171,13,muted);
+            text(c,"DIFFICULTY",24,163,13,muted);
             for (int i = 0; i < 3; i++) {
                 float left = i == 0 ? 24 : i == 1 ? 164 : 312, right = i == 0 ? 154 : i == 1 ? 302 : 456;
-                button(c,"difficulty_"+i,left,184,right,258,DIFFICULTIES[i],profile.arcadeDifficulty == i ? gold : muted,14);
+                button(c,"difficulty_"+i,left,172,right,246,DIFFICULTIES[i],profile.arcadeDifficulty == i ? gold : muted,14);
                 if (profile.arcadeDifficulty == i) {
-                    rect(c,left+3,187,right-3,255,8,gold);
-                    center(c,DIFFICULTIES[i],(left+right)/2,226,14,background);
+                    rect(c,left+3,175,right-3,243,8,gold);
+                    center(c,DIFFICULTIES[i],(left+right)/2,214,14,background);
                 }
             }
-            toggleRow(c,"arcade_fire","Fireballs",298,(profile.arcadeHazards & ArcadeRules.FIREBALLS) != 0,true);
-            toggleRow(c,"arcade_top","Top Lasers",386,(profile.arcadeHazards & ArcadeRules.TOP_LASERS) != 0,true);
-            toggleRow(c,"arcade_side","Side Lasers",474,(profile.arcadeHazards & ArcadeRules.SIDE_LASERS) != 0,true);
-            toggleRow(c,"arcade_lightning","Lightning",562,(profile.arcadeHazards & ArcadeRules.LIGHTNING) != 0,true);
-            text(c,setupMessage > 0 ? "Keep at least one hazard enabled." : "No finish line. New attacks arrive in waves.",24,667,14,setupMessage > 0 ? coral : muted);
+            toggleRow(c,"arcade_fire","Fireballs",264,(profile.arcadeHazards & ArcadeRules.FIREBALLS) != 0,true);
+            toggleRow(c,"arcade_top","Top Lasers",344,(profile.arcadeHazards & ArcadeRules.TOP_LASERS) != 0,true);
+            toggleRow(c,"arcade_side","Side Lasers",424,(profile.arcadeHazards & ArcadeRules.SIDE_LASERS) != 0,true);
+            toggleRow(c,"arcade_lightning","Lightning",504,(profile.arcadeHazards & ArcadeRules.LIGHTNING) != 0,true);
+            toggleRow(c,"arcade_saw","Buzzsaws",584,(profile.arcadeHazards & ArcadeRules.BUZZSAWS) != 0,true);
+            text(c,setupMessage > 0 ? "Keep at least one hazard enabled." : "No finish line. New attacks arrive in waves.",24,681,13,setupMessage > 0 ? coral : muted);
             button(c,"start_arcade",24,698,456,772,"START SURVIVAL",gold,18);
             center(c,String.format(Locale.US,"BEST %d / LONGEST %.1fs",profile.arcadeBest[profile.arcadeDifficulty],
                     profile.arcadeLongest[profile.arcadeDifficulty]),240,798,12,muted);
@@ -420,6 +429,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             helpStep(c,"02","STEER AGAINST THE DRIFT","Air currents push you. Swipe against the drift.",304);
             helpStep(c,"03","LET THE ROPES BOUNCE","Landing bends your knees, then springs you up.",410);
             helpStep(c,"04","LAND SOFTLY OR SURVIVE","Campaign: land on the target. Arcade: stay alive.",516);
+            text(c,"Buzzsaws warn, then sweep sideways. Move clear.",24,631,13,muted);
             text(c,"Hard floor outside the target is dangerous.",24,658,15,muted);
             text(c,"Motion ON? Tilt to steer. Adjust feel in Settings.",24,686,14,muted);
             button(c,"back",24,734,456,808,"GOT IT",mint,17);
@@ -480,7 +490,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     circle(c,rope.x[i],rope.y[i]-physics.cameraY,3.5f,gold);
                 }
             }
-            drawFireHazards(c); drawBeamHazards(c);
+            drawFireHazards(c); drawBeamHazards(c); drawSawHazards(c);
             if (!physics.lost) {
                 for (int k = 0; k < trailX.length; k++) {
                     int i = (trailIndex+k)%trailX.length;
@@ -602,6 +612,42 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
             }
         }
+        private void drawSawHazards(Canvas c) {
+            for (Physics.SawHazard saw : physics.sawHazards) {
+                if (!saw.active) continue;
+                float y = saw.y-physics.cameraY;
+                if (y < TOP-50 || y > BOTTOM+50) continue;
+                boolean warning = saw.warningTime > 0;
+                if (warning) {
+                    float from = Math.min(saw.pathX1,saw.pathX2), to = Math.max(saw.pathX1,saw.pathX2);
+                    for (float x = from; x < to; x += 25) line(c,x,y,Math.min(to,x+12),y,0x99f6d477,2);
+                    circle(c,saw.x,y,saw.radius+8,0x33f6d477);
+                } else {
+                    float direction = saw.velocityX < 0 ? -1 : 1;
+                    circle(c,saw.x-direction*13,y,saw.radius*.6f,0x33788795);
+                    circle(c,saw.x-direction*25,y,saw.radius*.4f,0x22788795);
+                }
+                c.save(); c.translate(saw.x,y); c.rotate(visualTime*570*(saw.velocityX < 0 ? -1 : 1));
+                path.reset();
+                for (int i = 0; i < 48; i++) {
+                    double a = i*Math.PI/24;
+                    float r = saw.radius*(i%4 == 1 || i%4 == 2 ? 1 : .76f);
+                    float x = (float)Math.cos(a)*r, yy = (float)Math.sin(a)*r;
+                    if (i == 0) path.moveTo(x,yy); else path.lineTo(x,yy);
+                }
+                path.close(); paint.setColor(warning ? 0x667f8d9e : 0xffc6d0db); c.drawPath(path,paint);
+                circle(c,0,0,saw.radius*.66f,warning ? 0x66545f70 : 0xff545f70);
+                for (int i = 0; i < 4; i++) {
+                    double a = i*Math.PI/2;
+                    circle(c,(float)Math.cos(a)*saw.radius*.38f,(float)Math.sin(a)*saw.radius*.38f,saw.radius*.1f,background);
+                }
+                circle(c,0,0,saw.radius*.17f,warning ? gold : coral); c.restore();
+                // Tooth tips sit exactly on the circular physics boundary.
+                paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(1); paint.setColor(warning ? 0x88f6d477 : 0xffe3e8ef);
+                c.drawCircle(saw.x,y,saw.radius,paint); paint.setStyle(Paint.Style.FILL);
+                if (warning) center(c,"!",saw.x,y+6,18,gold);
+            }
+        }
         /** Feet align with y+radius, the same proxy used by rope/floor contact. */
         private void drawHuman(Canvas c,float x,float y,float r,float vy,float landingPulse) {
             float crouch = clamp(landingPulse/.18f,0,1), pelvis = .28f+crouch*.22f;
@@ -650,10 +696,19 @@ public class MainActivity extends Activity implements SensorEventListener {
             if (!physics.lost) return;
             float t = burstTime, y = burstY-physics.cameraY, r = physics.radius();
             String reason = physics.deathReason;
-            boolean spikes = reason.contains("SPIKE"), floor = reason.contains("FLOOR") || reason.contains("HARD LANDING"),
+            boolean saw = reason.contains("BUZZSAW"), spikes = reason.contains("SPIKE"), floor = reason.contains("FLOOR") || reason.contains("HARD LANDING"),
                     laser = reason.contains("LASER"), thunder = reason.contains("LIGHTNING") || reason.contains("THUNDER");
             int blood = 0xffa62b3b;
-            if (spikes) {
+            if (saw) {
+                float split = clamp(t/.45f,0,1)*r*.5f, drop = Math.min(t*t*24,65);
+                c.save(); c.translate(-split,drop-6*clamp(t,0,1));
+                c.clipRect(burstX-r*2,y-r*2,burstX+r*2,y+r*.1f);
+                deadFigure(c,burstX,y,r,-8,false,false); c.restore();
+                c.save(); c.translate(split,drop+6*clamp(t,0,1));
+                c.clipRect(burstX-r*2,y+r*.1f,burstX+r*2,y+r*2);
+                deadFigure(c,burstX,y,r,10,false,false); c.restore();
+                if (profile.blood) line(c,burstX-r*.6f,y+r*.1f+drop,burstX+r*.6f,y+r*.1f+drop,blood,4);
+            } else if (spikes) {
                 float pinnedX = clamp(burstX,physics.leftWall()+physics.hazardInset()+r*.25f,
                         physics.rightWall()-physics.hazardInset()-r*.25f);
                 deadFigure(c,pinnedX,y,r,burstX < 240 ? -75 : 75,false,true);
@@ -695,13 +750,13 @@ public class MainActivity extends Activity implements SensorEventListener {
             for (int i = 0; i < 28; i++) {
                 double a = i*2.399963; float speed = 23+(i%7)*17;
                 float x = burstX+(float)Math.cos(a)*speed*age,
-                        py = y+(float)Math.sin(a)*speed*age+(floor || spikes || laser ? 70 : -14)*age*age;
+                        py = y+(float)Math.sin(a)*speed*age+(floor || spikes || laser || saw ? 70 : -14)*age*age;
                 if (floor && profile.blood && i%4 == 0) {
                     int bone = (white & 0xffffff)|((int)(fade*240)<<24);
                     float dx = (float)Math.cos(a)*4, dy = (float)Math.sin(a)*4;
                     line(c,x-dx,py-dy,x+dx,py+dy,bone,2);
                     circle(c,x-dx,py-dy,1.7f,bone); circle(c,x+dx,py+dy,1.7f,bone);
-                } else if (floor || spikes || laser) {
+                } else if (floor || spikes || laser || saw) {
                     int color = profile.blood ? blood : muted;
                     circle(c,x,py,profile.blood ? 2+i%3 : 1.5f,(color & 0xffffff)|((int)(fade*220)<<24));
                 } else {
@@ -748,7 +803,10 @@ public class MainActivity extends Activity implements SensorEventListener {
         private void cue(int kind) {
             if (profile.haptics) performHapticFeedback(kind == 2 || kind == 3 ? HapticFeedbackConstants.LONG_PRESS :
                     kind == 0 ? HapticFeedbackConstants.KEYBOARD_TAP : HapticFeedbackConstants.VIRTUAL_KEY);
-            owner.effect(kind);
+            String reason = physics.deathReason;
+            boolean specificDeath = reason.contains("FIRE") || reason.contains("LASER") || reason.contains("LIGHTNING") ||
+                    reason.contains("THUNDER") || reason.contains("BUZZSAW");
+            if (kind != 3 || !specificDeath) owner.effect(kind);
         }
         private void applySteering() {
             if (physics.won) { physics.gx = 0; return; }
@@ -761,18 +819,19 @@ public class MainActivity extends Activity implements SensorEventListener {
             pointer = buttonPointer = -1; pressed = null; touch.cancel();
             physics.steerTouch(0); physics.touchControlled(!motionEnabled); physics.gx = 0;
         }
-        private void enterHome() { screen = HOME; homeElapsed = 0; clearTouch(); }
+        private void enterHome() { owner.stopEffects(); screen = HOME; homeElapsed = 0; clearTouch(); }
         private void restart() {
             physics.reset(); beginRun();
         }
         private void startCampaign() { physics.reset(profile.selectedStage); beginRun(); }
         private void beginRun() {
+            owner.stopEffects(); soundCue.reset(physics.soundSequence);
             clearTouch(); accumulator = 0; Arrays.fill(trailValid,false); trailIndex = 0;
             burstTime = 10; resultRecorded = false; lastLandingCue = 0; screen = PLAY;
         }
         private void jump() { if (screen == PLAY && !physics.won && physics.jump()) cue(1); }
         void back() {
-            if (screen == PLAY) screen = PAUSE;
+            if (screen == PLAY) { owner.stopEffects(); screen = PAUSE; }
             else if (screen == PAUSE) screen = PLAY;
             else if (screen == SETTINGS) screen = settingsReturn;
             else enterHome();
@@ -781,13 +840,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         void activate(String id) {
             if (id.equals("play")) startCampaign();
             else if (id.equals("restart")) restart();
-            else if (id.equals("arcade")) { screen = ARCADE_SETUP; setupMessage = 0; clearTouch(); }
+            else if (id.equals("arcade")) { owner.stopEffects(); screen = ARCADE_SETUP; setupMessage = 0; clearTouch(); }
             else if (id.equals("start_arcade")) { physics.resetArcade(profile.arcadeDifficulty,profile.arcadeHazards); beginRun(); }
             else if (id.startsWith("difficulty_")) {
                 profile.arcadeDifficulty = ArcadeRules.clampDifficulty(Integer.parseInt(id.substring(11))); saveProfile();
             } else if (id.startsWith("arcade_")) {
                 int bit = id.equals("arcade_fire") ? ArcadeRules.FIREBALLS : id.equals("arcade_top") ? ArcadeRules.TOP_LASERS :
-                        id.equals("arcade_side") ? ArcadeRules.SIDE_LASERS : ArcadeRules.LIGHTNING;
+                        id.equals("arcade_side") ? ArcadeRules.SIDE_LASERS : id.equals("arcade_saw") ? ArcadeRules.BUZZSAWS : ArcadeRules.LIGHTNING;
                 int next = profile.arcadeHazards ^ bit;
                 if (next == 0) setupMessage = 2.5f;
                 else { profile.arcadeHazards = next; setupMessage = 0; saveProfile(); }
@@ -801,9 +860,9 @@ public class MainActivity extends Activity implements SensorEventListener {
                 profile.selectedStage = physics.stage.index+1; saveProfile(); startCampaign();
             }
             else if (id.equals("help")) { screen = HELP; clearTouch(); }
-            else if (id.equals("settings")) { settingsReturn = screen == HOME ? HOME : PAUSE; screen = SETTINGS; clearTouch(); }
+            else if (id.equals("settings")) { owner.stopEffects(); settingsReturn = screen == HOME ? HOME : PAUSE; screen = SETTINGS; clearTouch(); }
             else if (id.equals("back")) back();
-            else if (id.equals("pause")) { screen = PAUSE; clearTouch(); }
+            else if (id.equals("pause")) { owner.stopEffects(); screen = PAUSE; clearTouch(); }
             else if (id.equals("resume")) { screen = PLAY; clearTouch(); }
             else if (id.equals("jump")) { jump(); return; }
             else if (id.equals("motion")) owner.toggleMotion();
@@ -811,7 +870,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 profile.preset = Integer.parseInt(id.substring(7));
                 motion.setPreset(profile.preset); saveProfile();
             }
-            else if (id.equals("sound")) { profile.sound = !profile.sound; if (!profile.sound) owner.stopEffects(); saveProfile(); }
+            else if (id.equals("sound")) { profile.sound = !profile.sound; owner.setSoundEnabled(profile.sound); saveProfile(); }
             else if (id.equals("haptics")) { profile.haptics = !profile.haptics; saveProfile(); }
             else if (id.equals("blood")) { profile.blood = !profile.blood; saveProfile(); }
             cue(0); accumulator = 0; invalidate();

@@ -7,14 +7,14 @@ public final class ArcadePhysicsTest {
     private static void near(float actual,float expected,String message){check(Math.abs(actual-expected)<.001f,message+": "+actual);}
     private static Physics arcade(int difficulty,int mask){Physics p=new Physics();p.resetArcade(difficulty,mask);p.touchControlled(true);return p;}
     private static void rulesAndModes(){
-        check(ArcadeRules.normalizeMask(0)==15 && ArcadeRules.normalizeMask(16)==15 && ArcadeRules.normalizeMask(17)==1,"custom hazard masks discard unknown bits and cannot become empty");
+        check(ArcadeRules.normalizeMask(0)==31 && ArcadeRules.normalizeMask(32)==31 && ArcadeRules.normalizeMask(33)==1 && ArcadeRules.normalizeMask(15)==15 && ArcadeRules.normalizeMask(16)==16,"custom hazard masks preserve old choices and the new saw bit, discard unknown bits and cannot become empty");
         check(ArcadeRules.clampDifficulty(-1)==0 && ArcadeRules.clampDifficulty(99)==2,"difficulty is bounded");
         check(ArcadeRules.warning(0,1)>ArcadeRules.warning(1,1) && ArcadeRules.warning(1,1)>ArcadeRules.warning(2,1),"harder survival gives a shorter warning");
         check(ArcadeRules.attackGap(0,1)>ArcadeRules.attackGap(1,1) && ArcadeRules.attackGap(1,1)>ArcadeRules.attackGap(2,1),"harder survival leaves less time between attacks");
         for(int d=0;d<3;d++)check(ArcadeRules.warning(d,100)>=.799f && ArcadeRules.attackGap(d,100)>=.499f,"late waves retain bounded readable warnings and gaps");
-        Physics p=arcade(99,0);check(p.arcade && p.arcadeDifficulty==2 && p.arcadeHazards==15,"survival startup normalizes setup");
+        Physics p=arcade(99,0);check(p.arcade && p.arcadeDifficulty==2 && p.arcadeHazards==31,"survival startup normalizes setup");
         p.elapsed=40;p.score=900;p.lost=true;p.steerTouch(200);p.fireHazards[0].active=true;p.beamHazards[0].active=true;p.reset();
-        check(p.arcade && p.arcadeDifficulty==2 && p.arcadeHazards==15 && !p.lost && !p.won && p.elapsed==0 && p.score==0 && p.wave==1 && p.steeringVelocity()==0,"restart retains survival setup and clears the whole run");
+        check(p.arcade && p.arcadeDifficulty==2 && p.arcadeHazards==31 && !p.lost && !p.won && p.elapsed==0 && p.score==0 && p.wave==1 && p.steeringVelocity()==0,"restart retains survival setup and clears the whole run");
         for(Physics.FireHazard f:p.fireHazards)check(!f.active,"restart removes falling fire");
         for(Physics.BeamHazard b:p.beamHazards)check(!b.active && !b.followCamera,"restart removes live/warning beams");
         p.y=StageCatalog.get(5).groundY+1200;p.vy=800;p.step();
@@ -62,7 +62,7 @@ public final class ArcadePhysicsTest {
         for(int k=0;k<10;k++){p.steerTouch(-p.driftVelocity());p.step();}
         check(!p.lost && !b.active,"a live beam expires safely when the player uses the refuge");
     }
-    private static int activeCount(Physics p){int count=0;for(Physics.FireHazard f:p.fireHazards)if(f.active)count++;for(Physics.BeamHazard b:p.beamHazards)if(b.active)count++;return count;}
+    private static int activeCount(Physics p){int count=0;for(Physics.FireHazard f:p.fireHazards)if(f.active)count++;for(Physics.BeamHazard b:p.beamHazards)if(b.active)count++;for(Physics.SawHazard s:p.sawHazards)if(s.active)count++;return count;}
     private static void spawnedWarningsAndRefuges(){
         for(int d=0;d<3;d++)for(int kind:new int[]{1,2,4,8}){
             Physics p=arcade(d,kind);
@@ -105,7 +105,8 @@ public final class ArcadePhysicsTest {
         for(int k=0;k<=40;k++){
             float candidate=k==20?center:low+(high-low)*k/40,clearance=10000;
             for(Physics.FireHazard f:p.fireHazards)if(f.active && (f.warningTime>0 || f.y<p.y+90))clearance=Math.min(clearance,Math.abs(candidate-f.x)-f.radius);
-            for(Physics.BeamHazard b:p.beamHazards)if(b.active)clearance=Math.min(clearance,(float)Math.sqrt(Physics.pointSegmentDistanceSquared(candidate,p.y,b.x1,b.y1,b.x2,b.y2))-b.width/2);
+            for(Physics.BeamHazard b:p.beamHazards)if(b.active)clearance=Math.min(clearance,beamClearance(candidate,p.y,b));
+            for(Physics.SawHazard s:p.sawHazards)if(s.active)clearance=Math.min(clearance,Math.abs(candidate-Physics.clamp(candidate,Math.min(s.warningTime>0?s.pathX1:s.x,s.pathX2),Math.max(s.warningTime>0?s.pathX1:s.x,s.pathX2)))-s.radius);
             if(k==20)centerClearance=clearance;
             if(clearance>bestClearance){bestClearance=clearance;best=candidate;}
         }
@@ -120,16 +121,23 @@ public final class ArcadePhysicsTest {
                     "bounded steering survives mixed natural attacks into the next wave at difficulty "+d+"; reason="+p.deathReason+", t="+p.elapsed);
             System.out.printf("Arcade %s PASS: %.2fs, wave %d, score %d%n",ArcadeRules.DIFFICULTIES[d],p.elapsed,p.wave,p.score);
         }
-        Physics p=arcade(0,15);int warnings=0;
+        Physics p=arcade(0,ArcadeRules.ALL);int warnings=0;
         for(int i=0;i<100000;i++){
-            if(p.lost || i%9000==0)p.resetArcade((i/9000)%3,1+(i/3000)%15);
+            if(p.lost || i%9000==0)p.resetArcade((i/9000)%3,1+(i/3000)%ArcadeRules.ALL);
             avoid(p);if(i%1000==0)p.jump();p.step();
             check(!p.won && Float.isFinite(p.x)&&Float.isFinite(p.y)&&Float.isFinite(p.cameraY)&&Float.isFinite(p.vx)&&Float.isFinite(p.vy),"endless survival state stays finite without a false campaign win");
             for(Physics.BeamHazard b:p.beamHazards){check(Float.isFinite(b.x1)&&Float.isFinite(b.y1)&&Float.isFinite(b.x2)&&Float.isFinite(b.y2)&&Float.isFinite(b.warningTime)&&Float.isFinite(b.liveTime),"survival beam pool stays finite");if(b.active&&b.warningTime>0)warnings++;}
             for(Physics.FireHazard f:p.fireHazards){check(Float.isFinite(f.x)&&Float.isFinite(f.y)&&Float.isFinite(f.warningTime),"survival fire pool stays finite");if(f.active&&f.warningTime>0)warnings++;}
+            for(Physics.SawHazard s:p.sawHazards){check(Float.isFinite(s.x)&&Float.isFinite(s.y)&&Float.isFinite(s.warningTime)&&Float.isFinite(s.liveTime),"survival saw pool stays finite");if(s.active&&s.warningTime>0)warnings++;}
             for(Physics.Rope r:p.ropes)for(int k=0;k<Physics.Rope.N;k++)check(Float.isFinite(r.x[k])&&Float.isFinite(r.y[k]),"survival rope pool stays finite");
         }
         check(warnings>100,"long survival stress exercises actual scheduled telegraphs");
+    }
+    private static float beamClearance(float candidate,float y,Physics.BeamHazard b) {
+        // Hold the horizontal refuge through a bounce, rather than recentering into a live lane.
+        if(b.kind==ArcadeRules.SIDE_LASERS)
+            return Math.abs(candidate-Physics.clamp(candidate,Math.min(b.x1,b.x2),Math.max(b.x1,b.x2)))-b.width/2;
+        return (float)Math.sqrt(Physics.pointSegmentDistanceSquared(candidate,y,b.x1,b.y1,b.x2,b.y2))-b.width/2;
     }
     public static void main(String[] args){
         rulesAndModes();geometry();beamWarningsAndDeaths();spawnedWarningsAndRefuges();idleRequiresCorrection();naturalSurvivalAndStress();

@@ -1,0 +1,800 @@
+PASS no interrupted fixture; recover with -RestoreOnly if needed
+PASS preferences committed
+PASS original preferences backed up
+PASS deterministic emulator settings installed
+PASS native Canvas view laid out
+PASS artifact directory ready
+PASS cold launch begins custom intro (expected 6, actual 6)
+PASS custom intro remains visible before its 1.5s transition (expected 6, actual 6)
+PASS native compositor screenshot splash
+PASS screenshot saved splash
+PASS removed control absent: zero
+PASS removed control absent: play
+PASS removed control absent: settings
+PASS native screen transition 0 (expected 0, actual 0)
+PASS native compositor screenshot home
+PASS screenshot saved home
+PASS home physics frozen
+PASS removed control absent: zero
+PASS removed control absent: restart
+PASS removed control absent: pause
+PASS tap x inside display
+PASS tap x inside display
+PASS How to Play opened by touch (expected 3, actual 3)
+PASS native compositor screenshot how-to-play
+PASS screenshot saved how-to-play
+PASS help physics frozen
+PASS Android back leaves help (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS home settings opened (expected 2, actual 2)
+PASS removed control absent: zero
+PASS tap x inside display
+PASS tap x inside display
+PASS active motion preset 0
+PASS preset 0 saved
+PASS native compositor screenshot settings-preset-0
+PASS screenshot saved settings-preset-0
+PASS settings physics frozen preset 0
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreated Activity opens safe home (expected 0, actual 0)
+PASS preset 0 survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS home settings opened (expected 2, actual 2)
+PASS removed control absent: zero
+PASS tap x inside display
+PASS tap x inside display
+PASS active motion preset 1
+PASS preset 1 saved
+PASS native compositor screenshot settings-preset-1
+PASS screenshot saved settings-preset-1
+PASS settings physics frozen preset 1
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreated Activity opens safe home (expected 0, actual 0)
+PASS preset 1 survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS home settings opened (expected 2, actual 2)
+PASS removed control absent: zero
+PASS tap x inside display
+PASS tap x inside display
+PASS active motion preset 2
+PASS preset 2 saved
+PASS native compositor screenshot settings-preset-2
+PASS screenshot saved settings-preset-2
+PASS settings physics frozen preset 2
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreated Activity opens safe home (expected 0, actual 0)
+PASS preset 2 survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS settings reopened after recreation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sensor switch respects hardware availability
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS blood effects switch saves
+PASS sound setting saves by touch
+PASS haptics setting saves by touch
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS sound and haptics survive Activity recreation
+PASS touch-only setting survives Activity recreation
+PASS blood effects setting survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Done leaves home settings (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter selection opens (expected 7, actual 7)
+PASS native compositor screenshot chapters
+PASS screenshot saved chapters
+PASS chapter menu physics frozen
+PASS stage 1 has a real rendered card
+PASS stage 2 has a real rendered card
+PASS stage 3 has a real rendered card
+PASS stage 4 has a real rendered card
+PASS stage 5 has a real rendered card
+PASS stage 6 has a real rendered card
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card begins its run (expected 1, actual 1)
+PASS chapter card selects and persists stage 4
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS recreation skips intro and opens home (expected 0, actual 0)
+PASS selected stage survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS home Play uses selected stage (expected 1, actual 1)
+PASS home retains selected stage 4
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 1 (expected 1, actual 1)
+PASS stage selection matches card 0
+PASS stage 1 ready for touch tests (expected 1, actual 1)
+PASS native compositor screenshot gameplay
+PASS screenshot saved gameplay
+PASS removed control absent: zero
+PASS removed control absent: cycle_preset
+PASS removed control absent: motion
+PASS Restart stays in header
+PASS Pause stays in header
+PASS Jump uses full bottom width
+PASS gameplay advances under gravity
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS touch down alone does not jump
+PASS tap x inside display
+PASS right swipe chooses positive touch velocity
+PASS right swipe moves right without an automatic jump
+PASS native compositor screenshot swipe-right-held
+PASS screenshot saved swipe-right-held
+PASS tap x inside display
+PASS swipe release clears touch velocity
+PASS released environmental drift stays bounded
+PASS release clears the model steering command
+PASS tap x inside display
+PASS tap x inside display
+PASS left swipe moves left without an automatic jump
+PASS tap x inside display
+PASS cancel clears swipe velocity
+PASS canceled environmental drift stays bounded
+PASS cancel clears the model steering command
+PASS idle rope motion and wind stay controllable
+PASS tap x inside display
+PASS tap x inside display
+PASS countersteering overcomes environmental drift
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Jump button sends character upward
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS short arena tap jumps on release
+PASS tap x inside display
+PASS tap x inside display
+PASS Pause opens by touch (expected 4, actual 4)
+PASS native compositor screenshot pause
+PASS screenshot saved pause
+PASS pause physics frozen
+PASS tap x inside display
+PASS tap x inside display
+PASS pause settings opened (expected 2, actual 2)
+PASS removed control absent: zero
+PASS pause settings physics frozen
+PASS Android back returns settings to pause (expected 4, actual 4)
+PASS return to pause stays frozen
+PASS Android back resumes pause (expected 1, actual 1)
+PASS resume advances the gameplay clock
+PASS tap x inside display
+PASS tap x inside display
+PASS header Restart starts a fresh run (expected 1, actual 1)
+PASS Restart resets elapsed time
+PASS Restart clears terminal states
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS pause Restart resumes fresh run (expected 1, actual 1)
+PASS pause Restart resets elapsed time
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS home freezes an abandoned run
+PASS tap x inside display
+PASS tap x inside display
+PASS new run begins from home (expected 1, actual 1)
+PASS new home run resets timer
+PASS next stage is 1
+PASS native compositor screenshot chapter-1-gameplay
+PASS screenshot saved chapter-1-gameplay
+PASS native frame transition won=true
+PASS stage 1 target landing wins
+PASS stage 1 target physically bounces
+PASS native compositor screenshot stage-1-target-bounce-controlled
+PASS screenshot saved stage-1-target-bounce-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-1-victory-controlled
+PASS screenshot saved stage-1-victory-controlled
+PASS stage 1 records a single win
+PASS stage 1 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 2
+PASS native frame transition won=true
+PASS stage 2 target landing wins
+PASS stage 2 target physically bounces
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-2-victory-controlled
+PASS screenshot saved stage-2-victory-controlled
+PASS stage 2 records a single win
+PASS stage 2 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 3
+PASS native compositor screenshot chapter-2-gameplay
+PASS screenshot saved chapter-2-gameplay
+PASS native frame transition won=true
+PASS stage 3 target landing wins
+PASS stage 3 target physically bounces
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-3-victory-controlled
+PASS screenshot saved stage-3-victory-controlled
+PASS stage 3 records a single win
+PASS stage 3 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 4
+PASS native frame transition won=true
+PASS stage 4 target landing wins
+PASS stage 4 target physically bounces
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-4-victory-controlled
+PASS screenshot saved stage-4-victory-controlled
+PASS stage 4 records a single win
+PASS stage 4 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 5
+PASS native compositor screenshot chapter-3-gameplay
+PASS screenshot saved chapter-3-gameplay
+PASS native frame transition won=true
+PASS stage 5 target landing wins
+PASS stage 5 target physically bounces
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-5-victory-controlled
+PASS screenshot saved stage-5-victory-controlled
+PASS stage 5 records a single win
+PASS stage 5 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS tap x inside display
+PASS tap x inside display
+PASS Next Stage starts gameplay (expected 1, actual 1)
+PASS next stage is 6
+PASS native frame transition won=true
+PASS stage 6 target landing wins
+PASS stage 6 target physically bounces
+PASS native compositor screenshot stage-6-target-bounce-controlled
+PASS screenshot saved stage-6-target-bounce-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot stage-6-victory-controlled
+PASS screenshot saved stage-6-victory-controlled
+PASS stage 6 records a single win
+PASS stage 6 result physics frozen
+PASS stage result redraw cannot duplicate win
+PASS removed control absent: next_stage
+PASS tap x inside display
+PASS tap x inside display
+PASS last stage Replay restarts (expected 1, actual 1)
+PASS replay clears terminal victory
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS records survive recreation (expected 0, actual 0)
+PASS last selected stage persists
+PASS persisted record for stage 1
+PASS persisted record for stage 2
+PASS persisted record for stage 3
+PASS persisted record for stage 4
+PASS persisted record for stage 5
+PASS persisted record for stage 6
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 1 (expected 1, actual 1)
+PASS stage selection matches card 0
+PASS native frame transition lost=true
+PASS native compositor screenshot chapter-1-death-effect-controlled
+PASS screenshot saved chapter-1-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS chapter 1 hazard collision loses
+PASS chapter hazard reason matches its visuals: LASER
+PASS native compositor screenshot chapter-1-hazard-death-controlled
+PASS screenshot saved chapter-1-hazard-death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 3 (expected 1, actual 1)
+PASS stage selection matches card 2
+PASS native frame transition lost=true
+PASS native compositor screenshot chapter-2-death-effect-controlled
+PASS screenshot saved chapter-2-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS chapter 2 hazard collision loses
+PASS chapter hazard reason matches its visuals: SPIKES
+PASS native compositor screenshot chapter-2-hazard-death-controlled
+PASS screenshot saved chapter-2-hazard-death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 5 (expected 1, actual 1)
+PASS stage selection matches card 4
+PASS native frame transition lost=true
+PASS native compositor screenshot chapter-3-death-effect-controlled
+PASS screenshot saved chapter-3-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS chapter 3 hazard collision loses
+PASS chapter hazard reason matches its visuals: FIRE
+PASS native compositor screenshot chapter-3-hazard-death-controlled
+PASS screenshot saved chapter-3-hazard-death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 6 (expected 1, actual 1)
+PASS stage selection matches card 5
+PASS last stage enables falling fire
+PASS native compositor screenshot last-stage-fire-warning-controlled
+PASS screenshot saved last-stage-fire-warning-controlled
+PASS warning telegraph is safe before fire falls
+PASS warning countdown remains visible
+PASS active fire actually descends
+PASS visible falling fire starts clear of avatar
+PASS native compositor screenshot last-stage-fire-falling-controlled
+PASS screenshot saved last-stage-fire-falling-controlled
+PASS native frame transition lost=true
+PASS native compositor screenshot last-stage-fire-death-effect-controlled
+PASS screenshot saved last-stage-fire-death-effect-controlled
+PASS fire dissolves before the result overlay (expected 1, actual 1)
+PASS native compositor screenshot last-stage-fire-death-ash-controlled
+PASS screenshot saved last-stage-fire-death-ash-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS falling fire overlap kills avatar
+PASS falling fire uses its specific death reason
+PASS fire death cannot add a victory
+PASS native compositor screenshot last-stage-fire-death-controlled
+PASS screenshot saved last-stage-fire-death-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 4 (expected 1, actual 1)
+PASS stage selection matches card 3
+PASS native frame transition lost=true
+PASS late-stage off-target floor landing is fatal
+PASS hard landing cannot win
+PASS native compositor screenshot hard-floor-death-effect-controlled
+PASS screenshot saved hard-floor-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot hard-floor-result-controlled
+PASS screenshot saved hard-floor-result-controlled
+PASS hard landing leaves campaign victory count unchanged
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade opens its setup screen (expected 8, actual 8)
+PASS Arcade setup freezes gameplay
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade difficulty 0 saved by touch
+PASS native compositor screenshot arcade-setup-difficulty-0
+PASS screenshot saved arcade-setup-difficulty-0
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS Arcade setup recreation returns to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade difficulty survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade difficulty 1 saved by touch
+PASS native compositor screenshot arcade-setup-difficulty-1
+PASS screenshot saved arcade-setup-difficulty-1
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS Arcade setup recreation returns to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade difficulty survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade difficulty 2 saved by touch
+PASS native compositor screenshot arcade-setup-difficulty-2
+PASS screenshot saved arcade-setup-difficulty-2
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS Arcade setup recreation returns to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade difficulty survives Activity recreation
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS four hazard toggles leave only buzzsaws enabled
+PASS tap x inside display
+PASS tap x inside display
+PASS last enabled saw hazard cannot be disabled
+PASS native compositor screenshot arcade-last-hazard-protected
+PASS screenshot saved arcade-last-hazard-protected
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS all five hazard groups can be re-enabled
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS tap x inside display
+PASS tap x inside display
+PASS hazard configuration survives recreation
+PASS Android Back leaves Arcade setup (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 31
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS Start Arcade uses survival physics
+PASS Arcade run remains live after gravity frames
+PASS Arcade continues below every campaign floor
+PASS native compositor screenshot arcade-survival-controlled
+PASS screenshot saved arcade-survival-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade pause freezes survival clock
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade pause opens settings (expected 2, actual 2)
+PASS Arcade settings freeze survival clock
+PASS Arcade settings return to pause (expected 4, actual 4)
+PASS Back resumes Arcade (expected 1, actual 1)
+PASS native frame transition lost=true
+PASS native compositor screenshot arcade-first-death-effect-controlled
+PASS screenshot saved arcade-first-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot arcade-result-controlled
+PASS screenshot saved arcade-result-controlled
+PASS Arcade writes its separate score, time and run record
+PASS Arcade results do not alter campaign records
+PASS Arcade result freezes physics
+PASS Arcade result redraw records the run once
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade Replay starts a new survival run (expected 1, actual 1)
+PASS Arcade Replay retains its mode and clears death
+PASS Arcade Replay retains difficulty and hazard configuration
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS Arcade record survives Activity recreation
+PASS Arcade recreation preserves campaign records
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 2
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS native compositor screenshot arcade-top-laser-warning-controlled
+PASS screenshot saved arcade-top-laser-warning-controlled
+PASS TOP LASER warning is nonlethal
+PASS native frame transition lost=true
+PASS distinct Arcade collision reason: TOP LASER
+PASS native compositor screenshot arcade-top-laser-death-effect-controlled
+PASS screenshot saved arcade-top-laser-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot arcade-top-laser-result-controlled
+PASS screenshot saved arcade-top-laser-result-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 4
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS native compositor screenshot arcade-side-laser-warning-controlled
+PASS screenshot saved arcade-side-laser-warning-controlled
+PASS SIDE LASER warning is nonlethal
+PASS native frame transition lost=true
+PASS distinct Arcade collision reason: SIDE LASER
+PASS native compositor screenshot arcade-side-laser-death-effect-controlled
+PASS screenshot saved arcade-side-laser-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot arcade-side-laser-result-controlled
+PASS screenshot saved arcade-side-laser-result-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 8
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS native compositor screenshot arcade-lightning-warning-controlled
+PASS screenshot saved arcade-lightning-warning-controlled
+PASS LIGHTNING warning is nonlethal
+PASS native frame transition lost=true
+PASS distinct Arcade collision reason: LIGHTNING
+PASS native compositor screenshot arcade-lightning-death-effect-controlled
+PASS screenshot saved arcade-lightning-death-effect-controlled
+PASS lightning disintegrates before the result overlay (expected 1, actual 1)
+PASS native compositor screenshot arcade-lightning-death-ash-controlled
+PASS screenshot saved arcade-lightning-death-ash-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot arcade-lightning-result-controlled
+PASS screenshot saved arcade-lightning-result-controlled
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 2
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS swept beam fixture begins outside its collision radius
+PASS swept beam fixture ends outside its collision radius
+PASS swept collision catches the between-endpoints grazing contact
+PASS native compositor screenshot arcade-swept-beam-death-effect-controlled
+PASS screenshot saved arcade-swept-beam-death-effect-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS tap x inside display
+PASS tap x inside display
+PASS Standard Arcade records do not contaminate other difficulties
+PASS tap x inside display
+PASS tap x inside display
+PASS campaign Play remains available after Arcade (expected 1, actual 1)
+PASS home Campaign restores the selected chapter rather than Arcade mode
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS return to home (expected 0, actual 0)
+PASS Activity finished before preferences restored
+PASS legacy four-family mask fixture stored
+PASS native Canvas view laid out
+PASS native screen transition 0 (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS legacy profile opens five-family setup (expected 8, actual 8)
+PASS saved legacy mask 15 preserves original choices
+PASS loaded legacy mask does not silently enable saws
+PASS new saw toggle available for legacy profile
+PASS legacy migration preserves every unrelated saved choice and record
+PASS native compositor screenshot legacy-mask-15-preserved
+PASS screenshot saved legacy-mask-15-preserved
+PASS Activity finished before preferences restored
+PASS preferences committed
+PASS native Canvas view laid out
+PASS native screen transition 0 (expected 0, actual 0)
+PASS legacy fixture restores current test profile exactly
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 16
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS native compositor screenshot arcade-saw-warning-controlled
+PASS screenshot saved arcade-saw-warning-controlled
+PASS saw warning is safe while its advertised path is visible
+PASS live saw travels along its announced path
+PASS native compositor screenshot arcade-saw-active-controlled
+PASS screenshot saved arcade-saw-active-controlled
+PASS second live frame advances saw travel and its spin clock
+PASS native compositor screenshot arcade-saw-spinning-controlled
+PASS screenshot saved arcade-saw-spinning-controlled
+PASS native frame transition lost=true
+PASS saw contact uses BUZZSAW collision reason
+PASS native compositor screenshot arcade-saw-impact-controlled
+PASS screenshot saved arcade-saw-impact-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot arcade-saw-result-controlled
+PASS screenshot saved arcade-saw-result-controlled
+PASS saw loss records exactly one Arcade run
+PASS saw Arcade loss preserves campaign records
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound controls open through actual navigation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting is true
+PASS all 11 native SoundPool samples completed asynchronous loading
+PASS native audio enabled only in foreground
+PASS native compositor screenshot settings-sound-on
+PASS screenshot saved settings-sound-on
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 16
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS actual saw activation produces its physics motor cue
+PASS actual physics cue starts exactly one native SoundPool stream (3 -> 4)
+PASS subsequent physics frames do not duplicate the consumed cue
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS sound controls open through actual navigation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting is false
+PASS native compositor screenshot settings-muted-audio
+PASS screenshot saved settings-muted-audio
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS muted live physics still emits the source event
+PASS sound off suppresses native hazard playback
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS sound controls open through actual navigation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting is true
+PASS tap x inside display
+PASS tap x inside display
+PASS unmuting does not replay an already consumed physics cue
+PASS tap x inside display
+PASS tap x inside display
+PASS pause screen suppresses hazard audio even if active flag is set
+PASS tap x inside display
+PASS tap x inside display
+PASS home screen suppresses hazard audio even if active flag is set
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 16
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS actual Android background stops streams without destroying the reusable pool
+PASS background owner and SoundPool guards suppress playback
+PASS foreground resume re-enables the retained audio pool
+PASS backgrounding live gameplay resumes safely paused (expected 4, actual 4)
+PASS foreground resume does not replay stale hazard audio
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS destroyed Activity releases its SoundPool and sample handles
+PASS released SoundPool cannot play a stale event
+PASS all 11 native SoundPool samples completed asynchronous loading
+PASS recreated Activity owns a fresh foreground audio pool
+PASS fresh Activity does not replay old hazard events
+PASS tap x inside display
+PASS tap x inside display
+PASS sound controls open through actual navigation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting is false
+PASS native compositor screenshot settings-muted-after-recreation
+PASS screenshot saved settings-muted-after-recreation
+PASS audio lifecycle checks return to home (expected 0, actual 0)
+PASS native compositor screenshot home-final
+PASS screenshot saved home-final
+PASS Activity finished before preferences restored
+PASS preferences committed
+PASS original preferences restored exactly
+PASS verified backup cleared
+PASS: native Falley suite; checks=799; captures=62; viewport=tall; V3.1 full touch/Arcade/campaign, saw physics, SoundPool counters and lifecycle; audibility not assessed; controlled collision/death fixtures, not a natural phone playtest; original preferences restored

@@ -5,12 +5,17 @@ public final class Physics {
     public static final float W = 480, H = 820, DT = 1f / 240, R = 17;
     public static final float GRAVITY = 900, ROPE_SPACING = 170;
     public static final float GROUND_Y = 4200, TARGET_LEFT = 158, TARGET_RIGHT = 322;
+    public static final int SFX_FIRE_LAUNCH = 1, SFX_FIRE_BURN = 2, SFX_LASER = 3,
+            SFX_LIGHTNING = 4, SFX_SAW_MOTOR = 5, SFX_SAW_IMPACT = 6;
+    public long soundSequence;
+    public int soundEvent;
     public final Rope[] ropes = new Rope[8];
     public StageCatalog.Stage stage = StageCatalog.get(0);
     public static final class FireHazard {
         public float x, y, warningTime, radius = 12;
         public boolean active;
         private float speed;
+        private boolean activated;
     }
     public final FireHazard[] fireHazards = new FireHazard[4];
     public static final class BeamHazard {
@@ -18,8 +23,17 @@ public final class Physics {
         public int kind;
         public boolean active, followCamera;
         private float screenY1, screenY2;
+        private boolean activated;
     }
     public final BeamHazard[] beamHazards = new BeamHazard[3];
+    public static final class SawHazard {
+        public float x, y, previousX, previousY, pathX1, pathX2, radius = 16,
+                warningTime, liveTime, velocityX;
+        public boolean active, followCamera;
+        private float screenY;
+        private boolean activated;
+    }
+    public final SawHazard[] sawHazards = new SawHazard[2];
     public boolean arcade;
     public int arcadeDifficulty = 1, arcadeHazards = ArcadeRules.ALL, wave = 1;
     public float x, y, vx, vy, gx, cameraY, elapsed, flash, blast;
@@ -28,6 +42,7 @@ public final class Physics {
     public float winTime, landingPulse, groundBounce;
     public String deathReason = "";
     private float jumpCooldown, nextRopeY, attackCountdown, touchVelocity, deepestY;
+    private int attackCount;
     private boolean touchControl;
     private java.util.Random random;
 
@@ -58,6 +73,7 @@ public final class Physics {
         for (int i = 0; i < ropes.length; i++) ropes[i] = new Rope(i);
         for (int i = 0; i < fireHazards.length; i++) fireHazards[i] = new FireHazard();
         for (int i = 0; i < beamHazards.length; i++) beamHazards[i] = new BeamHazard();
+        for (int i = 0; i < sawHazards.length; i++) sawHazards[i] = new SawHazard();
         reset();
     }
     public void reset(int stageIndex) { arcade = false; stage = StageCatalog.get(stageIndex); reset(); }
@@ -75,10 +91,17 @@ public final class Physics {
         nextRopeY = 450 + ropes.length * ROPE_SPACING;
         random = new java.util.Random(7283L + stage.index * 101L);
         attackCountdown = 2.0f;
+        attackCount = 0;
         wave = 1;
-        for (FireHazard fire : fireHazards) { fire.active = false; fire.warningTime = 0; }
+        soundSequence = 0; soundEvent = 0;
+        for (FireHazard fire : fireHazards) { fire.active = fire.activated = false; fire.warningTime = 0; }
         for (BeamHazard beam : beamHazards) {
-            beam.active = beam.followCamera = false; beam.warningTime = 0; beam.liveTime = .4f;
+            beam.active = beam.followCamera = beam.activated = false; beam.warningTime = 0; beam.liveTime = .4f;
+        }
+        for (SawHazard saw : sawHazards) {
+            saw.active = saw.followCamera = saw.activated = false;
+            saw.x = saw.y = saw.previousX = saw.previousY = saw.pathX1 = saw.pathX2 = 0;
+            saw.warningTime = saw.liveTime = saw.velocityX = 0; saw.radius = 16;
         }
         for (int i = 0; i < ropes.length; i++) ropes[i].reset(450 + i * ROPE_SPACING, leftWall(), rightWall());
     }
@@ -274,18 +297,29 @@ public final class Physics {
         return stage.hazard == StageCatalog.LASER ? "LASER" : stage.hazard == StageCatalog.SPIKES ? "SPIKES" : "FIRE";
     }
     private void simulateHazards(float previousX, float previousY) {
+        // A strict finish must not compete with an attack whose warning began farther up.
+        if (!arcade && y >= groundY() - 650) {
+            for (FireHazard fire : fireHazards) fire.active = false;
+            for (BeamHazard beam : beamHazards) beam.active = false;
+            for (SawHazard saw : sawHazards) saw.active = false;
+            return;
+        }
         int difficulty = arcade ? arcadeDifficulty : Math.min(2, stage.index / 2);
         int mask = arcade ? arcadeHazards : stage.extraHazards;
         boolean occupied = false;
         for (FireHazard fire : fireHazards) if (fire.active) occupied = true;
         for (BeamHazard beam : beamHazards) if (beam.active) occupied = true;
+        for (SawHazard saw : sawHazards) if (saw.active) occupied = true;
         // One attack at a time preserves a readable escape route, including in mixed skirmishes.
         if (!occupied && mask != 0 && (arcade || y < groundY() - 650)) {
             attackCountdown -= DT;
             if (attackCountdown <= 0) {
                 int count = Integer.bitCount(mask), choice = random.nextInt(count), kind = 1;
-                for (; kind <= ArcadeRules.LIGHTNING; kind <<= 1) if ((mask & kind) != 0 && choice-- == 0) break;
+                for (; kind <= ArcadeRules.BUZZSAWS; kind <<= 1) if ((mask & kind) != 0 && choice-- == 0) break;
+                // Introduce the new blade predictably before mixing it with side lasers.
+                if (!arcade && stage.index == 3 && attackCount == 0) kind = ArcadeRules.BUZZSAWS;
                 spawnAttack(kind, difficulty);
+                attackCount++;
                 attackCountdown = ArcadeRules.attackGap(difficulty, wave) + random.nextFloat() * .3f;
             }
         }
@@ -295,6 +329,7 @@ public final class Physics {
                 fire.warningTime = Math.max(0, fire.warningTime - DT);
                 continue;
             }
+            if (!fire.activated) { fire.activated = true; emitSound(SFX_FIRE_LAUNCH); }
             float oldY = fire.y;
             fire.speed = Math.min(1400, fire.speed + 100 * DT);
             fire.y += fire.speed * DT;
@@ -312,6 +347,7 @@ public final class Physics {
                 beam.warningTime = Math.max(0, beam.warningTime - DT);
                 continue;
             }
+            if (!beam.activated) { beam.activated = true; emitSound(beam.kind == ArcadeRules.LIGHTNING ? SFX_LIGHTNING : SFX_LASER); }
             float shift = beam.y1 - oldY1;
             float reach = radius() + beam.width / 2;
             if (segmentDistanceSquared(previousX, previousY + shift, x, y, beam.x1, beam.y1, beam.x2, beam.y2) <= reach * reach) {
@@ -319,6 +355,27 @@ public final class Physics {
             }
             beam.liveTime -= DT;
             if (beam.liveTime <= 0) beam.active = false;
+        }
+        for (SawHazard saw : sawHazards) if (saw.active) {
+            saw.previousX = saw.x; saw.previousY = saw.y;
+            if (saw.followCamera) saw.y = cameraY + saw.screenY;
+            if (saw.warningTime > 0) {
+                saw.warningTime = Math.max(0, saw.warningTime - DT);
+                continue;
+            }
+            if (!saw.activated) { saw.activated = true; emitSound(SFX_SAW_MOTOR); }
+            float travel = saw.velocityX * DT;
+            if (saw.followCamera) {
+                // Stop at the advertised endpoint; the far side remains a usable refuge.
+                saw.x = saw.velocityX > 0 ? Math.min(saw.pathX2, saw.x + travel) : Math.max(saw.pathX2, saw.x + travel);
+            } else saw.x += travel;
+            float reach = radius() + saw.radius;
+            if (pointSegmentDistanceSquared(0, 0, previousX - saw.previousX, previousY - saw.previousY,
+                    x - saw.x, y - saw.y) <= reach * reach) {
+                die("BUZZSAW"); return;
+            }
+            saw.liveTime -= DT;
+            if (saw.liveTime <= 0 || saw.followCamera && Math.abs(saw.x - saw.pathX2) < .001f) saw.active = false;
         }
     }
     private void spawnAttack(int kind, int difficulty) {
@@ -328,13 +385,30 @@ public final class Physics {
             for (FireHazard fire : fireHazards) if (!fire.active) {
                 fire.x = left + 26 + random.nextFloat() * Math.max(1, right - left - 52);
                 fire.y = cameraY + 155; fire.radius = 10 + random.nextFloat() * 4;
-                fire.warningTime = warning; fire.speed = 1050 + difficulty * 75; fire.active = true;
+                fire.warningTime = warning; fire.speed = 1050 + difficulty * 75; fire.active = true; fire.activated = false;
+                return;
+            }
+        } else if (kind == ArcadeRules.BUZZSAWS) {
+            for (SawHazard saw : sawHazards) if (!saw.active) {
+                saw.radius = 16;
+                boolean fromLeft = random.nextBoolean();
+                float length = Math.max(10, Math.min((right - left) * .52f,
+                        right - left - (radius() * 2 + saw.radius * 2 + 28)));
+                saw.pathX1 = fromLeft ? left - saw.radius - 8 : right + saw.radius + 8;
+                saw.pathX2 = fromLeft ? left + length : right - length;
+                saw.x = saw.previousX = saw.pathX1;
+                saw.screenY = clamp(y - cameraY, 260, 600);
+                saw.y = saw.previousY = cameraY + saw.screenY;
+                saw.velocityX = (fromLeft ? 1 : -1) * (420 + difficulty * 100);
+                saw.warningTime = warning;
+                saw.liveTime = Math.abs(saw.pathX2 - saw.pathX1) / Math.abs(saw.velocityX) + DT;
+                saw.active = saw.followCamera = true; saw.activated = false;
                 return;
             }
         } else for (BeamHazard beam : beamHazards) if (!beam.active) {
             beam.kind = kind; beam.width = kind == ArcadeRules.LIGHTNING ? 14 : 10;
             beam.warningTime = warning; beam.liveTime = ArcadeRules.beamLife(difficulty);
-            beam.followCamera = true; beam.active = true;
+            beam.followCamera = true; beam.active = true; beam.activated = false;
             if (kind == ArcadeRules.TOP_LASERS) {
                 beam.x1 = beam.x2 = left + 25 + random.nextFloat() * Math.max(1, right - left - 50);
                 beam.screenY1 = 160; beam.screenY2 = 730;
@@ -371,6 +445,12 @@ public final class Physics {
         return Math.min(Math.min(pointSegmentDistanceSquared(ax, ay, cx, cy, dx, dy), pointSegmentDistanceSquared(bx, by, cx, cy, dx, dy)),
                 Math.min(pointSegmentDistanceSquared(cx, cy, ax, ay, bx, by), pointSegmentDistanceSquared(dx, dy, ax, ay, bx, by)));
     }
-    private void die(String reason) { lost = true; deathReason = reason; blast = 1; gx = 0; }
+    private void emitSound(int event) { soundEvent = event; soundSequence++; }
+    private void die(String reason) {
+        lost = true; deathReason = reason; blast = 1; gx = 0;
+        if ("FALLING FIRE".equals(reason) || "FIRE".equals(reason)) emitSound(SFX_FIRE_BURN);
+        else if ("BUZZSAW".equals(reason)) emitSound(SFX_SAW_IMPACT);
+        else if ("LASER".equals(reason)) emitSound(SFX_LASER);
+    }
     public static float clamp(float value, float low, float high) { return Math.max(low, Math.min(high, value)); }
 }

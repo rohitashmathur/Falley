@@ -1,0 +1,16 @@
+Stage 1 PASS: 10.12s, 21 cuts, score 831
+Stage 2 PASS: 11.15s, 25 cuts, score 961
+Stage 3 PASS: 12.20s, 30 cuts, score 1121
+Stage 4 PASS: 12.61s, 35 cuts, score 1276
+Stage 5 PASS: 14.29s, 39 cuts, score 1412
+Stage 6 PASS: 15.33s, 44 cuts, score 1573
+PASS: six chapter courses, intentional drift/countersteer/release, ropes/weight, narrowing hazards, warning fire/contact, forgiving and fatal floors, terminal wins/reset and 100000 seeded stability steps (20939979 checks)
+Arcade CHILL PASS: 25.00s, wave 2, score 3010
+Arcade STANDARD PASS: 25.00s, wave 2, score 2920
+Arcade BRUTAL PASS: 25.00s, wave 2, score 2920
+PASS: Arcade configuration/reset, swept geometry, three beam deaths/near misses, warning/refuge/lock fairness, intentional drift/no idle wins, three-difficulty natural survival and 100000 survival stability steps (21000408 checks)
+PASS: buzzsaw warning/live sweep/near misses, narrow-corridor reachable refuges and real dodges, locked paths/exclusive attacks, reset/campaign approach and one-shot hazard cues (879 checks)
+PASS: hazard cue edges, duplicate/stale/invalid suppression, pause/resume/restart and real fixed-step motor/impact priority (20 checks)
+PASS: touch startup/no drift, tap tremor, bilateral swipe direction, bounded velocity, release/cancel stop, reversal, return-to-start, vertical swipe and invalid coordinates (16 checks)
+PASS: sensor startup/auto-centering, accelerometer fallback, calibration, resume reset, Loose/Balanced/Tight response, sample-rate consistency, gyro reaction, invalid samples and drift correction (17 checks)
+PASS: local preferences/blood, campaign and per-stage records, Arcade mask/difficulty sanitization, independent survival score/runs/longest time and campaign isolation (33 checks)
