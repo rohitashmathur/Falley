@@ -1,0 +1,388 @@
+PASS no interrupted fixture; recover with -RestoreOnly if needed
+PASS preferences committed
+PASS original preferences backed up
+PASS deterministic emulator settings installed
+PASS native Canvas view laid out
+PASS artifact directory ready
+PASS native screen transition 0 (expected 0, actual 0)
+PASS return to home (expected 0, actual 0)
+PASS Home exposes an accessibility provider
+PASS Home host exposes every rendered control
+PASS Home has an accessible screen name
+PASS Home control has a spoken label: play
+PASS Home control has real screen bounds: play
+PASS Home control action matches enabled state: play
+PASS Home control announces its selected state: play
+PASS Home control has a spoken label: arcade
+PASS Home control has real screen bounds: arcade
+PASS Home control action matches enabled state: arcade
+PASS Home control announces its selected state: arcade
+PASS Home control has a spoken label: chapters
+PASS Home control has real screen bounds: chapters
+PASS Home control action matches enabled state: chapters
+PASS Home control announces its selected state: chapters
+PASS Home control has a spoken label: help
+PASS Home control has real screen bounds: help
+PASS Home control action matches enabled state: help
+PASS Home control announces its selected state: help
+PASS Home control has a spoken label: settings
+PASS Home control has real screen bounds: settings
+PASS Home control action matches enabled state: settings
+PASS Home control announces its selected state: settings
+PASS screen awake is false in Home
+PASS inactive fixture releases screen awake in Home
+PASS virtual accessibility click works for settings
+PASS accessibility action opens Settings (expected 2, actual 2)
+PASS Settings exposes an accessibility provider
+PASS Settings host exposes every rendered control
+PASS Settings has an accessible screen name
+PASS Settings control has a spoken label: back
+PASS Settings control has real screen bounds: back
+PASS Settings control action matches enabled state: back
+PASS Settings control announces its selected state: back
+PASS Settings control has a spoken label: motion
+PASS Settings control has real screen bounds: motion
+PASS Settings control action matches enabled state: motion
+PASS Settings control announces its selected state: motion
+PASS Settings control has a spoken label: preset_0
+PASS Settings control has real screen bounds: preset_0
+PASS Settings control action matches enabled state: preset_0
+PASS Settings control announces its selected state: preset_0
+PASS Settings control has a spoken label: preset_1
+PASS Settings control has real screen bounds: preset_1
+PASS Settings control action matches enabled state: preset_1
+PASS Settings control announces its selected state: preset_1
+PASS Settings control has a spoken label: preset_2
+PASS Settings control has real screen bounds: preset_2
+PASS Settings control action matches enabled state: preset_2
+PASS Settings control announces its selected state: preset_2
+PASS Settings control has a spoken label: sound
+PASS Settings control has real screen bounds: sound
+PASS Settings control action matches enabled state: sound
+PASS Settings control announces its selected state: sound
+PASS Settings control has a spoken label: haptics
+PASS Settings control has real screen bounds: haptics
+PASS Settings control action matches enabled state: haptics
+PASS Settings control announces its selected state: haptics
+PASS Settings control has a spoken label: blood
+PASS Settings control has real screen bounds: blood
+PASS Settings control action matches enabled state: blood
+PASS Settings control announces its selected state: blood
+PASS Settings control has a spoken label: privacy
+PASS Settings control has real screen bounds: privacy
+PASS Settings control action matches enabled state: privacy
+PASS Settings control announces its selected state: privacy
+PASS Settings control has a spoken label: back
+PASS Settings control has real screen bounds: back
+PASS Settings control action matches enabled state: back
+PASS Settings control announces its selected state: back
+PASS tap x inside display
+PASS tap x inside display
+PASS Privacy Policy opens by real touch (expected 9, actual 9)
+PASS Privacy exposes an accessibility provider
+PASS Privacy host exposes every rendered control
+PASS Privacy has an accessible screen name
+PASS Privacy control has a spoken label: back
+PASS Privacy control has real screen bounds: back
+PASS Privacy control action matches enabled state: back
+PASS Privacy control announces its selected state: back
+PASS Privacy control has a spoken label: back
+PASS Privacy control has real screen bounds: back
+PASS Privacy control action matches enabled state: back
+PASS Privacy control announces its selected state: back
+PASS screen awake is false in Privacy
+PASS inactive fixture releases screen awake in Privacy
+PASS native compositor screenshot privacy-top
+PASS screenshot saved privacy-top
+PASS policy starts at top and has scrollable content
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS real pointer swipe scrolls policy text
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS real swipes reach the final policy paragraph
+PASS native compositor screenshot privacy-end
+PASS screenshot saved privacy-end
+PASS accessible policy exposes full text including final section
+PASS policy content accepts accessibility focus
+PASS policy accessibility focus can be retrieved
+PASS policy supports accessible backward scrolling
+PASS accessible backward scroll moves toward start
+PASS policy host supports accessible forward scrolling
+PASS accessible forward scroll returns to end
+PASS system Back returns privacy to Home settings (expected 2, actual 2)
+PASS Home settings returns to Home (expected 0, actual 0)
+PASS virtual accessibility click works for arcade
+PASS accessibility action opens Arcade (expected 8, actual 8)
+PASS Arcade setup exposes an accessibility provider
+PASS Arcade setup host exposes every rendered control
+PASS Arcade setup has an accessible screen name
+PASS Arcade setup control has a spoken label: back
+PASS Arcade setup control has real screen bounds: back
+PASS Arcade setup control action matches enabled state: back
+PASS Arcade setup control announces its selected state: back
+PASS Arcade setup control has a spoken label: difficulty_0
+PASS Arcade setup control has real screen bounds: difficulty_0
+PASS Arcade setup control action matches enabled state: difficulty_0
+PASS Arcade setup control announces its selected state: difficulty_0
+PASS Arcade setup control has a spoken label: difficulty_1
+PASS Arcade setup control has real screen bounds: difficulty_1
+PASS Arcade setup control action matches enabled state: difficulty_1
+PASS Arcade setup control announces its selected state: difficulty_1
+PASS Arcade setup control has a spoken label: difficulty_2
+PASS Arcade setup control has real screen bounds: difficulty_2
+PASS Arcade setup control action matches enabled state: difficulty_2
+PASS Arcade setup control announces its selected state: difficulty_2
+PASS Arcade setup control has a spoken label: arcade_fire
+PASS Arcade setup control has real screen bounds: arcade_fire
+PASS Arcade setup control action matches enabled state: arcade_fire
+PASS Arcade setup control announces its selected state: arcade_fire
+PASS Arcade setup control has a spoken label: arcade_top
+PASS Arcade setup control has real screen bounds: arcade_top
+PASS Arcade setup control action matches enabled state: arcade_top
+PASS Arcade setup control announces its selected state: arcade_top
+PASS Arcade setup control has a spoken label: arcade_side
+PASS Arcade setup control has real screen bounds: arcade_side
+PASS Arcade setup control action matches enabled state: arcade_side
+PASS Arcade setup control announces its selected state: arcade_side
+PASS Arcade setup control has a spoken label: arcade_lightning
+PASS Arcade setup control has real screen bounds: arcade_lightning
+PASS Arcade setup control action matches enabled state: arcade_lightning
+PASS Arcade setup control announces its selected state: arcade_lightning
+PASS Arcade setup control has a spoken label: arcade_saw
+PASS Arcade setup control has real screen bounds: arcade_saw
+PASS Arcade setup control action matches enabled state: arcade_saw
+PASS Arcade setup control announces its selected state: arcade_saw
+PASS Arcade setup control has a spoken label: start_arcade
+PASS Arcade setup control has real screen bounds: start_arcade
+PASS Arcade setup control action matches enabled state: start_arcade
+PASS Arcade setup control announces its selected state: start_arcade
+PASS virtual accessibility click works for arcade_saw
+PASS accessible hazard switch changes persisted checked state
+PASS virtual accessibility click works for arcade_saw
+PASS tap x inside display
+PASS tap x inside display
+PASS screen awake is true in active gameplay
+PASS inactive fixture releases screen awake in active gameplay
+PASS tap x inside display
+PASS tap x inside display
+PASS pause after awake check (expected 4, actual 4)
+PASS Pause exposes an accessibility provider
+PASS Pause host exposes every rendered control
+PASS Pause has an accessible screen name
+PASS Pause control has a spoken label: resume
+PASS Pause control has real screen bounds: resume
+PASS Pause control action matches enabled state: resume
+PASS Pause control announces its selected state: resume
+PASS Pause control has a spoken label: restart
+PASS Pause control has real screen bounds: restart
+PASS Pause control action matches enabled state: restart
+PASS Pause control announces its selected state: restart
+PASS Pause control has a spoken label: settings
+PASS Pause control has real screen bounds: settings
+PASS Pause control action matches enabled state: settings
+PASS Pause control announces its selected state: settings
+PASS Pause control has a spoken label: home
+PASS Pause control has real screen bounds: home
+PASS Pause control action matches enabled state: home
+PASS Pause control announces its selected state: home
+PASS screen awake is false in Pause
+PASS inactive fixture releases screen awake in Pause
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS pause settings opens Privacy (expected 9, actual 9)
+PASS privacy menu freezes gameplay
+PASS tap x inside display
+PASS tap x inside display
+PASS Privacy footer returns to Pause settings (expected 2, actual 2)
+PASS Pause settings retains its return context (expected 4, actual 4)
+PASS virtual accessibility click works for resume
+PASS accessible Resume returns to gameplay (expected 1, actual 1)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS return to home (expected 0, actual 0)
+PASS Activity finished before preferences restored
+PASS legacy four-family mask fixture stored
+PASS native Canvas view laid out
+PASS native screen transition 0 (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS legacy profile opens five-family setup (expected 8, actual 8)
+PASS saved legacy mask 15 preserves original choices
+PASS loaded legacy mask does not silently enable saws
+PASS new saw toggle available for legacy profile
+PASS legacy migration preserves every unrelated saved choice and record
+PASS native compositor screenshot legacy-mask-15-preserved
+PASS screenshot saved legacy-mask-15-preserved
+PASS Activity finished before preferences restored
+PASS preferences committed
+PASS native Canvas view laid out
+PASS native screen transition 0 (expected 0, actual 0)
+PASS legacy fixture restores current test profile exactly
+PASS tap x inside display
+PASS tap x inside display
+PASS five-family setup opens by pointer (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS saw-only Arcade configuration is allowed
+PASS tap x inside display
+PASS tap x inside display
+PASS last enabled saw toggle cannot disable all hazards
+PASS native compositor screenshot arcade-saw-only-protected
+PASS screenshot saved arcade-saw-only-protected
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS all five Arcade families can be enabled together
+PASS native compositor screenshot arcade-five-hazards
+PASS screenshot saved arcade-five-hazards
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 16
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS saw remains in warning phase for its screenshot
+PASS native compositor screenshot arcade-saw-warning-controlled
+PASS screenshot saved arcade-saw-warning-controlled
+PASS saw warning is safe while its advertised path is visible
+PASS live saw travels along its announced path
+PASS native compositor screenshot arcade-saw-active-controlled
+PASS screenshot saved arcade-saw-active-controlled
+PASS second live frame advances saw travel and its spin clock
+PASS native compositor screenshot arcade-saw-spinning-controlled
+PASS screenshot saved arcade-saw-spinning-controlled
+PASS native frame transition lost=true
+PASS saw contact uses BUZZSAW collision reason
+PASS native compositor screenshot arcade-saw-impact-controlled
+PASS screenshot saved arcade-saw-impact-controlled
+PASS native screen transition 5 (expected 5, actual 5)
+PASS native compositor screenshot arcade-saw-result-controlled
+PASS screenshot saved arcade-saw-result-controlled
+PASS saw loss records exactly one Arcade run
+PASS saw Arcade loss preserves campaign records
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound controls open through actual navigation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting is true
+PASS all 11 native SoundPool samples completed asynchronous loading
+PASS native audio enabled only in foreground
+PASS native compositor screenshot settings-sound-on
+PASS screenshot saved settings-sound-on
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 16
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS actual saw activation produces its physics motor cue
+PASS actual physics cue starts exactly one native SoundPool stream (3 -> 4)
+PASS subsequent physics frames do not duplicate the consumed cue
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS sound controls open through actual navigation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting is false
+PASS native compositor screenshot settings-muted-audio
+PASS screenshot saved settings-muted-audio
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS muted live physics still emits the source event
+PASS sound off suppresses native hazard playback
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS sound controls open through actual navigation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting is true
+PASS tap x inside display
+PASS tap x inside display
+PASS unmuting does not replay an already consumed physics cue
+PASS tap x inside display
+PASS tap x inside display
+PASS pause screen suppresses hazard audio even if active flag is set
+PASS tap x inside display
+PASS tap x inside display
+PASS home screen suppresses hazard audio even if active flag is set
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 16
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS actual Android background stops streams without destroying the reusable pool
+PASS background owner and SoundPool guards suppress playback
+PASS foreground resume re-enables the retained audio pool
+PASS backgrounding live gameplay resumes safely paused (expected 4, actual 4)
+PASS foreground resume does not replay stale hazard audio
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS Android created a distinct Activity instance
+PASS native Canvas view laid out
+PASS destroyed Activity releases its SoundPool and sample handles
+PASS released SoundPool cannot play a stale event
+PASS all 11 native SoundPool samples completed asynchronous loading
+PASS recreated Activity owns a fresh foreground audio pool
+PASS fresh Activity does not replay old hazard events
+PASS tap x inside display
+PASS tap x inside display
+PASS sound controls open through actual navigation (expected 2, actual 2)
+PASS tap x inside display
+PASS tap x inside display
+PASS sound setting is false
+PASS native compositor screenshot settings-muted-after-recreation
+PASS screenshot saved settings-muted-after-recreation
+PASS audio lifecycle checks return to home (expected 0, actual 0)
+PASS Activity finished before preferences restored
+PASS preferences committed
+PASS original preferences restored exactly
+PASS verified backup cleared
+PASS: native Falley release; checks=387; captures=13; viewport=tall; V3.2 focused privacy, virtual accessibility actions, active-play screen awake, five hazards and audio lifecycle; controlled collision/death fixtures, not a natural phone playtest; original preferences restored

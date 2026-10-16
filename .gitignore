@@ -12,6 +12,7 @@ releases/
 *.class
 *.apk
 *.aab
+*.apks
 *.idsig
 .env
 .env.*

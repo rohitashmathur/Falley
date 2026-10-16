@@ -3,27 +3,41 @@ param(
     [switch]$RestoreOnly,
     [switch]$EffectsOnly,
     [switch]$V31Only,
+    [switch]$ReleaseOnly,
+    [switch]$StoreOnly,
+    [switch]$ReleaseSigning,
     [string]$SdkRoot=$env:ANDROID_HOME,
     [string]$JdkRoot=$env:JAVA_HOME,
     [string]$Device='emulator-5580',
-    [ValidateSet('small','tall')][string[]]$Viewport=@('small','tall'),
+    [ValidateSet('small','tall','store')][string[]]$Viewport=@('small','tall'),
     [string]$ArtifactRoot,
     [string]$KeyStore
 )
 $ErrorActionPreference='Stop'
 if ($BuildOnly -and $RestoreOnly) { throw 'Choose BuildOnly or RestoreOnly.' }
-if ($EffectsOnly -and $V31Only) { throw 'Choose EffectsOnly or V31Only.' }
+if (@($EffectsOnly,$V31Only,$ReleaseOnly,$StoreOnly | Where-Object { $_ }).Count -gt 1) { throw 'Choose one focused or store mode.' }
+if ($ReleaseSigning -and $KeyStore) { throw 'ReleaseSigning loads the existing upload identity; do not also pass KeyStore.' }
+if ($StoreOnly) { $Viewport=@('store') }
+if (!$StoreOnly -and $Viewport -contains 'store') { throw 'The store viewport requires StoreOnly.' }
 $root=Split-Path -Parent $PSScriptRoot
 $frontlineRoot=Split-Path -Parent (Split-Path -Parent $root)
 if (!$SdkRoot) { $SdkRoot=Join-Path $frontlineRoot '.toolchain\android-sdk' }
 if (!$JdkRoot) { $JdkRoot=(Get-ChildItem -LiteralPath (Join-Path $frontlineRoot '.toolchain') -Directory -Filter 'jdk-*' | Select-Object -First 1).FullName }
-if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root $(if ($V31Only) { 'build\device\v31-focused' } elseif ($EffectsOnly) { 'build\device\v31-effects' } else { 'build\device\v31' }) }
-if (!$KeyStore) { $KeyStore=Join-Path $root 'build\debug.keystore' }
+if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root $(if ($StoreOnly) { 'build\store-captures' } elseif ($ReleaseOnly) { 'build\device\v32-focused' } elseif ($V31Only) { 'build\device\v32-v31-focused' } elseif ($EffectsOnly) { 'build\device\v32-effects' } else { 'build\device\v32' }) }
 $output=Join-Path $root 'build\android-ui-falley'
-$apk=Join-Path $output 'falley-ui-tests.apk'
+$apk=Join-Path $output $(if ($ReleaseSigning) { 'falley-ui-tests-release.apk' } else { 'falley-ui-tests.apk' })
 function Checked([string]$Program,[string[]]$Arguments) {
     & $Program @Arguments
     if ($LASTEXITCODE -ne 0) { throw "$Program failed: $LASTEXITCODE" }
+}
+try {
+if ($ReleaseSigning) {
+    $signing=& (Join-Path $PSScriptRoot 'release-signing.ps1') -JdkRoot $JdkRoot
+    $KeyStore=$signing.KeyStore
+    $signArguments=@('--ks',$KeyStore,'--ks-key-alias',$signing.Alias,'--ks-pass','env:FALLEY_UPLOAD_STORE_PASSWORD','--key-pass','env:FALLEY_UPLOAD_KEY_PASSWORD')
+} else {
+    if (!$KeyStore) { $KeyStore=Join-Path $root 'build\debug.keystore' }
+    $signArguments=@('--ks',$KeyStore,'--ks-pass','pass:android','--key-pass','pass:android')
 }
 if (!$RestoreOnly) {
     if (!(Test-Path -LiteralPath $KeyStore)) { throw 'Build the app first so its debug signing key exists, or pass -KeyStore.' }
@@ -49,7 +63,7 @@ if (!$RestoreOnly) {
     finally { $archive.Dispose() }
     $aligned=Join-Path $staging 'aligned.apk'
     Checked (Join-Path $buildTools 'zipalign.exe') @('-f','4',$unsigned,$aligned)
-    Checked (Join-Path $buildTools 'apksigner.bat') @('sign','--ks',$KeyStore,'--ks-pass','pass:android','--key-pass','pass:android','--out',$apk,$aligned)
+    Checked (Join-Path $buildTools 'apksigner.bat') (@('sign')+$signArguments+@('--out',$apk,$aligned))
     Checked (Join-Path $buildTools 'apksigner.bat') @('verify',$apk)
     if ($BuildOnly) { Write-Host "Built native UI harness: $apk"; return }
 }
@@ -80,14 +94,18 @@ $failure=$null
 $restored=$false
 try {
     foreach ($name in $Viewport) {
-        $dimensions=if ($name -eq 'small') { @('480x800','240') } else { @('720x1600','320') }
+        $dimensions=if ($name -eq 'small') { @('480x800','240') } elseif ($name -eq 'store') { @('1080x1920','420') } else { @('720x1600','320') }
         Adb @('shell','am','force-stop','com.perfgames.falley') | Out-Null
         Adb @('shell','wm','size',$dimensions[0]) | Out-Null
         Adb @('shell','wm','density',$dimensions[1]) | Out-Null
         Start-Sleep -Milliseconds 650
-        try { Instrument $(if ($V31Only) { 'v31' } elseif ($EffectsOnly) { 'effects' } else { 'suite' }) $name }
+        try { Instrument $(if ($StoreOnly) { 'store' } elseif ($ReleaseOnly) { 'release' } elseif ($V31Only) { 'v31' } elseif ($EffectsOnly) { 'effects' } else { 'suite' }) $name }
         finally {
-            Adb @('pull',"/sdcard/Android/data/com.perfgames.falley/files/falley-native-v31/$name",$ArtifactRoot) | Out-Null
+            if ($StoreOnly) {
+                foreach ($file in @('campaign.png','landing.png','lightning.png','saw.png','arcade.png','settings.png','sources.json','checks.txt')) {
+                    Adb @('pull',"/sdcard/Android/data/com.perfgames.falley/files/falley-native-v32/store/$file",(Join-Path $ArtifactRoot $file)) | Out-Null
+                }
+            } else { Adb @('pull',"/sdcard/Android/data/com.perfgames.falley/files/falley-native-v32/$name",$ArtifactRoot) | Out-Null }
         }
     }
 } catch { $failure=$_ }
@@ -99,6 +117,16 @@ finally {
     if ($restored) { try { Adb @('uninstall','com.perfgames.falley.tests') | Out-Null } catch { if (!$failure) { $failure=$_ } } }
 }
 if ($failure) { throw $failure }
-if ($V31Only) { Write-Host "PASS: Falley V3.1 focused five-hazard migration, saw visuals/collision and SoundPool counters/lifecycle. Audibility not assessed. Artifacts: $ArtifactRoot" }
+if ($StoreOnly) { Write-Host "PASS: Falley V3.2 native 1080x1920 store captures and measured crop metadata. Artifacts: $ArtifactRoot" }
+elseif ($ReleaseOnly) { Write-Host "PASS: Falley V3.2 focused release privacy/accessibility/awake, hazards and audio. Audibility not assessed. Artifacts: $ArtifactRoot" }
+elseif ($V31Only) { Write-Host "PASS: Falley V3.1 focused five-hazard migration, saw visuals/collision and SoundPool counters/lifecycle. Audibility not assessed. Artifacts: $ArtifactRoot" }
 elseif ($EffectsOnly) { Write-Host "PASS: Falley focused fire/three-beam warning, collision and early/late visual fixtures. Artifacts: $ArtifactRoot" }
-else { Write-Host "PASS: Falley V3.1 full Arcade/touch/campaign, saw physics and SoundPool counters/lifecycle. Audibility not assessed. Artifacts: $ArtifactRoot" }
+else { Write-Host "PASS: Falley V3.2 full release privacy/accessibility/awake, Arcade/touch/campaign, saw physics and SoundPool lifecycle. Audibility not assessed. Artifacts: $ArtifactRoot" }
+} finally {
+    if ($ReleaseSigning) {
+        $env:FALLEY_UPLOAD_STORE_PASSWORD=$null
+        $env:FALLEY_UPLOAD_KEY_PASSWORD=$null
+        $env:FALLEY_UPLOAD_KEYSTORE=$null
+        $env:FALLEY_UPLOAD_KEY_ALIAS=$null
+    }
+}

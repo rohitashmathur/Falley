@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: native Falley store; checks=125; captures=6; viewport=store; V3.2 high-resolution actual native Canvas store captures and measured crop metadata; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1

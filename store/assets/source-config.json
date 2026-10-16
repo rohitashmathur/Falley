@@ -1,0 +1,74 @@
+{
+  "campaign": {
+    "path": "store/assets/raw-source/campaign.png",
+    "app_crop": [
+      33,
+      63,
+      1047,
+      1794
+    ],
+    "controlled": true,
+    "source_version": "3.2.0",
+    "description": "Version 3.2.0 release-derived APK: living avatar reacting to a bouncy rope in campaign stage 1; controlled position followed by actual physics frames."
+  },
+  "landing": {
+    "path": "store/assets/raw-source/landing.png",
+    "app_crop": [
+      33,
+      63,
+      1047,
+      1794
+    ],
+    "controlled": true,
+    "source_version": "3.2.0",
+    "description": "Version 3.2.0 release-derived APK: controlled target approach resolved by actual collision into a winning bounce, before the result overlay."
+  },
+  "lightning": {
+    "path": "store/assets/raw-source/lightning.png",
+    "app_crop": [
+      33,
+      63,
+      1047,
+      1794
+    ],
+    "controlled": true,
+    "source_version": "3.2.0",
+    "description": "Version 3.2.0 release-derived APK: living avatar with a diagonal lightning telegraph in Arcade; controlled warning fixture after actual frames."
+  },
+  "saw": {
+    "path": "store/assets/raw-source/saw.png",
+    "app_crop": [
+      33,
+      63,
+      1047,
+      1794
+    ],
+    "controlled": true,
+    "source_version": "3.2.0",
+    "description": "Version 3.2.0 release-derived APK: living avatar with the advertised sideways buzzsaw warning path; controlled warning fixture after actual frames."
+  },
+  "arcade": {
+    "path": "store/assets/raw-source/arcade.png",
+    "app_crop": [
+      33,
+      63,
+      1047,
+      1794
+    ],
+    "controlled": true,
+    "source_version": "3.2.0",
+    "description": "Version 3.2.0 release-derived APK: actual Arcade setup with Standard difficulty and all five hazard families enabled."
+  },
+  "settings": {
+    "path": "store/assets/raw-source/settings.png",
+    "app_crop": [
+      33,
+      63,
+      1047,
+      1794
+    ],
+    "controlled": true,
+    "source_version": "3.2.0",
+    "description": "Version 3.2.0 release-derived APK: actual settings with motion steering enabled and Balanced response selected through touch."
+  }
+}

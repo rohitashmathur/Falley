@@ -1,4 +1,28 @@
-# Falley V3.1 build status
+# Falley 3.2 beta build status
+
+Current source: **3.2.0 / code 7**, application ID `com.perfgames.falley`; minimum API 24, compile/target API 36. Preparation date: **16 October 2026**. Scope is an offline, ad-free Android phone beta. Binaries and signing material remain local; no Play upload/rollout has occurred.
+
+- Release tooling prepared: checksum-pinned Gradle **8.11.1** wrapper, AGP **8.10.1**, JDK **17**, official bundletool **1.18.3**. `scripts/build-release.ps1` runs lint/bundle generation, strict signature and every-payload certificate checks, bundle validation and universal-APK verification.
+- Signing prepared through `scripts/release-signing.ps1`: private upload identity under ignored `releases/private-signing/`, Windows current-user directory permissions and DPAPI-protected credentials. Preserve a recoverable private backup; no key, password or binary belongs in Git.
+- Frozen release build: **PASS**, `lintRelease` and `bundleRelease`; lint reports **0 errors and 9 warnings**. Initial guarded-API errors were fixed before this successful final build. App-source revision embedded in the AAB: `21f2f87c3bc37aa9ab3fc34d3b0e62f3d2b4dd38`; later documentation/artwork commits do not identify a different app binary.
+- Local AAB: `releases/3.2.0/Falley-3.2.0-beta.aab`, **301784 bytes**, SHA-256 `2d7c7638bfbcfae1161af690bc0b3cc47bb5e8198b9c223bd76725343175b75c`.
+- Bundle-derived, upload-key-signed local APK: `releases/3.2.0/Falley-3.2.0-beta-local.apk`, **321030 bytes**, SHA-256 `2d62249186607d650a1719083e77c63a1b81f20b0a3c12c7225593f5cc508c39`. Universal `.apks`, inspected manifest and `SHA256SUMS.txt` accompany these local artifacts.
+- Bundletool **1.18.3 validation PASS**; strict jarsigner verification against the expected key **PASS**; Java `JarFile` verification confirms **all 24 payload entries** match the preserved certificate. Negative controls reject an unsigned bundle and an added unsigned payload. Missing signing-environment guard also **PASS**.
+- Public upload certificate SHA-256: `16cc163611d6a0b2f13474470ed8328e7e5093ba8c5af34ef0701ebf423f9caa`. The key and DPAPI credential remain private, excluded from Git. Derived APK v2/v3 signatures and `zipalign -P 16` **PASS**. Local upload-key testing is not proof of a later Play app-signing install/update.
+- Artifact manifest: min API **24**, target API **36**, **non-debuggable**, no requested permissions, optional accelerometer/gyroscope and backup/cloud/device-transfer exclusions.
+- Jarsigner emits POSIX ZIP-attribute and archive/JarInputStream-order warnings on the AGP-generated AAB. Strict verification and every-entry `JarFile` certificate checks pass; this report does not claim zero warnings. Raw build/controls/guard evidence: `build/release-v32.log`, `build/signature-controls.log`, `build/release-signing-guard.log`.
+- Full native Android 16/API 36 release suites: **PASS** on 480x800 @ density 240 and 720x1600 @ density 320, **1019 checks/64 captures each; 2038 checks/128 captures total**, on the frozen bundle-derived APK.
+- Focused Android 15/API 35 suites: **PASS**, **387 checks/13 captures per layout; 774 checks/26 captures total**, covering current privacy, menu-accessibility and screen-awake behavior alongside focused release regressions.
+- Four current native runs: **PASS, 2812 logged checks/154 captures**. Curated proof contains **42 PNGs** (16 API 36, 26 API 35) and **14 receipts/logs** under `screenshots/v3.2/`. Original preferences/display settings were restored, the instrumentation APK was removed and both owned emulators were stopped; no failure captures were produced. Frozen AAB/APK hashes were confirmed unchanged after testing. Controlled emulator fixtures do not establish real-phone listening, human TalkBack navigation or natural player success rates.
+- Store capture acceptance: **PASS, 125 checks**, separate from the four native-run totals; six fresh native **1080x1920** captures from 3.2.0. All **10 prepared upload assets** (including optional feature variants) pass dimension/mode/size/hash checks, alt text at most 140 characters, source/crop integrity and root/asset visual review. Store capture receipts are kept separately under `screenshots/v3.2/`; upload assets/provenance are under `store/assets/`.
+- Source changes verified in current native checks: offline Settings privacy policy, menu accessibility nodes, active-play-only screen-awake behavior/static-menu rendering, guarded API annotation, static raw-resource audio lookup and explicit backup/data-extraction rules. App-source commit and artifact hashes above remain unchanged; the later documentation/artwork commit is separate.
+- Campaign/Arcade physics and WAV payloads are unchanged from 3.1. The deterministic six-course/survival, 100,000 + 100,000 stability-step and audio-file proof below is **carried forward, not rerun as a 3.2 test claim**.
+
+Owner gates remain open: a real monitored support email, publicly hosted privacy policy/contact mechanism, Console/account/package access, audience/content-rating/Data safety review and real-phone acceptance. The in-app policy has no fabricated contact. Adding the real contact requires a **new higher version code and rebuilt/retested bundle before closed beta**. AdMob and consent are absent; this is not an advertising release or an approved closed-beta submission.
+
+Use [BETA_SUBMISSION.md](docs/BETA_SUBMISSION.md) for the internal-then-closed-test order, [release signing](docs/RELEASE_SIGNING.md) for private-key preservation, [store drafts](docs/store/README.md) for owner-reviewed content and [store-assets.md](docs/store-assets.md) for upload images. The local release artifact and technical/store-image checks pass. No Google approval, age rating, real-device acceptance or broad IP clearance is implied; owner submission gates remain open.
+
+## Historical 3.1 proof
 
 Current source: **3.1.0 / code 6**, application ID `com.perfgames.falley`; minimum API 24, compile/target API 36. APK/AAB files and signing material remain local. Verification date: 15 October 2026.
 
@@ -47,4 +71,4 @@ Verified portable source and native debug APK on 15 October 2026. Source revisio
 
 Toolchain: JDK 17, SDK platform 36/build-tools 35.0.0 for app builds; platform 35 additionally supplies the native harness compilation jar. Ignored build/debug.keystore is preserved.
 
-Physical-phone feel/fun, broader hardware coverage, Gradle verification, production release AAB and Google Play submission remain unverified.
+At the historical V3.0 checkpoint, physical-phone feel/fun, broader hardware coverage, Gradle verification, production release AAB and Google Play submission remained unverified. See the current 3.2 status above for later tooling work.

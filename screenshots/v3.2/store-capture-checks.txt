@@ -1,0 +1,126 @@
+PASS no interrupted fixture; recover with -RestoreOnly if needed
+PASS preferences committed
+PASS original preferences backed up
+PASS deterministic emulator settings installed
+PASS native Canvas view laid out
+PASS artifact directory ready
+PASS native screen transition 0 (expected 0, actual 0)
+PASS store captures come from installed version 3.2.0
+PASS store device compositor is 1080 by 1920
+PASS tap x inside display
+PASS tap x inside display
+PASS chapter menu opens by touch (expected 7, actual 7)
+PASS tap x inside display
+PASS tap x inside display
+PASS stage card launches 1 (expected 1, actual 1)
+PASS stage selection matches card 0
+PASS campaign rope reaction is live gameplay
+PASS store capture keeps avatar alive: campaign
+PASS native compositor screenshot campaign
+PASS screenshot saved campaign
+PASS measured native Canvas crop excludes system bars: campaign
+PASS native frame transition won=true
+PASS store target scene shows actual successful bounce
+PASS store capture keeps avatar alive: landing
+PASS native compositor screenshot landing
+PASS screenshot saved landing
+PASS measured native Canvas crop excludes system bars: landing
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 8
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS store capture keeps avatar alive: lightning
+PASS native compositor screenshot lightning
+PASS screenshot saved lightning
+PASS measured native Canvas crop excludes system bars: lightning
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 16
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS store capture keeps avatar alive: saw
+PASS native compositor screenshot saw
+PASS screenshot saved saw
+PASS measured native Canvas crop excludes system bars: saw
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS Arcade setup opened for configured run (expected 8, actual 8)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS requested Arcade hazard mask saved: 31
+PASS tap x inside display
+PASS tap x inside display
+PASS Start Arcade begins gameplay (expected 1, actual 1)
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS return to home (expected 0, actual 0)
+PASS tap x inside display
+PASS tap x inside display
+PASS store capture keeps avatar alive: arcade
+PASS native compositor screenshot arcade
+PASS screenshot saved arcade
+PASS measured native Canvas crop excludes system bars: arcade
+PASS tap x inside display
+PASS tap x inside display
+PASS store emulator exposes motion hardware
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS tap x inside display
+PASS store motion settings visibly enabled through touch
+PASS store capture keeps avatar alive: settings
+PASS native compositor screenshot settings
+PASS screenshot saved settings
+PASS measured native Canvas crop excludes system bars: settings
+PASS store fixtures return safely Home (expected 0, actual 0)
+PASS Activity finished before preferences restored
+PASS preferences committed
+PASS original preferences restored exactly
+PASS verified backup cleared
+PASS: native Falley store; checks=125; captures=6; viewport=store; V3.2 high-resolution actual native Canvas store captures and measured crop metadata; controlled collision/death fixtures, not a natural phone playtest; original preferences restored

@@ -1,0 +1,144 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:preBuild UP-TO-DATE
+> Task :app:requireReleaseSigning
+> Task :app:preReleaseBuild
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:generateReleaseResValues UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :app:processReleaseMainManifest UP-TO-DATE
+> Task :app:processReleaseManifest UP-TO-DATE
+> Task :app:processReleaseManifestForPackage UP-TO-DATE
+> Task :app:processReleaseResources UP-TO-DATE
+> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:generateReleaseLintReportModel UP-TO-DATE
+> Task :app:bundleReleaseClassesToCompileJar UP-TO-DATE
+> Task :app:preReleaseUnitTestBuild UP-TO-DATE
+> Task :app:generateReleaseUnitTestLintModel UP-TO-DATE
+> Task :app:lintAnalyzeRelease UP-TO-DATE
+> Task :app:lintAnalyzeReleaseUnitTest UP-TO-DATE
+> Task :app:lintReportRelease UP-TO-DATE
+> Task :app:lintRelease
+> Task :app:processApplicationManifestReleaseForBundle UP-TO-DATE
+> Task :app:bundleReleaseResources UP-TO-DATE
+> Task :app:extractReleaseVersionControlInfo
+> Task :app:checkReleaseDuplicateClasses UP-TO-DATE
+> Task :app:dexBuilderRelease UP-TO-DATE
+> Task :app:desugarReleaseFileDependencies UP-TO-DATE
+> Task :app:mergeReleaseStartupProfile UP-TO-DATE
+> Task :app:mergeExtDexRelease UP-TO-DATE
+> Task :app:mergeDexRelease UP-TO-DATE
+> Task :app:mergeReleaseShaders UP-TO-DATE
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseGlobalSynthetics UP-TO-DATE
+> Task :app:processReleaseJavaRes NO-SOURCE
+> Task :app:mergeReleaseJavaResource UP-TO-DATE
+> Task :app:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :app:mergeReleaseNativeLibs NO-SOURCE
+> Task :app:stripReleaseDebugSymbols NO-SOURCE
+> Task :app:writeReleaseAppMetadata UP-TO-DATE
+> Task :app:buildReleasePreBundle
+> Task :app:mergeReleaseArtProfile UP-TO-DATE
+> Task :app:compileReleaseArtProfile UP-TO-DATE
+> Task :app:collectReleaseDependencies UP-TO-DATE
+> Task :app:configureReleaseDependencies UP-TO-DATE
+> Task :app:extractReleaseNativeSymbolTables NO-SOURCE
+> Task :app:generateReleaseLintVitalReportModel UP-TO-DATE
+> Task :app:lintVitalAnalyzeRelease UP-TO-DATE
+> Task :app:lintVitalReportRelease SKIPPED
+> Task :app:lintVitalRelease SKIPPED
+> Task :app:parseReleaseIntegrityConfig UP-TO-DATE
+> Task :app:validateSigningRelease UP-TO-DATE
+> Task :app:packageReleaseBundle
+> Task :app:signReleaseBundle
+> Task :app:produceReleaseBundleIdeListingFile
+> Task :app:createReleaseBundleListingFileRedirect UP-TO-DATE
+> Task :app:bundleRelease
+
+BUILD SUCCESSFUL in 16s
+52 actionable tasks: 7 executed, 45 up-to-date
+App Bundle information
+------------
+Feature modules:
+	Feature module: base
+		File: dex/classes.dex
+		File: res/drawable/icon.xml
+		File: res/drawable/splash_icon.xml
+		File: res/raw/falley_fire_burn.wav
+		File: res/raw/falley_fire_launch.wav
+		File: res/raw/falley_jump.wav
+		File: res/raw/falley_laser_zap.wav
+		File: res/raw/falley_lightning_crack.wav
+		File: res/raw/falley_loss.wav
+		File: res/raw/falley_rope.wav
+		File: res/raw/falley_saw_impact.wav
+		File: res/raw/falley_saw_motor.wav
+		File: res/raw/falley_ui.wav
+		File: res/raw/falley_win.wav
+		File: res/xml/backup_rules.xml
+		File: res/xml/data_extraction_rules.xml
+		File: root/META-INF/com/android/build/gradle/app-metadata.properties
+		File: root/META-INF/version-control-info.textproto
+
+jar verified.
+
+Warning: 
+POSIX file permission and/or symlink attributes detected. These attributes are ignored when signing and are not protected by the signature.
+
+This JAR file contains internal inconsistencies that may result in different contents when reading via JarFile and JarInputStream:
+- Manifest is missing when reading via JarInputStream
+- Entry BUNDLE-METADATA/com.android.tools.build.gradle/app-metadata.properties is signed in JarFile but is not signed in JarInputStream
+- Entry BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb is signed in JarFile but is not signed in JarInputStream
+- Entry BUNDLE-METADATA/com.android.tools/d8.json is signed in JarFile but is not signed in JarInputStream
+- Entry BundleConfig.pb is signed in JarFile but is not signed in JarInputStream
+- Entry base/dex/classes.dex is signed in JarFile but is not signed in JarInputStream
+- Entry base/manifest/AndroidManifest.xml is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/drawable/icon.xml is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/drawable/splash_icon.xml is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_fire_burn.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_fire_launch.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_jump.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_laser_zap.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_lightning_crack.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_loss.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_rope.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_saw_impact.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_saw_motor.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_ui.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/raw/falley_win.wav is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/xml/backup_rules.xml is signed in JarFile but is not signed in JarInputStream
+- Entry base/res/xml/data_extraction_rules.xml is signed in JarFile but is not signed in JarInputStream
+- Entry base/resources.pb is signed in JarFile but is not signed in JarInputStream
+- Entry base/root/META-INF/com/android/build/gradle/app-metadata.properties is signed in JarFile but is not signed in JarInputStream
+- Entry base/root/META-INF/version-control-info.textproto is signed in JarFile but is not signed in JarInputStream
+- Entry META-INF/MANIFEST.MF is signed in JarFile but is not signed in JarInputStream
+
+Re-run with the -verbose and -certs options for more details.
+PASS: 24 payload entries verified against upload certificate SHA-256 16cc163611d6a0b2f13474470ed8328e7e5093ba8c5af34ef0701ebf423f9caa
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=Falley Upload, O=Perf Games
+Signer #1 certificate SHA-256 digest: 16cc163611d6a0b2f13474470ed8328e7e5093ba8c5af34ef0701ebf423f9caa
+Signer #1 certificate SHA-1 digest: 996d59b3a5d4b9b77c44097ca6d8096d3cd00c34
+Signer #1 certificate MD5 digest: deca439ed455f783d15deb6fe9bc5a5e
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 3072
+Signer #1 public key SHA-256 digest: 5322609240aaa11a8e4cfbbec146afa566e340da0bfd0c49c613d7c3db8eaf4c
+Signer #1 public key SHA-1 digest: 34d90b280ef5bf07125c2cad5204897db7ae6230
+Signer #1 public key MD5 digest: 7336917a84a477728d843c53995121cf

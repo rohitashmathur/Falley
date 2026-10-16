@@ -7,12 +7,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeProvider;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
@@ -29,7 +34,7 @@ public final class NativeFalleyTest extends Instrumentation {
     private static final String APP = "com.perfgames.falley";
     private static final String ACTIVITY = "com.perfgames.ropelab.MainActivity";
     private static final String BACKUP_MARKER = "fixture-original-ready";
-    private static final int HOME=0, PLAY=1, SETTINGS=2, HELP=3, PAUSE=4, RESULT=5, SPLASH=6, CHAPTERS=7, ARCADE_SETUP=8;
+    private static final int HOME=0, PLAY=1, SETTINGS=2, HELP=3, PAUSE=4, RESULT=5, SPLASH=6, CHAPTERS=7, ARCADE_SETUP=8, PRIVACY=9;
     private Activity activity;
     private View arena;
     private Object physics;
@@ -44,7 +49,7 @@ public final class NativeFalleyTest extends Instrumentation {
         super.onCreate(arguments);
         Bundle args = arguments == null ? new Bundle() : arguments;
         mode=args.getString("mode","suite"); shot=args.getString("shot","small");
-        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
+        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("release") && !mode.equals("store") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
             throw new IllegalArgumentException("Falley test harness arguments");
         start();
     }
@@ -54,19 +59,25 @@ public final class NativeFalleyTest extends Instrumentation {
         backup=getTargetContext().getSharedPreferences("falley-native-original",Context.MODE_PRIVATE);
         Throwable failure=null;
         try {
-            if (mode.equals("suite")||mode.equals("effects")||mode.equals("v31")) {
+            if (!mode.equals("restore")) {
                 require(!backup.getBoolean(BACKUP_MARKER,false),"no interrupted fixture; recover with -RestoreOnly if needed");
                 copy(backup,storage.getAll());
                 require(backup.edit().putBoolean(BACKUP_MARKER,true).commit(),"original preferences backed up");
                 require(storage.edit().clear().putInt("preset",1).putBoolean("motion",false)
                         .putBoolean("sound",false).putBoolean("haptics",false).putBoolean("blood",true).commit(),"deterministic emulator settings installed");
                 launch();
-                if (mode.equals("effects")) {
+                if (mode.equals("store")) {
+                    waitScreen(HOME,4000); storeCaptures();
+                } else if (mode.equals("release")) {
+                    waitScreen(HOME,4000); privacyAccessibilityAndAwake();
+                    legacyMaskMigration(); fifthHazardGuard(); sawVisuals(); audioLifecycle();
+                } else if (mode.equals("effects")) {
                     waitScreen(HOME,4000); fireRain(); threeBeamVisuals();
                 } else if (mode.equals("v31")) {
                     waitScreen(HOME,4000); legacyMaskMigration(); fifthHazardGuard(); sawVisuals(); audioLifecycle();
                 } else {
                 homeAndHelp();
+                privacyAccessibilityAndAwake();
                 settingsAndRecreation();
                 chaptersAndPersistence();
                 swipesPauseAndRestart();
@@ -93,7 +104,9 @@ public final class NativeFalleyTest extends Instrumentation {
         }
         String coverage=mode.equals("effects") ? "focused fire/three-beam warnings, collisions and early/late visual effects"
                 : mode.equals("v31") ? "focused V3.1 mask migration, five hazards, saw physics and native SoundPool counters/lifecycle; audibility not assessed"
-                : mode.equals("restore") ? "preference recovery only" : "V3.1 full touch/Arcade/campaign, saw physics, SoundPool counters and lifecycle; audibility not assessed";
+                : mode.equals("release") ? "V3.2 focused privacy, virtual accessibility actions, active-play screen awake, five hazards and audio lifecycle"
+                : mode.equals("store") ? "V3.2 high-resolution actual native Canvas store captures and measured crop metadata"
+                : mode.equals("restore") ? "preference recovery only" : "V3.2 full touch/Arcade/campaign, privacy, accessibility, screen awake, saw physics and SoundPool lifecycle; audibility not assessed";
         String summary=failure==null
             ? "PASS: native Falley "+mode+"; checks="+checks+"; captures="+captures+"; viewport="+shot
                 +"; "+coverage+"; controlled collision/death fixtures, not a natural phone playtest; original preferences restored\n"
@@ -148,6 +161,80 @@ public final class NativeFalleyTest extends Instrumentation {
         require(!storage.getBoolean("blood",true),"blood effects setting survives Activity recreation");
         click("settings"); click("sound"); click("haptics"); click("blood"); click("back");
         requireScreen(HOME,"Done leaves home settings");
+    }
+
+    private int virtualButtonId(String id) throws Exception {
+        List<?> buttons=(List<?>)read(arena,"buttons");
+        for (int i=0;i<buttons.size();i++) if (id.equals(read(buttons.get(i),"id"))) return i+1;
+        throw new AssertionError("Missing accessibility button "+id);
+    }
+    private void accessibleClick(String id) throws Exception {
+        ui(() -> require(arena.getAccessibilityNodeProvider().performAction(virtualButtonId(id),AccessibilityNodeInfo.ACTION_CLICK,null),"virtual accessibility click works for "+id));
+        settle(65);
+    }
+    private void accessibleMenu(String name) throws Exception {
+        ui(() -> {
+            AccessibilityNodeProvider provider=arena.getAccessibilityNodeProvider();
+            require(provider!=null,name+" exposes an accessibility provider");
+            AccessibilityNodeInfo host=provider.createAccessibilityNodeInfo(-1);
+            require(host!=null&&host.getChildCount()>=((List<?>)read(arena,"buttons")).size(),name+" host exposes every rendered control");
+            require(host.getContentDescription()!=null&&host.getContentDescription().length()>0,name+" has an accessible screen name");
+            host.recycle();
+            List<?> buttons=(List<?>)read(arena,"buttons");
+            for (int i=0;i<buttons.size();i++) {
+                Object hit=buttons.get(i); AccessibilityNodeInfo node=provider.createAccessibilityNodeInfo(i+1);
+                require(node!=null&&node.getText()!=null&&node.getText().length()>0,name+" control has a spoken label: "+read(hit,"id"));
+                Rect bounds=new Rect(); node.getBoundsInScreen(bounds);
+                require(bounds.width()>0&&bounds.height()>0,name+" control has real screen bounds: "+read(hit,"id"));
+                require(node.isEnabled()==(Boolean)read(hit,"enabled")&&node.isClickable()==(Boolean)read(hit,"enabled"),name+" control action matches enabled state: "+read(hit,"id"));
+                require(node.isCheckable()==(Boolean)read(hit,"checkable")&&node.isChecked()==(Boolean)read(hit,"checked"),name+" control announces its selected state: "+read(hit,"id"));
+                node.recycle();
+            }
+        });
+    }
+    private void awake(boolean expected,String context) throws Exception {
+        animation(true); SystemClock.sleep(100);
+        ui(() -> require(arena.getKeepScreenOn()==expected,"screen awake is "+expected+" in "+context));
+        animation(false); settle(60);
+        ui(() -> require(!arena.getKeepScreenOn(),"inactive fixture releases screen awake in "+context));
+    }
+    private void privacyAccessibilityAndAwake() throws Exception {
+        goHome(); accessibleMenu("Home"); awake(false,"Home");
+        accessibleClick("settings"); requireScreen(SETTINGS,"accessibility action opens Settings"); accessibleMenu("Settings");
+        click("privacy"); requireScreen(PRIVACY,"Privacy Policy opens by real touch");
+        accessibleMenu("Privacy"); awake(false,"Privacy"); capture("privacy-top");
+        float limit=numeric(arena,"privacyScrollLimit"); require(limit>0&&numeric(arena,"privacyScroll")==0,"policy starts at top and has scrollable content");
+        pointer(MotionEvent.ACTION_DOWN,240,620); pointer(MotionEvent.ACTION_MOVE,240,210); release(240,210);
+        require(numeric(arena,"privacyScroll")>0,"real pointer swipe scrolls policy text");
+        for (int i=0;i<15&&numeric(arena,"privacyScroll")<limit-1;i++) {
+            pointer(MotionEvent.ACTION_DOWN,240,620); pointer(MotionEvent.ACTION_MOVE,240,180); release(240,180);
+        }
+        require(Math.abs(numeric(arena,"privacyScroll")-limit)<1,"real swipes reach the final policy paragraph"); capture("privacy-end");
+        ui(() -> {
+            AccessibilityNodeProvider provider=arena.getAccessibilityNodeProvider();
+            AccessibilityNodeInfo content=provider.createAccessibilityNodeInfo(10000);
+            String text=content.getText().toString();
+            require(content.isScrollable()&&text.contains("Perf Games")&&text.contains("Motion controls")&&text.contains("About this policy"),"accessible policy exposes full text including final section");
+            content.recycle();
+            require(provider.performAction(10000,AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS,null),"policy content accepts accessibility focus");
+            AccessibilityNodeInfo focused=provider.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY);
+            require(focused!=null&&focused.isAccessibilityFocused(),"policy accessibility focus can be retrieved"); if (focused!=null) focused.recycle();
+            require(provider.performAction(10000,AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD,null),"policy supports accessible backward scrolling");
+        }); settle(50);
+        require(numeric(arena,"privacyScroll")<limit,"accessible backward scroll moves toward start");
+        ui(() -> require(arena.getAccessibilityNodeProvider().performAction(-1,AccessibilityNodeInfo.ACTION_SCROLL_FORWARD,null),"policy host supports accessible forward scrolling")); settle(50);
+        require(Math.abs(numeric(arena,"privacyScroll")-limit)<1,"accessible forward scroll returns to end");
+        back(); requireScreen(SETTINGS,"system Back returns privacy to Home settings"); back(); requireScreen(HOME,"Home settings returns to Home");
+        accessibleClick("arcade"); requireScreen(ARCADE_SETUP,"accessibility action opens Arcade"); accessibleMenu("Arcade setup");
+        int mask=storage.getInt("arcadeHazards",31); accessibleClick("arcade_saw");
+        require(storage.getInt("arcadeHazards",31)==(mask^16),"accessible hazard switch changes persisted checked state");
+        accessibleClick("arcade_saw"); back();
+        click("play"); awake(true,"active gameplay"); click("pause"); requireScreen(PAUSE,"pause after awake check");
+        accessibleMenu("Pause"); awake(false,"Pause"); click("settings"); click("privacy");
+        requireScreen(PRIVACY,"pause settings opens Privacy"); freeze("privacy menu freezes gameplay");
+        // The footer is a second Back control. Use its actual physical touch area.
+        tap(240,780); requireScreen(SETTINGS,"Privacy footer returns to Pause settings"); back(); requireScreen(PAUSE,"Pause settings retains its return context");
+        accessibleClick("resume"); requireScreen(PLAY,"accessible Resume returns to gameplay"); goHome();
     }
 
     private void chaptersAndPersistence() throws Exception {
@@ -223,7 +310,7 @@ public final class NativeFalleyTest extends Instrumentation {
             require(physicsBool("won")&&!physicsBool("lost"),"stage "+(stage+1)+" target landing wins");
             require(physicsFloat("vy")<0&&physicsFloat("groundBounce")>0,"stage "+(stage+1)+" target physically bounces");
             if (stage==0||stage==5) capture("stage-"+(stage+1)+"-target-bounce-controlled");
-            waitScreen(RESULT,2500); capture("stage-"+(stage+1)+"-victory-controlled");
+            waitScreen(RESULT,2500); if (stage==0) { accessibleMenu("Result"); awake(false,"Result"); } capture("stage-"+(stage+1)+"-victory-controlled");
             require(storage.getInt("wins",0)==stage+1&&storage.getInt("stage_wins_"+stage,0)==1,"stage "+(stage+1)+" records a single win");
             freeze("stage "+(stage+1)+" result physics frozen");
             require(storage.getInt("stage_wins_"+stage,0)==1,"stage result redraw cannot duplicate win");
@@ -425,6 +512,44 @@ public final class NativeFalleyTest extends Instrumentation {
             arena.invalidate();
         });
         runFrames(160); capture("arcade-swept-beam-death-effect-controlled"); waitScreen(RESULT,3500); click("home");
+    }
+
+    private void storeShot(JSONObject sources,String name,String description) throws Exception {
+        require(!physicsBool("lost"),"store capture keeps avatar alive: "+name); capture(name);
+        final int[] crop=new int[4];
+        ui(() -> {
+            int[] location=new int[2]; arena.getLocationOnScreen(location);
+            float scale=((Number)read(arena,"scale")).floatValue(),ox=((Number)read(arena,"ox")).floatValue(),oy=((Number)read(arena,"oy")).floatValue();
+            crop[0]=(int)Math.floor(location[0]+ox); crop[1]=(int)Math.floor(location[1]+oy);
+            crop[2]=(int)Math.ceil(location[0]+ox+480*scale); crop[3]=(int)Math.ceil(location[1]+oy+820*scale);
+        });
+        require(crop[0]>=0&&crop[1]>=0&&crop[2]<=1080&&crop[3]<=1920&&crop[2]>crop[0]&&crop[3]>crop[1],"measured native Canvas crop excludes system bars: "+name);
+        JSONObject value=new JSONObject(); value.put("path","build/store-captures/"+name+".png");
+        value.put("app_crop",new JSONArray(crop)); value.put("controlled",true); value.put("source_version","3.2.0"); value.put("description",description); sources.put(name,value);
+    }
+    private void storeCaptures() throws Exception {
+        String version=getTargetContext().getPackageManager().getPackageInfo(APP,0).versionName;
+        require("3.2.0".equals(version),"store captures come from installed version 3.2.0");
+        Bitmap size=getUiAutomation().takeScreenshot(); require(size!=null&&size.getWidth()==1080&&size.getHeight()==1920,"store device compositor is 1080 by 1920"); size.recycle();
+        JSONObject sources=new JSONObject(); selectStage(0);
+        ui(() -> { write(physics,"x",240f); write(physics,"y",430f); write(physics,"vy",100f); arena.invalidate(); });
+        runFrames(70); require(!physicsBool("lost")&&!physicsBool("won"),"campaign rope reaction is live gameplay");
+        storeShot(sources,"campaign","Version 3.2.0 release-derived APK: living avatar reacting to a bouncy rope in campaign stage 1; controlled position followed by actual physics frames.");
+        stageTargetFixture(); runUntilPhysics("won",true,1500);
+        require(physicsFloat("vy")<0&&physicsFloat("groundBounce")>0,"store target scene shows actual successful bounce");
+        storeShot(sources,"landing","Version 3.2.0 release-derived APK: controlled target approach resolved by actual collision into a winning bounce, before the result overlay.");
+        startArcade(1,8); stageBeam(8,.7f); runFrames(65);
+        storeShot(sources,"lightning","Version 3.2.0 release-derived APK: living avatar with a diagonal lightning telegraph in Arcade; controlled warning fixture after actual frames.");
+        startArcade(1,16); stageSaw(.7f); runFrames(65);
+        storeShot(sources,"saw","Version 3.2.0 release-derived APK: living avatar with the advertised sideways buzzsaw warning path; controlled warning fixture after actual frames.");
+        startArcade(1,31); goHome(); click("arcade"); runFrames(65);
+        storeShot(sources,"arcade","Version 3.2.0 release-derived APK: actual Arcade setup with Standard difficulty and all five hazard families enabled.");
+        back(); click("settings"); require(bool("hasMotion"),"store emulator exposes motion hardware");
+        if (!storage.getBoolean("motion",false)) click("motion"); click("preset_1"); runFrames(65);
+        require(storage.getBoolean("motion",false),"store motion settings visibly enabled through touch");
+        storeShot(sources,"settings","Version 3.2.0 release-derived APK: actual settings with motion steering enabled and Balanced response selected through touch.");
+        try (FileOutputStream stream=new FileOutputStream(new File(output,"sources.json"))) { stream.write(sources.toString(2).getBytes("UTF-8")); }
+        back(); requireScreen(HOME,"store fixtures return safely Home");
     }
 
     private void legacyMaskMigration() throws Exception {
@@ -634,7 +759,7 @@ public final class NativeFalleyTest extends Instrumentation {
         finally { ui(() -> app.unregisterActivityLifecycleCallbacks(callback)); }
         if (earlyFailure[0]!=null) throw new Exception("initial intro clock fixture",earlyFailure[0]);
         bind(); if (!prepareArtifacts) return;
-        output=new File(activity.getExternalFilesDir(null),"falley-native-v31/"+shot);
+        output=new File(activity.getExternalFilesDir(null),"falley-native-v32/"+shot);
         require(output.isDirectory()||output.mkdirs(),"artifact directory ready");
         // This test-owned directory must describe only this run, not retain an old failure PNG.
         File[] prior=output.listFiles();

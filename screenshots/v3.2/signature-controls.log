@@ -1,0 +1,3 @@
+PASS: 24 payload entries verified against upload certificate SHA-256 16cc163611d6a0b2f13474470ed8328e7e5093ba8c5af34ef0701ebf423f9caa
+PASS: unsigned payload rejected (negative control).
+PASS: valid bundle with added unsigned payload rejected (negative control).
