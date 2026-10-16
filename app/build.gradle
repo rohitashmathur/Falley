@@ -2,6 +2,33 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.perfgames.ropelab'
     compileSdk 36
-    defaultConfig { applicationId 'com.perfgames.falley'; minSdk 24; targetSdk 36; versionCode 6; versionName '3.1.0' }
+    defaultConfig { applicationId 'com.perfgames.falley'; minSdk 24; targetSdk 36; versionCode 7; versionName '3.2.0' }
     compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+
+    def signingNames = ['FALLEY_UPLOAD_KEYSTORE', 'FALLEY_UPLOAD_STORE_PASSWORD', 'FALLEY_UPLOAD_KEY_ALIAS', 'FALLEY_UPLOAD_KEY_PASSWORD']
+    def releaseSigningAvailable = signingNames.every { System.getenv(it) }
+    signingConfigs {
+        if (releaseSigningAvailable) {
+            upload {
+                storeFile file(System.getenv('FALLEY_UPLOAD_KEYSTORE'))
+                storePassword System.getenv('FALLEY_UPLOAD_STORE_PASSWORD')
+                keyAlias System.getenv('FALLEY_UPLOAD_KEY_ALIAS')
+                keyPassword System.getenv('FALLEY_UPLOAD_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            debuggable false
+            // Keep this small beta straightforward to inspect; no reflective resources are stripped.
+            minifyEnabled false
+            if (releaseSigningAvailable) signingConfig signingConfigs.upload
+        }
+    }
+    tasks.register('requireReleaseSigning') {
+        doLast {
+            if (!releaseSigningAvailable) throw new GradleException('Release signing is required. Use scripts/build-release.ps1 or set the FALLEY_UPLOAD_* environment variables. Never use the debug key for Play.')
+        }
+    }
+    tasks.matching { it.name == 'preReleaseBuild' }.configureEach { dependsOn 'requireReleaseSigning' }
 }

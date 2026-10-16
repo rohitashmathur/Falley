@@ -24,3 +24,5 @@ tilt.png
 
 work/
 falley-home.png
+__pycache__/
+*.pyc

@@ -7,8 +7,9 @@ import java.util.HashSet;
 
 /** Small, bounded, one-shot effect player. No loops, music, or delayed playback. */
 public final class FalleyAudio {
-    private static final String[] CLIPS = {"fire_launch","fire_burn","laser_zap","lightning_crack","saw_motor","saw_impact",
-            "ui","jump","win","loss","rope"};
+    private static final int[] CLIPS = {R.raw.falley_fire_launch,R.raw.falley_fire_burn,R.raw.falley_laser_zap,
+            R.raw.falley_lightning_crack,R.raw.falley_saw_motor,R.raw.falley_saw_impact,R.raw.falley_ui,
+            R.raw.falley_jump,R.raw.falley_win,R.raw.falley_loss,R.raw.falley_rope};
     private final Context context;
     private SoundPool pool;
     private final int[] samples = new int[CLIPS.length], streams = new int[3];
@@ -36,10 +37,7 @@ public final class FalleyAudio {
                 }
             });
             for (int i = 0; i < CLIPS.length; i++) {
-                // Runtime lookup supports both Gradle's namespace and the standalone
-                // Android build script's application package without generated-R coupling.
-                int resource = context.getResources().getIdentifier("falley_"+CLIPS[i],"raw",context.getPackageName());
-                if (resource != 0) samples[i] = pool.load(context,resource,1);
+                samples[i] = pool.load(context,CLIPS[i],1);
             }
         } catch (RuntimeException noAudio) { unavailable = true; releasePool(); }
     }

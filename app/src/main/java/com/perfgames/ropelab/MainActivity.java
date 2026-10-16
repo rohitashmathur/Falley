@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -19,7 +20,10 @@ import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
@@ -35,7 +39,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         sensors = (SensorManager)getSystemService(SENSOR_SERVICE);
         if (sensors != null) {
             accelerometer = sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -62,6 +65,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
     @Override protected void onPause() {
         resumed = false; arena.active = false;
+        arena.setKeepScreenOn(false);
         if (arena.screen == Arena.PLAY) arena.screen = Arena.PAUSE;
         arena.clearTouch(); arena.motion.resetSamples(); arena.saveProfile();
         if (sensors != null) sensors.unregisterListener(this);
@@ -88,6 +92,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         super.onDestroy();
     }
     /** Keep API 33 class references out of fields verified on older devices. */
+    @android.annotation.TargetApi(33)
     private static final class Api33Back {
         static Object register(Activity activity, Runnable action) {
             android.window.OnBackInvokedCallback callback = action::run;
@@ -125,6 +130,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override public void onAccuracyChanged(Sensor sensor, int accuracy) { }
     @Override public void onSensorChanged(SensorEvent event) {
         if (!resumed || !arena.motionEnabled) return;
+        boolean hadSample = arena.motion.hasSample();
         float x = event.values[0], y = event.values[1], z = event.values[2];
         // Sensor axes stay tied to natural orientation, including tablets.
         switch (getWindowManager().getDefaultDisplay().getRotation()) {
@@ -137,10 +143,12 @@ public class MainActivity extends Activity implements SensorEventListener {
             arena.motion.acceptAccelerometer(event.timestamp, x, y, z);
         else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE)
             arena.motion.acceptGyroscope(event.timestamp, x, y, z);
+        // Settings is static: repaint only when its sensor status first changes.
+        if (!hadSample && arena.motion.hasSample() && arena.screen == Arena.SETTINGS) arena.invalidate();
     }
 
     static final class Arena extends View {
-        static final int HOME = 0, PLAY = 1, SETTINGS = 2, HELP = 3, PAUSE = 4, RESULT = 5, SPLASH = 6, CHAPTERS = 7, ARCADE_SETUP = 8;
+        static final int HOME = 0, PLAY = 1, SETTINGS = 2, HELP = 3, PAUSE = 4, RESULT = 5, SPLASH = 6, CHAPTERS = 7, ARCADE_SETUP = 8, PRIVACY = 9;
         private static final float TOP = 160, BOTTOM = 730;
         private static final String[] PRESETS = {"LOOSE", "BALANCED", "TIGHT"};
         private static final String[] DIFFICULTIES = {"CHILL", "STANDARD", "BRUTAL"};
@@ -160,14 +168,22 @@ public class MainActivity extends Activity implements SensorEventListener {
         long last, trailTime, lastLandingCue;
         float accumulator, scale = 1, ox, oy, visualTime, splashElapsed, homeElapsed;
         float burstTime = 10, burstX, burstY, setupMessage;
+        float privacyScroll, privacyScrollLimit, privacyLastY;
+        int privacyPointer = -1;
         int pointer = -1, buttonPointer = -1, safeTop, safeBottom, safeLeft, safeRight, trailIndex;
         final float[] trailX = new float[18], trailY = new float[18];
         final boolean[] trailValid = new boolean[18];
         final ArrayList<Hit> buttons = new ArrayList<>();
+        final MenuAccessibility menuAccessibility = new MenuAccessibility();
         Hit pressed;
         private static final class Hit {
-            final String id; final float left, top, right, bottom;
-            Hit(String id,float l,float t,float r,float b) { this.id = id; left = l; top = t; right = r; bottom = b; }
+            final String id, label; final float left, top, right, bottom;
+            final boolean enabled, checkable, checked;
+            Hit(String id,float l,float t,float r,float b) { this(id,l,t,r,b,id,true,false,false); }
+            Hit(String id,float l,float t,float r,float b,String label,boolean enabled,boolean checkable,boolean checked) {
+                this.id = id; left = l; top = t; right = r; bottom = b; this.label = label;
+                this.enabled = enabled; this.checkable = checkable; this.checked = checked;
+            }
             boolean contains(float x,float y) { return x >= left && x <= right && y >= top && y <= bottom; }
         }
 
@@ -195,9 +211,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             profile.sanitize(); physics.reset(profile.selectedStage);
             motion = new MotionSteering(hasGyroscope); motion.setPreset(profile.preset);
             motionEnabled = hasMotion && profile.motion;
-            setContentDescription("Falley. Play six stages across Laser, Spikes and Fire chapters. "
-                    + "Land the human on the bouncy target. Tap to jump, swipe left or right to steer. "
-                    + "Settings include motion steering, motion feel, sound effects and vibration.");
+            setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
             setFocusable(true);
         }
         void saveProfile() {
@@ -240,7 +254,11 @@ public class MainActivity extends Activity implements SensorEventListener {
             rect(c,l,t,r,b,10,panel); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(1.5f); paint.setColor(color);
             c.drawRoundRect(l,t,r,b,10,10,paint); paint.setStyle(Paint.Style.FILL);
             center(c,label,(l+r)/2,(t+b)/2+size*.35f,size,color);
-            buttons.add(new Hit(id,l,t,r,b));
+            String accessibleLabel = label.isEmpty() ? id.equals("back") ? "Back" : id.equals("restart") ? "Restart" : "Pause" : label;
+            boolean enabled = !id.equals("jump") || !physics.lost && !physics.won;
+            boolean choice = id.startsWith("preset_") || id.startsWith("difficulty_");
+            boolean checked = choice && (id.startsWith("preset_") ? id.equals("preset_"+profile.preset) : id.equals("difficulty_"+profile.arcadeDifficulty));
+            buttons.add(new Hit(id,l,t,r,b,accessibleLabel,enabled,choice,checked));
         }
         private void gear(Canvas c,float x,float y,int color) {
             circle(c,x,y,11,color); circle(c,x,y,7,panel); circle(c,x,y,2.5f,color);
@@ -279,11 +297,22 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (screen == HELP) drawHelp(c);
             else if (screen == CHAPTERS) drawChapters(c);
             else if (screen == ARCADE_SETUP) drawArcadeSetup(c);
+            else if (screen == PRIVACY) drawPrivacy(c);
             else {
                 drawPlay(c);
                 if (screen == PAUSE || screen == RESULT) { buttons.clear(); drawOverlay(c); }
             }
-            c.restore(); if (active) postInvalidateOnAnimation();
+            c.restore();
+            setKeepScreenOn(active && screen == PLAY);
+            menuAccessibility.updateScreen();
+            // Static menus need no render loop. Home retains its gentle title
+            // animation at 30fps; gameplay and its short effects use vsync.
+            if (active) {
+                if (screen == PLAY || screen == SPLASH || screen == RESULT && physics.lost && burstTime < 2.8f)
+                    postInvalidateOnAnimation();
+                else if (screen == HOME || screen == ARCADE_SETUP && setupMessage > 0) postInvalidateDelayed(33);
+                else last = 0;
+            }
         }
         private void advance(float dt,long now) {
             float oldPulse = physics.landingPulse;
@@ -347,7 +376,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             rect(c,68,268,412,286,8,border); rect(c,180,268,300,279,4,mint);
             circle(c,240,274,14,0xff29584d); circle(c,240,274,9,mint); circle(c,240,274,4,panel);
             center(c,"CAMPAIGN / ARCADE SURVIVAL",240,305,12,muted);
-            rect(c,24,338,456,420,14,mint); buttons.add(new Hit("play",24,338,456,420));
+            rect(c,24,338,456,420,14,mint); buttons.add(new Hit("play",24,338,456,420,
+                    "Campaign. Stage "+(profile.selectedStage+1)+", "+StageCatalog.get(profile.selectedStage).title,true,false,false));
             text(c,"CAMPAIGN",45,372,22,background);
             text(c,"STAGE "+(profile.selectedStage+1)+" / "+StageCatalog.get(profile.selectedStage).title,45,402,14,background);
             line(c,412,381,432,381,background,3); line(c,432,381,422,371,background,3); line(c,432,381,422,391,background,3);
@@ -389,7 +419,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                 text(c,stage.title,44,tops[i]+31,20,white);
                 text(c,"STAGE "+(i+1)+" / BEST "+profile.best[i]+" / "+profile.stageWins[i]+" LANDINGS",44,tops[i]+57,11,muted);
                 line(c,416,tops[i]+29,426,tops[i]+37,mint,2); line(c,426,tops[i]+37,416,tops[i]+45,mint,2);
-                buttons.add(new Hit("stage_"+i,24,tops[i],456,tops[i]+74));
+                buttons.add(new Hit("stage_"+i,24,tops[i],456,tops[i]+74,
+                        "Stage "+(i+1)+", "+stage.title+". Best "+profile.best[i]+". "+profile.stageWins[i]+" landings",true,false,false));
             }
             button(c,"back",24,730,456,806,"DONE",mint,17);
         }
@@ -397,7 +428,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             rect(c,24,top,456,top+74,9,panel); text(c,title,44,top+44,18,available ? white : muted);
             rect(c,376,top+23,436,top+51,14,value && available ? mint : border);
             circle(c,value && available ? 421 : 391,top+37,10,value && available ? background : muted);
-            buttons.add(new Hit(id,24,top,456,top+74));
+            buttons.add(new Hit(id,24,top,456,top+74,title+(available ? "" : ", unavailable"),available,true,value && available));
         }
         private void drawSettings(Canvas c) {
             header(c,"SETTINGS"); text(c,hasMotion ? "Make motion feel right." : "Touch controls work without sensors.",24,137,16,muted);
@@ -421,7 +452,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             toggleRow(c,"sound","Sound Effects",444,profile.sound,true);
             toggleRow(c,"haptics","Vibration",532,profile.haptics,true);
             toggleRow(c,"blood","Blood Effects",620,profile.blood,true);
-            button(c,"back",24,734,456,808,"DONE",mint,17);
+            button(c,"privacy",24,734,306,808,"PRIVACY POLICY",white,16);
+            button(c,"back",320,734,456,808,"DONE",mint,17);
         }
         private void drawHelp(Canvas c) {
             header(c,"HOW TO PLAY"); text(c,"Longer falls. One bouncy target.",24,157,22,mint);
@@ -433,6 +465,51 @@ public class MainActivity extends Activity implements SensorEventListener {
             text(c,"Hard floor outside the target is dangerous.",24,658,15,muted);
             text(c,"Motion ON? Tilt to steer. Adjust feel in Settings.",24,686,14,muted);
             button(c,"back",24,734,456,808,"GOT IT",mint,17);
+        }
+        private void drawPrivacy(Canvas c) {
+            header(c,"PRIVACY POLICY");
+            float fontScale = clamp(getResources().getConfiguration().fontScale,1,1.6f);
+            float size = 20*fontScale, lineHeight = size*1.42f;
+            // The policy supports Android text-size preferences independently of
+            // the game's fixed arena scale. Only this document scrolls.
+            float y = 159-privacyScroll;
+            c.save(); c.clipRect(24,128,446,704);
+            y = policyParagraph(c,PrivacyPolicy.TITLE,24,y,size+2,lineHeight,true,white)+8;
+            y = policyParagraph(c,PrivacyPolicy.PUBLISHER,24,y,size*.85f,lineHeight*.85f,false,muted);
+            y = policyParagraph(c,PrivacyPolicy.EFFECTIVE_DATE,24,y,size*.85f,lineHeight*.85f,false,muted)+24;
+            for (String[] section : PrivacyPolicy.SECTIONS) {
+                y = policyParagraph(c,section[0],24,y,size,lineHeight,true,mint)+2;
+                y = policyParagraph(c,section[1],24,y,size,lineHeight,false,white)+25;
+            }
+            c.restore();
+            privacyScrollLimit = Math.max(0,y+privacyScroll-714);
+            privacyScroll = clamp(privacyScroll,0,privacyScrollLimit);
+            float viewport = 576, content = viewport+privacyScrollLimit, thumb = viewport*viewport/content;
+            rect(c,452,128,456,704,2,panel);
+            rect(c,452,128+(viewport-thumb)*(privacyScrollLimit == 0 ? 0 : privacyScroll/privacyScrollLimit),
+                    456,128+(viewport-thumb)*(privacyScrollLimit == 0 ? 0 : privacyScroll/privacyScrollLimit)+thumb,2,mint);
+            center(c,privacyScroll >= privacyScrollLimit-1 ? "END OF POLICY" : "SWIPE UP TO READ MORE",240,726,11,muted);
+            button(c,"back",24,744,456,816,"BACK TO SETTINGS",mint,17);
+        }
+        private float policyParagraph(Canvas c,String value,float x,float y,float size,float lineHeight,boolean bold,int color) {
+            paint.setStyle(Paint.Style.FILL); paint.setColor(color); paint.setTextSize(size);
+            paint.setTypeface(Typeface.create("sans-serif",bold ? Typeface.BOLD : Typeface.NORMAL));
+            StringBuilder row = new StringBuilder();
+            for (String word : value.split(" ")) {
+                String candidate = row.length() == 0 ? word : row+" "+word;
+                if (row.length() > 0 && paint.measureText(candidate) > 414) {
+                    c.drawText(row.toString(),x,y,paint); y += lineHeight; row.setLength(0);
+                }
+                if (row.length() > 0) row.append(' ');
+                row.append(word);
+            }
+            if (row.length() > 0) { c.drawText(row.toString(),x,y,paint); y += lineHeight; }
+            return y;
+        }
+        private void scrollPrivacy(float amount) {
+            privacyScroll = clamp(privacyScroll+amount,0,privacyScrollLimit);
+            invalidate();
+            menuAccessibility.contentChanged();
         }
         private void helpStep(Canvas c,String number,String title,String detail,float y) {
             circle(c,48,y+20,22,panel); center(c,number,48,y+25,14,mint);
@@ -816,7 +893,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             else physics.gx = motion.acceleration();
         }
         void clearTouch() {
-            pointer = buttonPointer = -1; pressed = null; touch.cancel();
+            pointer = buttonPointer = privacyPointer = -1; pressed = null; touch.cancel();
             physics.steerTouch(0); physics.touchControlled(!motionEnabled); physics.gx = 0;
         }
         private void enterHome() { owner.stopEffects(); screen = HOME; homeElapsed = 0; clearTouch(); }
@@ -833,6 +910,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         void back() {
             if (screen == PLAY) { owner.stopEffects(); screen = PAUSE; }
             else if (screen == PAUSE) screen = PLAY;
+            else if (screen == PRIVACY) screen = SETTINGS;
             else if (screen == SETTINGS) screen = settingsReturn;
             else enterHome();
             clearTouch(); accumulator = 0; invalidate();
@@ -861,6 +939,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
             else if (id.equals("help")) { screen = HELP; clearTouch(); }
             else if (id.equals("settings")) { owner.stopEffects(); settingsReturn = screen == HOME ? HOME : PAUSE; screen = SETTINGS; clearTouch(); }
+            else if (id.equals("privacy")) { screen = PRIVACY; privacyScroll = 0; clearTouch(); }
             else if (id.equals("back")) back();
             else if (id.equals("pause")) { owner.stopEffects(); screen = PAUSE; clearTouch(); }
             else if (id.equals("resume")) { screen = PLAY; clearTouch(); }
@@ -873,20 +952,184 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (id.equals("sound")) { profile.sound = !profile.sound; owner.setSoundEnabled(profile.sound); saveProfile(); }
             else if (id.equals("haptics")) { profile.haptics = !profile.haptics; saveProfile(); }
             else if (id.equals("blood")) { profile.blood = !profile.blood; saveProfile(); }
-            cue(0); accumulator = 0; invalidate();
+            cue(0); accumulator = 0; invalidate(); menuAccessibility.contentChanged();
         }
         @Override public boolean performClick() { super.performClick(); return true; }
+        @Override public AccessibilityNodeProvider getAccessibilityNodeProvider() { return menuAccessibility; }
+        @Override public boolean dispatchHoverEvent(MotionEvent event) {
+            if (menuAccessibility.hover(event)) return true;
+            return super.dispatchHoverEvent(event);
+        }
+
+        /** Expose the Canvas menu controls as real, individually actionable nodes. */
+        private final class MenuAccessibility extends AccessibilityNodeProvider {
+            private static final int CONTENT = 10000, NONE = Integer.MIN_VALUE;
+            private final AccessibilityManager manager = (AccessibilityManager)getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+            private int previousScreen = -1, focused = NONE, hovered = NONE;
+
+            private String screenName() {
+                switch (screen) {
+                    case HOME: return "Falley home";
+                    case SETTINGS: return "Settings";
+                    case HELP: return "How to play";
+                    case PAUSE: return "Paused";
+                    case RESULT: return "Result";
+                    case CHAPTERS: return "Chapters";
+                    case ARCADE_SETUP: return "Arcade setup";
+                    case PRIVACY: return PrivacyPolicy.TITLE;
+                    case SPLASH: return "Falley by Perf Games";
+                    default: return "Falley gameplay";
+                }
+            }
+            private String content() {
+                if (screen == PRIVACY) return PrivacyPolicy.fullText();
+                if (screen == HELP) return "Tap the arena or Jump button to jump. Swipe left or right to steer against air currents. "
+                        + "Ropes bend, then bounce you. In Campaign, land on the bouncy target. In Arcade, survive as long as you can. "
+                        + "Hazards warn before they activate. Buzzsaws sweep sideways. Move clear. Hard floor outside the target is dangerous. "
+                        + "Enable motion steering in Settings to tilt instead of swipe. Loose, Balanced and Tight adjust motion response.";
+                if (screen == RESULT) return (physics.won ? "Landed. " : "Run ended. Hit by "+physics.deathReason+". ")
+                        + "Score "+physics.score+". "+String.format(Locale.US,"%.1f seconds.",physics.elapsed);
+                return null;
+            }
+            private Hit hit(int virtualId) {
+                return virtualId > 0 && virtualId <= buttons.size() ? buttons.get(virtualId-1) : null;
+            }
+            private boolean valid(int virtualId) { return hit(virtualId) != null || virtualId == CONTENT && content() != null; }
+            void updateScreen() {
+                if (previousScreen == screen) return;
+                previousScreen = screen; focused = hovered = NONE; contentChanged();
+            }
+            void contentChanged() {
+                if (manager == null || !manager.isEnabled() || getParent() == null) return;
+                AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+                event.setContentChangeTypes(AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE);
+                event.setPackageName(getContext().getPackageName()); event.setClassName(View.class.getName());
+                event.setSource(Arena.this); getParent().requestSendAccessibilityEvent(Arena.this,event);
+            }
+            private void event(int virtualId,int type) {
+                if (manager == null || !manager.isEnabled() || getParent() == null || !valid(virtualId)) return;
+                AccessibilityEvent event = AccessibilityEvent.obtain(type);
+                event.setPackageName(getContext().getPackageName()); event.setClassName("android.widget.Button");
+                event.setSource(Arena.this,virtualId);
+                event.getText().add(virtualId == CONTENT ? content() : hit(virtualId).label);
+                getParent().requestSendAccessibilityEvent(Arena.this,event);
+            }
+            private void bounds(AccessibilityNodeInfo node,float l,float t,float r,float b) {
+                Rect parent = new Rect((int)(ox+l*scale),(int)(oy+t*scale),(int)Math.ceil(ox+r*scale),(int)Math.ceil(oy+b*scale));
+                node.setBoundsInParent(parent);
+                int[] position = new int[2]; getLocationOnScreen(position); parent.offset(position[0],position[1]);
+                node.setBoundsInScreen(parent);
+            }
+            @Override public AccessibilityNodeInfo createAccessibilityNodeInfo(int virtualId) {
+                if (virtualId == HOST_VIEW_ID) {
+                    AccessibilityNodeInfo node = AccessibilityNodeInfo.obtain(Arena.this);
+                    Arena.this.onInitializeAccessibilityNodeInfo(node);
+                    node.setClassName("android.view.ViewGroup"); node.setContentDescription(screenName());
+                    for (int i = 0; i < buttons.size(); i++) {
+                        node.addChild(Arena.this,i+1);
+                        if (i == 0 && content() != null) node.addChild(Arena.this,CONTENT);
+                    }
+                    if (buttons.isEmpty() && content() != null) node.addChild(Arena.this,CONTENT);
+                    if (screen == PRIVACY) {
+                        node.setScrollable(true);
+                        if (privacyScroll < privacyScrollLimit) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+                        if (privacyScroll > 0) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
+                    }
+                    return node;
+                }
+                if (!valid(virtualId)) return null;
+                AccessibilityNodeInfo node = AccessibilityNodeInfo.obtain();
+                node.setSource(Arena.this,virtualId); node.setParent(Arena.this);
+                node.setPackageName(getContext().getPackageName()); node.setVisibleToUser(isShown());
+                node.setFocusable(true); node.setAccessibilityFocused(focused == virtualId);
+                node.addAction(focused == virtualId ? AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS : AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS);
+                if (virtualId == CONTENT) {
+                    node.setClassName("android.widget.TextView"); node.setText(content()); node.setEnabled(true);
+                    bounds(node,24,128,446,704);
+                    if (screen == PRIVACY) {
+                        node.setScrollable(true);
+                        if (privacyScroll < privacyScrollLimit) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+                        if (privacyScroll > 0) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
+                    }
+                } else {
+                    Hit button = hit(virtualId);
+                    node.setClassName(button.checkable ? "android.widget.Switch" : "android.widget.Button");
+                    node.setText(button.label); node.setEnabled(button.enabled); node.setClickable(button.enabled);
+                    node.setCheckable(button.checkable); node.setChecked(button.checked);
+                    if (button.enabled) node.addAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    bounds(node,button.left,button.top,button.right,button.bottom);
+                }
+                return node;
+            }
+            @Override public AccessibilityNodeInfo findFocus(int focus) {
+                return focus == AccessibilityNodeInfo.FOCUS_ACCESSIBILITY && valid(focused) ? createAccessibilityNodeInfo(focused) : null;
+            }
+            @Override public java.util.List<AccessibilityNodeInfo> findAccessibilityNodeInfosByText(String query,int virtualId) {
+                ArrayList<AccessibilityNodeInfo> matches = new ArrayList<>();
+                if (query == null) return matches;
+                String needle = query.toLowerCase(Locale.ROOT);
+                if (content() != null && content().toLowerCase(Locale.ROOT).contains(needle)) matches.add(createAccessibilityNodeInfo(CONTENT));
+                for (int i = 0; i < buttons.size(); i++)
+                    if (buttons.get(i).label.toLowerCase(Locale.ROOT).contains(needle)) matches.add(createAccessibilityNodeInfo(i+1));
+                return matches;
+            }
+            @Override public boolean performAction(int virtualId,int action,Bundle arguments) {
+                if (screen == PRIVACY && (action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD || action == AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) {
+                    scrollPrivacy(action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD ? 470 : -470); return true;
+                }
+                if (!valid(virtualId)) return false;
+                if (action == AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS) {
+                    if (focused == virtualId) return false;
+                    if (valid(focused)) event(focused,AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED);
+                    focused = virtualId; event(virtualId,AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED); return true;
+                }
+                if (action == AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS && focused == virtualId) {
+                    focused = NONE; event(virtualId,AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED); return true;
+                }
+                Hit button = hit(virtualId);
+                if (action == AccessibilityNodeInfo.ACTION_CLICK && button != null && button.enabled) {
+                    event(virtualId,AccessibilityEvent.TYPE_VIEW_CLICKED); activate(button.id); return true;
+                }
+                return false;
+            }
+            boolean hover(MotionEvent event) {
+                if (manager == null || !manager.isEnabled() || !manager.isTouchExplorationEnabled()) return false;
+                int action = event.getActionMasked();
+                if (action != MotionEvent.ACTION_HOVER_ENTER && action != MotionEvent.ACTION_HOVER_MOVE && action != MotionEvent.ACTION_HOVER_EXIT) return false;
+                int next = NONE;
+                if (action != MotionEvent.ACTION_HOVER_EXIT) {
+                    float x = (event.getX()-ox)/scale, y = (event.getY()-oy)/scale;
+                    for (int i = buttons.size()-1; i >= 0; i--) if (buttons.get(i).contains(x,y)) { next = i+1; break; }
+                    if (next == NONE && content() != null && x >= 24 && x <= 446 && y >= 128 && y <= 704) next = CONTENT;
+                }
+                if (next != hovered) {
+                    if (valid(next)) event(next,AccessibilityEvent.TYPE_VIEW_HOVER_ENTER);
+                    if (valid(hovered)) event(hovered,AccessibilityEvent.TYPE_VIEW_HOVER_EXIT);
+                    hovered = next;
+                }
+                return next != NONE || action == MotionEvent.ACTION_HOVER_EXIT;
+            }
+        }
         @Override public boolean onTouchEvent(MotionEvent event) {
             int action = event.getActionMasked(), index = event.getActionIndex();
             float x = (event.getX(index)-ox)/scale, y = (event.getY(index)-oy)/scale;
             if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
                 for (int i = buttons.size()-1; i >= 0; i--) if (buttons.get(i).contains(x,y)) {
-                    if (buttonPointer < 0) { pressed = buttons.get(i); buttonPointer = event.getPointerId(index); }
+                    if (buttonPointer < 0 && buttons.get(i).enabled) { pressed = buttons.get(i); buttonPointer = event.getPointerId(index); }
                     return true;
+                }
+                if (screen == PRIVACY && privacyPointer < 0 && x >= 24 && x <= 456 && y >= 128 && y <= 704) {
+                    privacyPointer = event.getPointerId(index); privacyLastY = y; return true;
                 }
                 if (screen == PLAY && pointer < 0 && !physics.lost && !physics.won && x >= 20 && x <= 460 && y >= TOP && y <= BOTTOM) {
                     pointer = event.getPointerId(index); touch.begin(x,y); applySteering();
                 }
+            } else if (action == MotionEvent.ACTION_MOVE && screen == PRIVACY && privacyPointer >= 0) {
+                int current = event.findPointerIndex(privacyPointer);
+                if (current >= 0) {
+                    float nextY = (event.getY(current)-oy)/scale;
+                    scrollPrivacy(privacyLastY-nextY); privacyLastY = nextY;
+                } else privacyPointer = -1;
             } else if (action == MotionEvent.ACTION_MOVE && pointer >= 0) {
                 int current = event.findPointerIndex(pointer);
                 if (current >= 0) {
@@ -896,6 +1139,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             } else if (action == MotionEvent.ACTION_CANCEL) clearTouch();
             else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP) {
                 int id = event.getPointerId(index);
+                if (id == privacyPointer) privacyPointer = -1;
                 if (id == buttonPointer) {
                     Hit hit = pressed; pressed = null; buttonPointer = -1;
                     if (hit != null && hit.contains(x,y)) { activate(hit.id); performClick(); }
