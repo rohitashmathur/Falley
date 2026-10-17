@@ -6,7 +6,15 @@ Source metadata: **3.3.0 / code 10**, package `com.perfgames.falley`; Android AP
 
 Portable acceptance passes all 13 test classes / **41,965,180 assertions**, including both 100,000-step stability runs, all twelve actual courses, 65-second mixed Arcade runs, recovery/caps/unlocks and 211-key localization checks. The first two forgiving stages can now finish idle; later stages still require input. Independent cross-review found no actionable burst, progression or release-output defect.
 
-Local debug APK: `C:\Users\mathu\Documents\Codex\2026-10-17\Falley-3.3.0\Falley-3.3.0-debug.apk`, **3.3.0-controls-test / code 10**, package `com.perfgames.falley.motiontest`, **341,456 bytes**, SHA-256 `62AE017D69D6752E3CE8EC0F8D48F97311CCB7F01E475E6D1DE821B7F8DF6AE4`; APK v2/v3 verification passes. Native debug checks and signed release generation are in progress. Source will be committed/pushed only after acceptance; binaries and keys remain local. [Current notes](docs/CONTROLS_UPDATE_3_3.md) record exact behavior, reproduction and limits.
+Local debug APK: `C:\Users\mathu\Documents\Codex\2026-10-17\Falley-3.3.0\Falley-3.3.0-debug.apk`, **3.3.0-controls-test / code 10**, package `com.perfgames.falley.motiontest`, **341,456 bytes**, SHA-256 `62AE017D69D6752E3CE8EC0F8D48F97311CCB7F01E475E6D1DE821B7F8DF6AE4`; APK v2/v3 verification passes.
+
+Signed release build: **PASS**, `lintRelease` (0 errors / 9 warnings), `bundleRelease`, bundletool validation, strict signature and all 24 payload certificates, APK v2/v3 and 16 KiB alignment. Source revision embedded in the AAB: **`f4b3a5abc465fffd50f1e904e593914bf11efb7d`**. The existing upload identity is preserved. Local release directory: `C:\Users\mathu\Documents\Codex\2026-10-17\Falley-3.3.0\release\`.
+
+- AAB `Falley-3.3.0-beta.aab`: **319,650 bytes**, SHA-256 `7dc34e86db169c7698045381c18bb2f0c02f8184bd2e81274949c5d9558accee`.
+- Bundle-derived release APK `Falley-3.3.0-beta-local.apk`: **337,414 bytes**, SHA-256 `94f2ca1d134eee93bbe6848364d78df2e54d86050185db38e50264065276ce89`.
+- Current native Android 15/API 35: **19,070 checks / 80 distinct PNGs PASS** across debug and signed release at 480×800 and 720×1600. Debug checks use Android font scale 1.3 and all three languages; release smoke confirms production identity/non-debuggable status. Locks, actual unlock/persistence, burst recovery/total exhaustion, gentle drift, labeled Language and visual Touch/Motion Help pass. Source and QA visual review confirms the reported Help overlap is removed.
+
+Application source is committed; the evidence/documentation follow-up leaves that source unchanged. Binaries and keys remain local and excluded from Git. No Play upload/rollout has occurred. Jarsigner archive-order/ZIP warnings and physical-phone/owner submission gaps remain documented. [Current notes](docs/CONTROLS_UPDATE_3_3.md) and [curated evidence](screenshots/v3.3/README.md) record reproduction, receipts and limits.
 
 ## Historical local debug update — 17 October 2026
 

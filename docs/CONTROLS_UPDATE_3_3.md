@@ -33,7 +33,28 @@ All 13 portable test classes pass, **41,965,180 assertions** across the broad ca
 
 Receipts: `build/control-correction/physics-suite.log`, `followup.log`, `targeted.log` and `idle-wind-probe.log`. The first run retains an obsolete assertion that every stage must fail idle; after reducing wind intentionally, the first two forgiving introductions can finish idle. The assertion was updated to require input in later stages, while retaining strict nonzero/alternating/max-35 drift checks. The large campaign stress run was not repeated after that test-only correction. Independent read-only source review found no actionable defect in burst recovery, total allowance, unlock migration or release output/version safeguards.
 
-Native debug acceptance, release build/lint/signature receipts, source revision and final artifact hashes will be recorded after completion.
+Native Android 15/API 35 acceptance passes on the final binaries:
+
+| Build | Layouts | Font scale | Checks | Distinct PNGs |
+| --- | --- | --- | ---: | ---: |
+| Compatible debug | 480×800 and 720×1600 | 1.3 | 10,340 | 52 |
+| Upload-signed release smoke | 480×800 and 720×1600 | 1.0 | 8,730 | 28 |
+| Total | Four focused runs | | **19,070** | **80** |
+
+These runs verify lock enforcement through touch/accessibility/direct entry, an actual win opening the next stage and surviving recreation, repeatable no-rope burst recovery, total-budget exhaustion, Arcade reuse, nonzero gentle drift, visible Language and separate Help diagrams. Debug checks cover all three languages, actual drawn-text spacing and larger Android text. Release checks confirm `com.perfgames.falley`, code 10 and a non-debuggable installed app. Root and QA visual review found no overlap in the new Help pages, labeled Settings or footer. These are controlled emulator fixtures, not physical-phone play sessions. Preferences/font/display settings were restored and the instrumentation packages removed.
+
+Raw native evidence: `build/device/revision-330/debug-api35/{small,tall}` and `release-api35/{small,tall}`. Curated screenshots, four receipts and build/physics/lint proof are in [`screenshots/v3.3`](../screenshots/v3.3/README.md). Earlier broad native release suites are not included in these counts.
+
+Release generation passes `lintRelease` (**0 errors, 9 warnings**) and `bundleRelease`; bundletool 1.18.3 validation, strict JAR verification, all 24 payload certificate checks, APK v2/v3 signatures and 16 KiB alignment also pass. Existing ZIP/archive-order warnings from jarsigner are retained in the log; this is not a zero-warning claim. The preserved public upload-certificate SHA-256 is `16cc163611d6a0b2f13474470ed8328e7e5093ba8c5af34ef0701ebf423f9caa`.
+
+The bundle embeds application source revision **`f4b3a5abc465fffd50f1e904e593914bf11efb7d`**. The later evidence/documentation commit leaves application source unchanged. Local release files are under `C:\Users\mathu\Documents\Codex\2026-10-17\Falley-3.3.0\release\`:
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `Falley-3.3.0-beta.aab` | 319,650 | `7dc34e86db169c7698045381c18bb2f0c02f8184bd2e81274949c5d9558accee` |
+| `Falley-3.3.0-beta-local.apk` | 337,414 | `94f2ca1d134eee93bbe6848364d78df2e54d86050185db38e50264065276ce89` |
+
+The universal `.apks` archive, inspected release manifest and `SHA256SUMS.txt` accompany them. All APK/AAB/key files remain outside Git; no Play upload or rollout was performed.
 
 ## Limits and next test
 

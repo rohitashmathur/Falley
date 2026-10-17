@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: native Falley revision_smoke; checks=4365; captures=14; viewport=small; focused campaign lock/entry/unlock persistence, repeatable burst recovery/finite total, reduced drift, visible Language and visual Touch/Motion Help; controlled fixtures; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1

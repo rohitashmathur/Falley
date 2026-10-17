@@ -1,0 +1,36 @@
+Arcade CHILL PASS: 25.00s, wave 2, score 3010
+Arcade STANDARD PASS: 25.00s, wave 2, score 2920
+Arcade BRUTAL PASS: 25.00s, wave 2, score 2920
+PASS: Arcade configuration/reset, swept geometry, three beam deaths/near misses, warning/refuge/lock fairness, gentle drift/later-stage challenge, three-difficulty natural survival and 100000 survival stability steps (21000414 checks)
+PASS: buzzsaw warning/live sweep/near misses, narrow-corridor reachable refuges and real dodges, locked paths/exclusive attacks, reset/campaign approach and one-shot hazard cues (879 checks)
+PASS: hazard cue edges, duplicate/stale/invalid suppression, pause/resume/restart and real fixed-step motor/impact priority (20 checks)
+PASS: touch startup/no drift, tap tremor, bilateral swipe direction, bounded velocity, release/cancel stop, reversal, return-to-start, vertical swipe and invalid coordinates (16 checks)
+PASS: run-grip settling/recentering, opposite tilts/presets/sample rates, gyro/fallback, invalid/stale/gapped delivery, active-gyro reset, tilted-grip noise/bias and upright gyro-z response (65 checks)
+PASS: real motion-to-gameplay neutral/noise, mirrored travel, half-second stop/reversal, momentum braking, touch-current isolation, intact off-center rope catches and upright Balanced/Tight gyro-z play (31 checks)
+Progression chapter 1 PASS: 21/21 cuts, scale 0.880, 10.12s
+Progression chapter 2 PASS: 25/25 cuts, scale 0.880, 11.15s
+Progression chapter 3 PASS: 30/30 cuts, scale 0.880, 12.20s
+Progression chapter 4 PASS: 35/35 cuts, scale 0.880, 12.62s
+Progression chapter 5 PASS: 39/39 cuts, scale 0.880, 14.29s
+Progression chapter 6 PASS: 44/44 cuts, scale 0.880, 15.33s
+Progression chapter 7 PASS: 48/48 cuts, scale 0.880, 16.12s
+Progression chapter 8 PASS: 51/51 cuts, scale 0.880, 16.92s
+Progression chapter 9 PASS: 49/49 cuts, scale 0.880, 15.76s
+Progression chapter 10 PASS: 54/54 cuts, scale 0.880, 17.43s
+Progression chapter 11 PASS: 57/57 cuts, scale 0.880, 18.22s
+Progression chapter 12 PASS: 59/59 cuts, scale 0.880, 18.74s
+Live Arcade CHILL: 65.00s, wave4, scale0.880, late live/warning steps2878/3703, reason=
+Live Arcade STANDARD: 65.00s, wave4, scale0.880, late live/warning steps2145/4127, reason=
+Live Arcade BRUTAL: 65.00s, wave4, scale0.880, late live/warning steps2268/4181, reason=
+PASS: finite totals/strict30percent, gradual12percent cap and Wave2 ramp, mirrored touch/motion, unchanged wind/neutral braking, mode/reset isolation, twelve real late-cut chapter clears and live65second Arcade (17042 checks)
+PASS: local preferences/language/Loose default, expanded campaign records, Arcade sanitization/independent survival records and campaign isolation (39 checks)
+PASS: two-jump bursts, natural descent recovery/more airborne uses, pause/handoff isolation, growing campaign allowances, unlimited Arcade total, support versus cut behavior and lethal ceiling (729 checks)
+Expanded stage 7 (Crosswind) PASS: 16.12s, 48 cuts, warning/live masks 8/8
+Expanded stage 8 (Storm window) PASS: 16.92s, 51 cuts, warning/live masks 10/10
+Expanded stage 9 (Slow blades) PASS: 15.76s, 49 cuts, warning/live masks 16/16
+Expanded stage 10 (Factory line) PASS: 17.43s, 54 cuts, warning/live masks 20/20
+Expanded stage 11 (Ember crossing) PASS: 18.22s, 57 cuts, warning/live masks 9/9
+Expanded stage 12 (Final descent) PASS: 18.74s, 59 cuts, warning/live masks 30/28
+PASS: original stage compatibility, six chapter pagination, specialist-to-mixed progression, generous targets and six complete natural new courses (114 checks)
+PASS: EN/HI/ID selection/fallback, safe formatting, whole-catalog argument integrity and all12stage/6chapter names (2176 checks)
+PASS: contiguous stage/chapter unlocks, loss/Arcade isolation, saved-selection clamp and sparse legacy record preservation (252 checks)

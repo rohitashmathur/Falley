@@ -1,0 +1,17 @@
+Stage 1 PASS: 10.12s, 21 cuts, score 831
+Stage 2 PASS: 11.15s, 25 cuts, score 961
+Stage 3 PASS: 12.20s, 30 cuts, score 1121
+Stage 4 PASS: 12.62s, 35 cuts, score 1276
+Stage 5 PASS: 14.29s, 39 cuts, score 1412
+Stage 6 PASS: 15.33s, 44 cuts, score 1573
+Stage 7 PASS: 16.12s, 48 cuts, score 1701
+Stage 8 PASS: 16.92s, 51 cuts, score 1799
+Stage 9 PASS: 15.76s, 49 cuts, score 1727
+Stage 10 PASS: 17.43s, 54 cuts, score 1894
+Stage 11 PASS: 18.22s, 57 cuts, score 1992
+Stage 12 PASS: 18.74s, 59 cuts, score 2057
+PASS: twelve campaign courses, intentional drift/nudge/countersteer, ropes/weight, narrowing/ceiling hazards, warning fire/contact, forgiving and fatal floors, terminal wins/reset and 100000 seeded stability steps (20943403 checks)
+Exception in thread "main" java.lang.AssertionError: an idle touch-only character cannot automatically clear campaign stage 0
+	at com.perfgames.ropelab.ArcadePhysicsTest.check(ArcadePhysicsTest.java:6)
+	at com.perfgames.ropelab.ArcadePhysicsTest.idleRequiresCorrection(ArcadePhysicsTest.java:93)
+	at com.perfgames.ropelab.ArcadePhysicsTest.main(ArcadePhysicsTest.java:143)
