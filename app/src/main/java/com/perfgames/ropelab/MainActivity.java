@@ -16,6 +16,9 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.LocaleSpan;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -117,7 +120,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     void toggleMotion() {
         if (!arena.hasMotion) return;
         arena.profile.motion = !arena.profile.motion; arena.motionEnabled = arena.profile.motion;
-        arena.motion.resetSamples(); arena.physics.gx = 0; arena.saveProfile(); registerMotion();
+        arena.motion.resetSamples(); arena.clearTouch(); arena.physics.vx = 0; arena.saveProfile(); registerMotion();
     }
     void effect(int kind) {
         if (audio != null && arena.profile.sound) audio.generic(kind);
@@ -148,7 +151,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     static final class Arena extends View {
-        static final int HOME = 0, PLAY = 1, SETTINGS = 2, HELP = 3, PAUSE = 4, RESULT = 5, SPLASH = 6, CHAPTERS = 7, ARCADE_SETUP = 8, PRIVACY = 9;
+        static final int HOME = 0, PLAY = 1, SETTINGS = 2, HELP = 3, PAUSE = 4, RESULT = 5, SPLASH = 6, CHAPTERS = 7, ARCADE_SETUP = 8, PRIVACY = 9, LANGUAGE = 10;
         private static final float TOP = 160, BOTTOM = 730;
         private static final String[] PRESETS = {"LOOSE", "BALANCED", "TIGHT"};
         private static final String[] DIFFICULTIES = {"CHILL", "STANDARD", "BRUTAL"};
@@ -165,6 +168,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         final int white = 0xfff0f7f7, muted = 0xffa2aba9, background = 0xff17191b, panel = 0xff232629, border = 0xff41494a;
         boolean active, motionEnabled, hasMotion, hasGyro, resultRecorded;
         int screen = SPLASH, settingsReturn = HOME;
+        int chapterPage;
+        int helpPage;
+        boolean helpMotion;
+        int chapterSwipePointer = -1;
+        float chapterSwipeX;
         long last, trailTime, lastLandingCue;
         float accumulator, scale = 1, ox, oy, visualTime, splashElapsed, homeElapsed;
         float burstTime = 10, burstX, burstY, setupMessage;
@@ -191,7 +199,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             super(context); owner = context; hasMotion = hasAccelerometer; hasGyro = hasGyroscope;
             storage = context.getSharedPreferences("falley-v1", Context.MODE_PRIVATE);
             profile.motion = storage.getBoolean("motion",true); profile.sound = storage.getBoolean("sound",true);
-            profile.haptics = storage.getBoolean("haptics",true); profile.preset = storage.getInt("preset",MotionSteering.BALANCED);
+            profile.haptics = storage.getBoolean("haptics",true); profile.preset = storage.getInt("preset",MotionSteering.LOOSE);
+            profile.language = storage.getInt("language",FalleyStrings.ENGLISH);
             profile.bestScore = storage.getInt("bestScore",0); profile.wins = storage.getInt("wins",0);
             profile.fastestWin = storage.getFloat("fastestWin",0);
             profile.blood = storage.getBoolean("blood",true);
@@ -209,6 +218,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 profile.stageTimes[i] = storage.getFloat("stage_time_"+i,i == 0 ? profile.fastestWin : 0);
             }
             profile.sanitize(); physics.reset(profile.selectedStage);
+            chapterPage = profile.selectedStage/6;
             motion = new MotionSteering(hasGyroscope); motion.setPreset(profile.preset);
             motionEnabled = hasMotion && profile.motion;
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
@@ -216,7 +226,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         void saveProfile() {
             SharedPreferences.Editor editor = storage.edit().putBoolean("motion",profile.motion).putBoolean("sound",profile.sound)
-                    .putBoolean("haptics",profile.haptics).putInt("preset",profile.preset)
+                    .putBoolean("haptics",profile.haptics).putInt("preset",profile.preset).putInt("language",profile.language)
                     .putInt("bestScore",profile.bestScore).putInt("wins",profile.wins)
                     .putFloat("fastestWin",profile.fastestWin).putInt("selectedStage",profile.selectedStage);
             editor.putBoolean("blood",profile.blood).putInt("arcadeDifficulty",profile.arcadeDifficulty).putInt("arcadeHazards",profile.arcadeHazards);
@@ -233,12 +243,33 @@ public class MainActivity extends Activity implements SensorEventListener {
             scale = Math.min(width/480f,height/820f);
             ox = safeLeft+(width-480f*scale)/2; oy = safeTop+(height-820f*scale)/2;
         }
+        private String t(String english,Object... args) { return FalleyStrings.text(profile.language,english,args); }
+        private Locale languageLocale() { return profile.language == FalleyStrings.HINDI ? new Locale("hi") : profile.language == FalleyStrings.INDONESIAN ? new Locale("id") : Locale.ENGLISH; }
+        private CharSequence spoken(String value) {
+            SpannableString result = new SpannableString(value);
+            result.setSpan(new LocaleSpan(languageLocale()),0,result.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            return result;
+        }
         private void text(Canvas c,String label,float x,float y,float size,int color) {
+            label = t(label);
+            paint.setTextLocale(languageLocale());
             paint.setStyle(Paint.Style.FILL); paint.setColor(color); paint.setTextSize(size);
-            paint.setTypeface(Typeface.create("sans-serif",Typeface.BOLD)); c.drawText(label,x,y,paint);
+            paint.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));
+            float available = paint.getTextAlign() == Paint.Align.CENTER ? 2*Math.min(x-24,456-x) :
+                    paint.getTextAlign() == Paint.Align.RIGHT ? x-24 : 456-x;
+            if (available > 0 && paint.measureText(label) > available) paint.setTextSize(size*Math.max(.5f,available/paint.measureText(label)));
+            c.drawText(label,x,y,paint);
+        }
+        private void fitText(Canvas c,String label,float x,float y,float size,int color,float width) {
+            label = t(label); paint.setTypeface(Typeface.create("sans-serif",Typeface.BOLD)); paint.setTextSize(size);
+            float fitted = paint.measureText(label) > width ? size*width/paint.measureText(label) : size;
+            text(c,label,x,y,fitted,color);
         }
         private void center(Canvas c,String label,float x,float y,float size,int color) {
-            paint.setTextAlign(Paint.Align.CENTER); text(c,label,x,y,size,color); paint.setTextAlign(Paint.Align.LEFT);
+            paint.setTextAlign(Paint.Align.CENTER);
+            if (screen == PAUSE || screen == RESULT) fitText(c,label,x,y,size,color,350);
+            else text(c,label,x,y,size,color);
+            paint.setTextAlign(Paint.Align.LEFT);
         }
         private void line(Canvas c,float x,float y,float x2,float y2,int color,float width) {
             paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(width); paint.setStrokeCap(Paint.Cap.ROUND);
@@ -253,11 +284,17 @@ public class MainActivity extends Activity implements SensorEventListener {
         private void button(Canvas c,String id,float l,float t,float r,float b,String label,int color,float size) {
             rect(c,l,t,r,b,10,panel); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(1.5f); paint.setColor(color);
             c.drawRoundRect(l,t,r,b,10,10,paint); paint.setStyle(Paint.Style.FILL);
-            center(c,label,(l+r)/2,(t+b)/2+size*.35f,size,color);
-            String accessibleLabel = label.isEmpty() ? id.equals("back") ? "Back" : id.equals("restart") ? "Restart" : "Pause" : label;
-            boolean enabled = !id.equals("jump") || !physics.lost && !physics.won;
-            boolean choice = id.startsWith("preset_") || id.startsWith("difficulty_");
-            boolean checked = choice && (id.startsWith("preset_") ? id.equals("preset_"+profile.preset) : id.equals("difficulty_"+profile.arcadeDifficulty));
+            if (!id.equals("jump")) center(c,label,(l+r)/2,(t+b)/2+size*.35f,size,color);
+            String accessibleLabel = t(label.isEmpty() ? id.equals("back") ? "Back" : id.equals("restart") ? "Restart" : id.equals("language") ? "Language" : "Pause" : label);
+            boolean enabled = !id.equals("jump") || physics.canJump();
+            boolean choice = id.startsWith("preset_") || id.startsWith("difficulty_") || id.startsWith("language_");
+            boolean checked = choice && (id.startsWith("preset_") ? id.equals("preset_"+profile.preset) : id.startsWith("language_") ? id.equals("language_"+profile.language) : id.equals("difficulty_"+profile.arcadeDifficulty));
+            if (id.equals("prev_chapters")) enabled = chapterPage > 0;
+            if (id.equals("next_chapters")) enabled = (chapterPage+1)*6 < StageCatalog.COUNT;
+            if (id.equals("help_prev")) enabled = helpPage > 0;
+            if (id.equals("help_next")) enabled = helpPage < 2;
+            if (id.equals("help_touch") || id.equals("help_motion")) { choice = true; checked = id.equals("help_motion") == helpMotion; }
+            if (id.equals("next_stage")) enabled = profile.isStageUnlocked(physics.stage.index+1);
             buttons.add(new Hit(id,l,t,r,b,accessibleLabel,enabled,choice,checked));
         }
         private void gear(Canvas c,float x,float y,int color) {
@@ -298,6 +335,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (screen == CHAPTERS) drawChapters(c);
             else if (screen == ARCADE_SETUP) drawArcadeSetup(c);
             else if (screen == PRIVACY) drawPrivacy(c);
+            else if (screen == LANGUAGE) drawLanguage(c);
             else {
                 drawPlay(c);
                 if (screen == PAUSE || screen == RESULT) { buttons.clear(); drawOverlay(c); }
@@ -377,15 +415,15 @@ public class MainActivity extends Activity implements SensorEventListener {
             circle(c,240,274,14,0xff29584d); circle(c,240,274,9,mint); circle(c,240,274,4,panel);
             center(c,"CAMPAIGN / ARCADE SURVIVAL",240,305,12,muted);
             rect(c,24,338,456,420,14,mint); buttons.add(new Hit("play",24,338,456,420,
-                    "Campaign. Stage "+(profile.selectedStage+1)+", "+StageCatalog.get(profile.selectedStage).title,true,false,false));
+                    t("Campaign. Stage %d, %s",profile.selectedStage+1,t(StageCatalog.get(profile.selectedStage).title)),profile.isStageUnlocked(profile.selectedStage),false,false));
             text(c,"CAMPAIGN",45,372,22,background);
-            text(c,"STAGE "+(profile.selectedStage+1)+" / "+StageCatalog.get(profile.selectedStage).title,45,402,14,background);
+            fitText(c,t("STAGE %d / %s",profile.selectedStage+1,t(StageCatalog.get(profile.selectedStage).title)),45,402,14,background,348);
             line(c,412,381,432,381,background,3); line(c,432,381,422,371,background,3); line(c,432,381,422,391,background,3);
             button(c,"arcade",24,434,456,508,"ARCADE / SKIRMISH",gold,18);
             button(c,"chapters",24,522,456,596,"CHAPTERS",white,17);
             button(c,"help",24,610,456,684,"HOW TO PLAY",white,17);
             button(c,"settings",24,698,456,772,"SETTINGS",white,17);
-            center(c,"BEST "+profile.best[profile.selectedStage]+" / "+profile.stageWins[profile.selectedStage]+" LANDINGS",240,796,12,muted);
+            center(c,t("BEST %d / %d LANDINGS",profile.best[profile.selectedStage],profile.stageWins[profile.selectedStage]),240,796,12,muted);
         }
         private void drawArcadeSetup(Canvas c) {
             header(c,"ARCADE"); text(c,"Survive the hazards. Chase a better run.",24,137,15,muted);
@@ -405,33 +443,53 @@ public class MainActivity extends Activity implements SensorEventListener {
             toggleRow(c,"arcade_saw","Buzzsaws",584,(profile.arcadeHazards & ArcadeRules.BUZZSAWS) != 0,true);
             text(c,setupMessage > 0 ? "Keep at least one hazard enabled." : "No finish line. New attacks arrive in waves.",24,681,13,setupMessage > 0 ? coral : muted);
             button(c,"start_arcade",24,698,456,772,"START SURVIVAL",gold,18);
-            center(c,String.format(Locale.US,"BEST %d / LONGEST %.1fs",profile.arcadeBest[profile.arcadeDifficulty],
+            center(c,t("BEST %d / LONGEST %.1fs",profile.arcadeBest[profile.arcadeDifficulty],
                     profile.arcadeLongest[profile.arcadeDifficulty]),240,798,12,muted);
         }
         private void drawChapters(Canvas c) {
-            header(c,"CHAPTERS"); text(c,"Pick a fall. Every stage is ready to play.",24,137,15,muted);
+            header(c,t("CHAPTERS %d/%d",chapterPage+1,(StageCatalog.COUNT+5)/6)); text(c,"Land safely to unlock the next stage.",24,137,15,muted);
             float[] tops = {176,258,366,448,556,638};
-            for (int i = 0; i < StageCatalog.COUNT; i++) {
+            for (int slot = 0; slot < 6; slot++) {
+                int i = chapterPage*6+slot;
+                if (i >= StageCatalog.COUNT) break;
                 StageCatalog.Stage stage = StageCatalog.get(i);
-                if (i%2 == 0) text(c,stage.chapterTitle.toUpperCase(Locale.US),24,tops[i]-12,13,mint);
-                rect(c,24,tops[i],456,tops[i]+74,10,panel);
-                if (i == profile.selectedStage) line(c,26,tops[i]+12,26,tops[i]+62,mint,4);
-                text(c,stage.title,44,tops[i]+31,20,white);
-                text(c,"STAGE "+(i+1)+" / BEST "+profile.best[i]+" / "+profile.stageWins[i]+" LANDINGS",44,tops[i]+57,11,muted);
-                line(c,416,tops[i]+29,426,tops[i]+37,mint,2); line(c,426,tops[i]+37,416,tops[i]+45,mint,2);
-                buttons.add(new Hit("stage_"+i,24,tops[i],456,tops[i]+74,
-                        "Stage "+(i+1)+", "+stage.title+". Best "+profile.best[i]+". "+profile.stageWins[i]+" landings",true,false,false));
+                boolean unlocked = profile.isStageUnlocked(i);
+                if (i%2 == 0) text(c,t(stage.chapterTitle),24,tops[slot]-12,13,profile.isChapterUnlocked(stage.chapterIndex) ? mint : muted);
+                rect(c,24,tops[slot],456,tops[slot]+74,10,panel);
+                if (i == profile.selectedStage) line(c,26,tops[slot]+12,26,tops[slot]+62,mint,4);
+                fitText(c,t(stage.title),44,tops[slot]+31,20,unlocked ? white : muted,342);
+                fitText(c,unlocked ? t("STAGE %d / BEST %d / %d LANDINGS",i+1,profile.best[i],profile.stageWins[i]) :
+                        t("STAGE %d / LOCKED",i+1),44,tops[slot]+57,11,muted,342);
+                if (unlocked) { line(c,416,tops[slot]+29,426,tops[slot]+37,mint,2); line(c,426,tops[slot]+37,416,tops[slot]+45,mint,2); }
+                else drawLock(c,421,tops[slot]+36,muted);
+                buttons.add(new Hit("stage_"+i,24,tops[slot],456,tops[slot]+74,
+                        unlocked ? t("Stage %d, %s. Best %d. %d landings",i+1,t(stage.title),profile.best[i],profile.stageWins[i]) :
+                        t("Stage %d, %s, locked. Finish the previous stage.",i+1,t(stage.title)),unlocked,false,false));
             }
-            button(c,"back",24,730,456,806,"DONE",mint,17);
+            button(c,"prev_chapters",24,730,154,806,"PREVIOUS",chapterPage > 0 ? white : muted,14);
+            button(c,"back",164,730,302,806,"DONE",mint,17);
+            button(c,"next_chapters",312,730,456,806,"NEXT",(chapterPage+1)*6 < StageCatalog.COUNT ? white : muted,14);
         }
         private void toggleRow(Canvas c,String id,String title,float top,boolean value,boolean available) {
-            rect(c,24,top,456,top+74,9,panel); text(c,title,44,top+44,18,available ? white : muted);
+            rect(c,24,top,456,top+74,9,panel); fitText(c,title,44,top+44,18,available ? white : muted,310);
             rect(c,376,top+23,436,top+51,14,value && available ? mint : border);
             circle(c,value && available ? 421 : 391,top+37,10,value && available ? background : muted);
-            buttons.add(new Hit(id,24,top,456,top+74,title+(available ? "" : ", unavailable"),available,true,value && available));
+            buttons.add(new Hit(id,24,top,456,top+74,available ? t(title) : t("%s, unavailable",t(title)),available,true,value && available));
+        }
+        private void drawLock(Canvas c,float x,float y,int color) {
+            rect(c,x-9,y-1,x+9,y+14,3,color);
+            paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(2.5f); paint.setColor(color);
+            c.drawArc(x-6,y-11,x+6,y+4,180,180,false,paint); paint.setStyle(Paint.Style.FILL);
+            circle(c,x,y+5,2,panel);
         }
         private void drawSettings(Canvas c) {
             header(c,"SETTINGS"); text(c,hasMotion ? "Make motion feel right." : "Touch controls work without sensors.",24,137,16,muted);
+            button(c,"language",382,20,456,94,"",white,16);
+            circle(c,419,45,12,white); circle(c,419,45,10,panel);
+            line(c,407,45,431,45,white,1.5f); line(c,419,33,419,57,white,1.5f);
+            paint.setStyle(Paint.Style.STROKE); paint.setColor(white); paint.setStrokeWidth(1.5f);
+            c.drawOval(413,33,425,57,paint); paint.setStyle(Paint.Style.FILL);
+            paint.setTextAlign(Paint.Align.CENTER); fitText(c,"Language",419,79,11,white,64); paint.setTextAlign(Paint.Align.LEFT);
             toggleRow(c,"motion","Motion steering",154,motionEnabled,hasMotion);
             text(c,"MOTION FEEL",24,257,13,muted);
             for (int i = 0; i < 3; i++) {
@@ -447,7 +505,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             text(c,detail,24,374,13,muted);
             text(c,!hasMotion ? "No sensor available. Swipe left or right to steer." :
                     !motionEnabled ? "Motion is off. Swipe left or right to steer." :
-                    !motion.hasSample() ? "Waiting for a sensor reading..." : "Current hold centers automatically after resume.",24,397,12,muted);
+                    !motion.hasSample() ? "Waiting for a sensor reading..." : "Your hold centers at every start and resume.",24,397,12,muted);
             line(c,24,405,456,405,border,1); text(c,"FEEDBACK",24,433,13,muted);
             toggleRow(c,"sound","Sound Effects",444,profile.sound,true);
             toggleRow(c,"haptics","Vibration",532,profile.haptics,true);
@@ -455,16 +513,111 @@ public class MainActivity extends Activity implements SensorEventListener {
             button(c,"privacy",24,734,306,808,"PRIVACY POLICY",white,16);
             button(c,"back",320,734,456,808,"DONE",mint,17);
         }
+        private void drawLanguage(Canvas c) {
+            header(c,"LANGUAGE");
+            for (int i = 0; i < 3; i++) {
+                float top = 190+i*96;
+                button(c,"language_"+i,24,top,456,top+74,FalleyStrings.languageName(i),profile.language == i ? mint : white,21);
+                if (profile.language == i) circle(c,426,top+37,5,mint);
+            }
+            button(c,"back",24,734,456,808,"DONE",mint,17);
+        }
         private void drawHelp(Canvas c) {
-            header(c,"HOW TO PLAY"); text(c,"Longer falls. One bouncy target.",24,157,22,mint);
-            helpStep(c,"01","TAP TO JUMP","Tap the arena or the Jump button.",198);
-            helpStep(c,"02","STEER AGAINST THE DRIFT","Air currents push you. Swipe against the drift.",304);
-            helpStep(c,"03","LET THE ROPES BOUNCE","Landing bends your knees, then springs you up.",410);
-            helpStep(c,"04","LAND SOFTLY OR SURVIVE","Campaign: land on the target. Arcade: stay alive.",516);
-            text(c,"Buzzsaws warn, then sweep sideways. Move clear.",24,631,13,muted);
-            text(c,"Hard floor outside the target is dangerous.",24,658,15,muted);
-            text(c,"Motion ON? Tilt to steer. Adjust feel in Settings.",24,686,14,muted);
-            button(c,"back",24,734,456,808,"GOT IT",mint,17);
+            header(c,"HOW TO PLAY");
+            button(c,"help_touch",24,132,234,206,"TOUCH",!helpMotion ? mint : muted,17);
+            button(c,"help_motion",246,132,456,206,"MOTION",helpMotion ? mint : muted,17);
+            rect(c,24,222,456,410,14,panel);
+            if (helpPage == 0) drawControlGuide(c);
+            else if (helpPage == 1) drawJumpGuide(c);
+            else drawRuleGuide(c);
+            fitText(c,helpTitle(),34,447,22,mint,412);
+            helpBody(c,helpExplanation(),466,578);
+            line(c,34,587,446,587,border,1);
+            helpBody(c,helpTip(),601,693);
+            center(c,t("GUIDE %d/%d",helpPage+1,3),240,718,12,muted);
+            button(c,"help_prev",24,734,154,808,"PREVIOUS",helpPage > 0 ? white : muted,14);
+            button(c,"back",164,734,302,808,"GOT IT",mint,15);
+            button(c,"help_next",312,734,456,808,"NEXT",helpPage < 2 ? white : muted,14);
+        }
+        private String helpTitle() {
+            return helpPage == 0 ? helpMotion ? "TILT TO STEER" : "SWIPE TO STEER" :
+                    helpPage == 1 ? "TWO QUICK JUMPS" : "READ THE DANGER";
+        }
+        private String helpExplanation() {
+            if (helpPage == 0) return helpMotion ?
+                    "Hold the phone comfortably. Tilt left or right to steer. Your hold is centered at each start and resume." :
+                    "Swipe left or right to steer. Release to stop the swipe. A light air current still nudges you.";
+            if (helpPage == 1) return "Tap up to twice in a burst. Descend below where the burst began to recover. Wait briefly after the last jump.";
+            return "The ceiling and side hazards are lethal. Read warnings and avoid live fire, lasers, lightning and saws.";
+        }
+        private String helpTip() {
+            if (helpPage == 0) return helpMotion ? "Tap the arena or JUMP to jump. You can still swipe to take over steering briefly." :
+                    "Tap the arena or JUMP to jump. Watch the burst and total jump counters.";
+            if (helpPage == 1) return "Campaign has a total jump budget for each stage. Recovery refills the burst, not the total. Arcade has no total limit.";
+            return "Campaign: land on the target to unlock the next stage. Later missed landings are fatal. Arcade: survive.";
+        }
+        private ArrayList<String> helpLines(String label,float size) {
+            paint.setTextLocale(languageLocale()); paint.setTypeface(Typeface.create("sans-serif",Typeface.NORMAL)); paint.setTextSize(size);
+            ArrayList<String> lines = new ArrayList<>(); String row = "";
+            for (String word : t(label).split(" ")) {
+                String candidate = row.isEmpty() ? word : row+" "+word;
+                if (!row.isEmpty() && paint.measureText(candidate) > 404) { lines.add(row); row = word; }
+                else row = candidate;
+            }
+            if (!row.isEmpty()) lines.add(row);
+            return lines;
+        }
+        private void helpBody(Canvas c,String label,float top,float bottom) {
+            float size = 18*clamp(getResources().getConfiguration().fontScale,1,1.35f), spacing;
+            ArrayList<String> rows;
+            do {
+                rows = helpLines(label,size);
+                Paint.FontMetrics metrics = paint.getFontMetrics();
+                spacing = Math.max(size*1.42f,metrics.bottom-metrics.top+2);
+                if (rows.size()*spacing <= bottom-top || size <= 13) break;
+                size -= .5f;
+            } while (true);
+            paint.setStyle(Paint.Style.FILL); paint.setColor(white);
+            float baseline = top-paint.getFontMetrics().top;
+            for (String row : rows) { c.drawText(row,38,baseline,paint); baseline += spacing; }
+        }
+        private void arrow(Canvas c,float x,float y,float x2,float y2,int color) {
+            line(c,x,y,x2,y2,color,3);
+            float a = (float)Math.atan2(y2-y,x2-x), spread = .65f;
+            line(c,x2,y2,x2-11*(float)Math.cos(a-spread),y2-11*(float)Math.sin(a-spread),color,3);
+            line(c,x2,y2,x2-11*(float)Math.cos(a+spread),y2-11*(float)Math.sin(a+spread),color,3);
+        }
+        private void drawControlGuide(Canvas c) {
+            c.save(); c.translate(240,317); if (helpMotion) c.rotate(-13);
+            rect(c,-43,-70,43,70,10,border); rect(c,-36,-60,36,53,5,background);
+            line(c,-28,25,28,25,mint,2); drawHuman(c,0,6,17,-120,0); circle(c,0,62,4,muted); c.restore();
+            arrow(c,106,317,163,317,mint); arrow(c,374,317,317,317,mint);
+            if (helpMotion) {
+                paint.setStyle(Paint.Style.STROKE); paint.setColor(gold); paint.setStrokeWidth(3);
+                c.drawArc(167,235,313,386,205,75,false,paint); c.drawArc(167,235,313,386,25,75,false,paint); paint.setStyle(Paint.Style.FILL);
+            } else {
+                circle(c,335,268,23,0x335de0ba); circle(c,335,268,14,0x665de0ba); circle(c,335,268,6,mint);
+                line(c,347,281,362,299,white,5);
+            }
+        }
+        private void drawJumpGuide(Canvas c) {
+            path.reset(); path.moveTo(112,332); path.quadTo(235,228,365,332);
+            paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(2); paint.setColor(mint); c.drawPath(path,paint); paint.setStyle(Paint.Style.FILL);
+            drawHuman(c,112,330,23,-180,0); drawHuman(c,238,279,23,-180,0); drawHuman(c,365,330,23,180,0);
+            circle(c,210,376,9,mint); circle(c,270,376,9,mint);
+            arrow(c,392,270,392,350,gold);
+            center(c,"RECOVERY",365,393,11,gold);
+        }
+        private void drawRuleGuide(Canvas c) {
+            line(c,76,244,404,244,coral,4); center(c,"CEILING",240,265,11,coral);
+            line(c,76,244,76,384,coral,3); line(c,404,244,404,384,coral,3);
+            for (float y = 276; y < 366; y += 28) {
+                path.reset(); path.moveTo(76,y); path.lineTo(88,y+10); path.lineTo(76,y+20); path.close(); paint.setColor(coral); c.drawPath(path,paint);
+            }
+            drawHuman(c,240,319,24,180,0); arrow(c,286,313,286,355,mint);
+            rect(c,80,379,400,391,5,border); rect(c,185,379,295,391,5,mint);
+            circle(c,240,384,10,background); circle(c,240,384,5,mint);
+            center(c,"LAND HERE",240,405,10,mint);
         }
         private void drawPrivacy(Canvas c) {
             header(c,"PRIVACY POLICY");
@@ -492,6 +645,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             button(c,"back",24,744,456,816,"BACK TO SETTINGS",mint,17);
         }
         private float policyParagraph(Canvas c,String value,float x,float y,float size,float lineHeight,boolean bold,int color) {
+            value = t(value);
+            paint.setTextLocale(languageLocale());
             paint.setStyle(Paint.Style.FILL); paint.setColor(color); paint.setTextSize(size);
             paint.setTypeface(Typeface.create("sans-serif",bold ? Typeface.BOLD : Typeface.NORMAL));
             StringBuilder row = new StringBuilder();
@@ -513,30 +668,33 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         private void helpStep(Canvas c,String number,String title,String detail,float y) {
             circle(c,48,y+20,22,panel); center(c,number,48,y+25,14,mint);
-            text(c,title,85,y+12,17,white); text(c,detail,24,y+64,13,muted);
+            fitText(c,title,85,y+12,17,white,365);
+            policyParagraph(c,detail,24,y+46,14,18,false,muted);
             line(c,24,y+83,456,y+83,border,1);
         }
         private void drawPlay(Canvas c) {
-            text(c,physics.arcade ? "FALLEY / ARCADE" : "FALLEY / STAGE "+(physics.stage.index+1),24,29,12,mint);
-            text(c,physics.arcade ? DIFFICULTIES[physics.arcadeDifficulty] : physics.stage.title,24,67,24,white);
+            fitText(c,physics.arcade ? t("FALLEY / ARCADE") : t("FALLEY / STAGE %d",physics.stage.index+1),24,29,12,mint,260);
+            fitText(c,physics.arcade ? DIFFICULTIES[physics.arcadeDifficulty] : physics.stage.title,24,67,24,white,260);
             button(c,"restart",300,20,374,94,"",white,17);
             paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(2); paint.setColor(white);
             c.drawArc(323,43,351,71,40,295,false,paint); paint.setStyle(Paint.Style.FILL);
             line(c,352,43,352,54,white,2); line(c,352,43,341,45,white,2);
             button(c,"pause",382,20,456,94,"",white,17);
             line(c,413,45,413,69,white,5); line(c,425,45,425,69,white,5);
-            text(c,"SCORE "+physics.score,24,104,13,gold);
-            text(c,String.format(Locale.US,"WEIGHT %.1fx",physics.mass()),171,104,13,white);
-            text(c,physics.arcade ? "WAVE "+physics.wave : "CUTS "+physics.brokenCount,367,104,13,mint);
-            float progress = physics.arcade ? (physics.elapsed%20)/20 : clamp((physics.y-310)/(physics.groundY()-physics.radius()-310),0,1);
-            rect(c,24,116,456,122,3,panel); rect(c,24,116,24+432*progress,122,3,mint);
-            float targetCenter = (physics.targetLeft()+physics.targetRight())/2;
-            String landingSide = targetCenter < 239 ? "LEFT" : targetCenter > 241 ? "RIGHT" : "CENTER";
-            String objective = physics.arcade ? String.format(Locale.US,"%.1fs SURVIVED",physics.elapsed) :
-                    physics.won ? "LANDED!" : Math.max(0,(int)((physics.groundY()-physics.y-physics.radius())/10))+"m / LAND "+landingSide;
-            text(c,objective,24,144,12,physics.won ? mint : muted);
+            fitText(c,t("SCORE %d",physics.score),24,116,12,gold,140);
+            center(c,t("WEIGHT %.1fx",physics.mass()),240,116,12,white);
             paint.setTextAlign(Paint.Align.RIGHT);
-            text(c,motionEnabled ? "MOTION ON" : "SWIPE + DRIFT",456,144,11,muted);
+            fitText(c,physics.arcade ? t("WAVE %d",physics.wave) : t("CUTS %d/%d",physics.brokenCount,physics.totalRopes()),456,116,12,mint,140);
+            paint.setTextAlign(Paint.Align.LEFT);
+            float progress = physics.arcade ? (physics.elapsed%20)/20 : clamp((physics.y-310)/(physics.groundY()-physics.radius()-310),0,1);
+            rect(c,24,129,456,134,3,panel); rect(c,24,129,24+432*progress,134,3,mint);
+            float targetCenter = (physics.targetLeft()+physics.targetRight())/2;
+            String landingSide = t(targetCenter < 239 ? "LEFT" : targetCenter > 241 ? "RIGHT" : "CENTER");
+            String objective = physics.arcade ? t("%.1fs SURVIVED",physics.elapsed) :
+                    physics.won ? t("LANDED!") : t("%dm / LAND %s",Math.max(0,(int)((physics.groundY()-physics.y-physics.radius())/10)),landingSide);
+            fitText(c,objective,24,152,12,physics.won ? mint : muted,228);
+            paint.setTextAlign(Paint.Align.RIGHT);
+            fitText(c,motionEnabled ? motion.isCentering() ? "HOLD COMFORTABLY" : "MOTION ON" : "SWIPE + DRIFT",456,152,11,muted,192);
             paint.setTextAlign(Paint.Align.LEFT);
             drawArena(c); drawPlayControls(c);
         }
@@ -547,6 +705,10 @@ public class MainActivity extends Activity implements SensorEventListener {
             for (int x = 60; x < 460; x += 60) line(c,x,TOP,x,BOTTOM,0xff1b2832,1);
             float left = physics.leftWall(), right = physics.rightWall();
             drawRails(c,left,right);
+            float ceilingLeft = left+physics.hazardInset()+3, ceilingRight = right-physics.hazardInset()-3;
+            line(c,ceilingLeft,TOP+3,ceilingRight,TOP+3,coral,4);
+            for (float x = ceilingLeft+7; x < ceilingRight-5; x += 18)
+                line(c,x,TOP+3,x+5,TOP+9,coral,1.5f);
             drawFloor(c);
             for (int j = 0; j < physics.ropes.length; j++) {
                 Physics.Rope rope = physics.ropes[j]; int color = j%2 == 0 ? mint : 0xffac9eef;
@@ -773,7 +935,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             if (!physics.lost) return;
             float t = burstTime, y = burstY-physics.cameraY, r = physics.radius();
             String reason = physics.deathReason;
-            boolean saw = reason.contains("BUZZSAW"), spikes = reason.contains("SPIKE"), floor = reason.contains("FLOOR") || reason.contains("HARD LANDING"),
+            boolean saw = reason.contains("BUZZSAW"), spikes = reason.contains("SPIKE"), ceiling = reason.contains("CEILING"), floor = reason.contains("FLOOR") || reason.contains("HARD LANDING"),
                     laser = reason.contains("LASER"), thunder = reason.contains("LIGHTNING") || reason.contains("THUNDER");
             int blood = 0xffa62b3b;
             if (saw) {
@@ -794,8 +956,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                     for (int i = 0; i < 8; i++)
                         line(c,side+(i%3-1)*3,y-8+i*3,side+(i%3-1)*3,y+Math.min(65,t*30)+i*3,blood,2+i%3);
                 }
-            } else if (floor) {
-                y = physics.groundY()-physics.cameraY-7;
+            } else if (floor || ceiling) {
+                if (floor) y = physics.groundY()-physics.cameraY-7;
                 deadFigure(c,burstX,y,r,88,false,true);
                 if (profile.blood) {
                     paint.setColor(blood); c.drawOval(burstX-r*1.5f,y-1,burstX+r*1.5f,y+9,paint);
@@ -827,13 +989,13 @@ public class MainActivity extends Activity implements SensorEventListener {
             for (int i = 0; i < 28; i++) {
                 double a = i*2.399963; float speed = 23+(i%7)*17;
                 float x = burstX+(float)Math.cos(a)*speed*age,
-                        py = y+(float)Math.sin(a)*speed*age+(floor || spikes || laser || saw ? 70 : -14)*age*age;
-                if (floor && profile.blood && i%4 == 0) {
+                        py = y+(float)Math.sin(a)*speed*age+(floor || ceiling || spikes || laser || saw ? 70 : -14)*age*age;
+                if ((floor || ceiling) && profile.blood && i%4 == 0) {
                     int bone = (white & 0xffffff)|((int)(fade*240)<<24);
                     float dx = (float)Math.cos(a)*4, dy = (float)Math.sin(a)*4;
                     line(c,x-dx,py-dy,x+dx,py+dy,bone,2);
                     circle(c,x-dx,py-dy,1.7f,bone); circle(c,x+dx,py+dy,1.7f,bone);
-                } else if (floor || spikes || laser || saw) {
+                } else if (floor || ceiling || spikes || laser || saw) {
                     int color = profile.blood ? blood : muted;
                     circle(c,x,py,profile.blood ? 2+i%3 : 1.5f,(color & 0xffffff)|((int)(fade*220)<<24));
                 } else {
@@ -844,10 +1006,22 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
         }
         private void drawPlayControls(Canvas c) {
-            button(c,"jump",24,744,456,816,physics.lost || physics.won ? "JUMP" : physics.jumpRemaining() > 0 ? "JUMP ..." : "JUMP ↑",
-                    physics.lost || physics.won ? muted : gold,20);
-            float progress = 1-clamp(physics.jumpRemaining()/.30f,0,1);
-            rect(c,52,802,428,806,2,0x44f6d477); rect(c,52,802,52+376*progress,806,2,gold);
+            boolean ready = physics.canJump();
+            int remaining = physics.jumpAllowanceRemaining();
+            String status = remaining == 0 ? "LEVEL BUDGET USED" : physics.jumpsRemaining() == 0 ? "DESCEND TO RECOVER" : ready ? "READY" : "WAIT";
+            String label = remaining < 0 ? t("Jump. Burst %d of %d. No total limit.",physics.jumpsRemaining(),Physics.MAX_JUMPS) :
+                    t("Jump. Burst %d of %d. Stage budget %d of %d remaining.",physics.jumpsRemaining(),Physics.MAX_JUMPS,remaining,physics.jumpLimit());
+            label += " "+t(status);
+            button(c,"jump",24,744,456,816,label,ready ? gold : muted,18);
+            fitText(c,"JUMP",44,774,18,ready ? gold : muted,100);
+            paint.setTextAlign(Paint.Align.CENTER); fitText(c,t("BURST %d/%d",physics.jumpsRemaining(),Physics.MAX_JUMPS),239,773,14,white,166);
+            paint.setTextAlign(Paint.Align.RIGHT);
+            fitText(c,remaining < 0 ? t("NO TOTAL LIMIT") : t("TOTAL %d/%d",remaining,physics.jumpLimit()),436,773,12,muted,117);
+            paint.setTextAlign(Paint.Align.LEFT);
+            fitText(c,status,44,795,11,remaining == 0 ? coral : muted,390);
+            float progress = remaining == 0 ? 0 : physics.jumpsRemaining() == 0 ? physics.burstRecoveryProgress() :
+                    1-clamp(physics.jumpRemaining()/.30f,0,1);
+            rect(c,44,803,436,807,2,0x44f6d477); rect(c,44,803,44+392*progress,807,2,ready ? gold : mint);
         }
         private void drawOverlay(Canvas c) {
             boolean hasNext = !physics.arcade && physics.won && physics.stage.index < StageCatalog.COUNT-1;
@@ -860,12 +1034,12 @@ public class MainActivity extends Activity implements SensorEventListener {
                 button(c,"home",74,556,406,630,"HOME",muted,18);
             } else {
                 center(c,physics.won ? "LANDED!" : physics.arcade ? "RUN ENDED" : "FALL ENDED",240,280,35,physics.won ? mint : coral);
-                center(c,physics.won ? "A soft landing. A good bounce." : "HIT BY "+physics.deathReason,240,319,15,white);
-                center(c,"SCORE "+physics.score,240,371,27,gold);
-                center(c,physics.arcade ? String.format(Locale.US,"%.1fs / WAVE %d",physics.elapsed,physics.wave) :
-                        String.format(Locale.US,"%.1fs / %d ROPES CUT",physics.elapsed,physics.brokenCount),240,404,14,muted);
-                center(c,physics.arcade ? "ARCADE BEST "+profile.arcadeBest[physics.arcadeDifficulty] :
-                        "STAGE "+(physics.stage.index+1)+" BEST "+profile.best[physics.stage.index],240,435,12,muted);
+                center(c,physics.won ? "A soft landing. A good bounce." : t("HIT BY %s",t(physics.deathReason)),240,319,15,white);
+                center(c,t("SCORE %d",physics.score),240,371,27,gold);
+                center(c,physics.arcade ? t("%.1fs / WAVE %d",physics.elapsed,physics.wave) :
+                        t("%.1fs / %d ROPES CUT",physics.elapsed,physics.brokenCount),240,404,14,muted);
+                center(c,physics.arcade ? t("ARCADE BEST %d",profile.arcadeBest[physics.arcadeDifficulty]) :
+                        t("STAGE %d BEST %d",physics.stage.index+1,profile.best[physics.stage.index]),240,435,12,muted);
                 if (hasNext) {
                     button(c,"next_stage",74,468,406,542,"NEXT STAGE",mint,18);
                     button(c,"restart",74,556,406,630,"REPLAY",white,18);
@@ -890,28 +1064,35 @@ public class MainActivity extends Activity implements SensorEventListener {
             boolean controlled = !motionEnabled || touch.dragging();
             physics.touchControlled(controlled);
             if (controlled) physics.steerTouch(touch.velocity());
-            else physics.gx = motion.acceleration();
+            else physics.gx = motion.acceleration(android.os.SystemClock.elapsedRealtimeNanos());
         }
         void clearTouch() {
-            pointer = buttonPointer = privacyPointer = -1; pressed = null; touch.cancel();
-            physics.steerTouch(0); physics.touchControlled(!motionEnabled); physics.gx = 0;
+            pointer = buttonPointer = privacyPointer = chapterSwipePointer = -1; pressed = null; touch.cancel();
+            physics.touchControlled(!motionEnabled); physics.steerTouch(0); physics.gx = 0;
         }
         private void enterHome() { owner.stopEffects(); screen = HOME; homeElapsed = 0; clearTouch(); }
         private void restart() {
             physics.reset(); beginRun();
         }
-        private void startCampaign() { physics.reset(profile.selectedStage); beginRun(); }
+        private void startCampaign() {
+            if (!profile.isStageUnlocked(profile.selectedStage)) return;
+            physics.reset(profile.selectedStage); beginRun();
+        }
         private void beginRun() {
             owner.stopEffects(); soundCue.reset(physics.soundSequence);
             clearTouch(); accumulator = 0; Arrays.fill(trailValid,false); trailIndex = 0;
-            burstTime = 10; resultRecorded = false; lastLandingCue = 0; screen = PLAY;
+            burstTime = 10; resultRecorded = false; lastLandingCue = 0; resumeMotion(); screen = PLAY;
+        }
+        private void resumeMotion() {
+            if (motionEnabled) { motion.resetSamples(); physics.vx = 0; physics.gx = 0; }
         }
         private void jump() { if (screen == PLAY && !physics.won && physics.jump()) cue(1); }
         void back() {
             if (screen == PLAY) { owner.stopEffects(); screen = PAUSE; }
-            else if (screen == PAUSE) screen = PLAY;
+            else if (screen == PAUSE) { resumeMotion(); screen = PLAY; }
             else if (screen == PRIVACY) screen = SETTINGS;
-            else if (screen == SETTINGS) screen = settingsReturn;
+            else if (screen == LANGUAGE) screen = SETTINGS;
+            else if (screen == SETTINGS) { if (settingsReturn == PLAY) resumeMotion(); screen = settingsReturn; }
             else enterHome();
             clearTouch(); accumulator = 0; invalidate();
         }
@@ -930,19 +1111,30 @@ public class MainActivity extends Activity implements SensorEventListener {
                 else { profile.arcadeHazards = next; setupMessage = 0; saveProfile(); }
             }
             else if (id.equals("home")) enterHome();
-            else if (id.equals("chapters")) { screen = CHAPTERS; clearTouch(); }
+            else if (id.equals("chapters")) { chapterPage = profile.selectedStage/6; screen = CHAPTERS; clearTouch(); }
+            else if (id.equals("prev_chapters")) chapterPage = Math.max(0,chapterPage-1);
+            else if (id.equals("next_chapters")) chapterPage = Math.min((StageCatalog.COUNT-1)/6,chapterPage+1);
             else if (id.startsWith("stage_")) {
-                profile.selectedStage = Math.max(0,Math.min(StageCatalog.COUNT-1,Integer.parseInt(id.substring(6))));
+                int requestedStage = Integer.parseInt(id.substring(6));
+                if (!profile.isStageUnlocked(requestedStage)) return;
+                profile.selectedStage = requestedStage;
                 saveProfile(); startCampaign();
             } else if (id.equals("next_stage") && physics.won && physics.stage.index < StageCatalog.COUNT-1) {
+                if (!profile.isStageUnlocked(physics.stage.index+1)) return;
                 profile.selectedStage = physics.stage.index+1; saveProfile(); startCampaign();
             }
-            else if (id.equals("help")) { screen = HELP; clearTouch(); }
+            else if (id.equals("help")) { helpPage = 0; helpMotion = motionEnabled; screen = HELP; clearTouch(); }
+            else if (id.equals("help_touch")) helpMotion = false;
+            else if (id.equals("help_motion")) helpMotion = true;
+            else if (id.equals("help_prev")) helpPage = Math.max(0,helpPage-1);
+            else if (id.equals("help_next")) helpPage = Math.min(2,helpPage+1);
             else if (id.equals("settings")) { owner.stopEffects(); settingsReturn = screen == HOME ? HOME : PAUSE; screen = SETTINGS; clearTouch(); }
             else if (id.equals("privacy")) { screen = PRIVACY; privacyScroll = 0; clearTouch(); }
+            else if (id.equals("language")) { screen = LANGUAGE; clearTouch(); }
+            else if (id.startsWith("language_")) { profile.language = FalleyStrings.sanitize(Integer.parseInt(id.substring(9))); saveProfile(); }
             else if (id.equals("back")) back();
             else if (id.equals("pause")) { owner.stopEffects(); screen = PAUSE; clearTouch(); }
-            else if (id.equals("resume")) { screen = PLAY; clearTouch(); }
+            else if (id.equals("resume")) { resumeMotion(); screen = PLAY; clearTouch(); }
             else if (id.equals("jump")) { jump(); return; }
             else if (id.equals("motion")) owner.toggleMotion();
             else if (id.startsWith("preset_")) {
@@ -969,26 +1161,28 @@ public class MainActivity extends Activity implements SensorEventListener {
 
             private String screenName() {
                 switch (screen) {
-                    case HOME: return "Falley home";
-                    case SETTINGS: return "Settings";
-                    case HELP: return "How to play";
-                    case PAUSE: return "Paused";
-                    case RESULT: return "Result";
-                    case CHAPTERS: return "Chapters";
-                    case ARCADE_SETUP: return "Arcade setup";
-                    case PRIVACY: return PrivacyPolicy.TITLE;
-                    case SPLASH: return "Falley by Perf Games";
-                    default: return "Falley gameplay";
+                    case HOME: return t("Falley home");
+                    case SETTINGS: return t("Settings");
+                    case HELP: return t("How to play");
+                    case PAUSE: return t("Paused");
+                    case RESULT: return t("Result");
+                    case CHAPTERS: return t("CHAPTERS %d/%d",chapterPage+1,(StageCatalog.COUNT+5)/6);
+                    case ARCADE_SETUP: return t("Arcade setup");
+                    case PRIVACY: return t(PrivacyPolicy.TITLE);
+                    case LANGUAGE: return t("Language selection");
+                    case SPLASH: return t("Falley by Perf Games");
+                    default: return t("Falley gameplay");
                 }
             }
             private String content() {
-                if (screen == PRIVACY) return PrivacyPolicy.fullText();
-                if (screen == HELP) return "Tap the arena or Jump button to jump. Swipe left or right to steer against air currents. "
-                        + "Ropes bend, then bounce you. In Campaign, land on the bouncy target. In Arcade, survive as long as you can. "
-                        + "Hazards warn before they activate. Buzzsaws sweep sideways. Move clear. Hard floor outside the target is dangerous. "
-                        + "Enable motion steering in Settings to tilt instead of swipe. Loose, Balanced and Tight adjust motion response.";
-                if (screen == RESULT) return (physics.won ? "Landed. " : "Run ended. Hit by "+physics.deathReason+". ")
-                        + "Score "+physics.score+". "+String.format(Locale.US,"%.1f seconds.",physics.elapsed);
+                if (screen == PRIVACY) {
+                    StringBuilder policy = new StringBuilder(t(PrivacyPolicy.TITLE)).append('\n').append(t(PrivacyPolicy.PUBLISHER)).append('\n').append(t(PrivacyPolicy.EFFECTIVE_DATE));
+                    for (String[] section : PrivacyPolicy.SECTIONS) policy.append("\n\n").append(t(section[0])).append('\n').append(t(section[1]));
+                    return policy.toString();
+                }
+                if (screen == HELP) return t(helpMotion ? "MOTION" : "TOUCH")+". "+t(helpTitle())+". "+t(helpExplanation())+" "+t(helpTip());
+                if (screen == RESULT) return physics.won ? t("Landed. Score %d. %.1f seconds.",physics.score,physics.elapsed) :
+                        t("Run ended. Hit by %s. Score %d. %.1f seconds.",t(physics.deathReason),physics.score,physics.elapsed);
                 return null;
             }
             private Hit hit(int virtualId) {
@@ -1011,7 +1205,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 AccessibilityEvent event = AccessibilityEvent.obtain(type);
                 event.setPackageName(getContext().getPackageName()); event.setClassName("android.widget.Button");
                 event.setSource(Arena.this,virtualId);
-                event.getText().add(virtualId == CONTENT ? content() : hit(virtualId).label);
+                event.getText().add(spoken(virtualId == CONTENT ? content() : hit(virtualId).label));
                 getParent().requestSendAccessibilityEvent(Arena.this,event);
             }
             private void bounds(AccessibilityNodeInfo node,float l,float t,float r,float b) {
@@ -1024,7 +1218,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 if (virtualId == HOST_VIEW_ID) {
                     AccessibilityNodeInfo node = AccessibilityNodeInfo.obtain(Arena.this);
                     Arena.this.onInitializeAccessibilityNodeInfo(node);
-                    node.setClassName("android.view.ViewGroup"); node.setContentDescription(screenName());
+                    node.setClassName("android.view.ViewGroup"); node.setContentDescription(spoken(screenName()));
                     for (int i = 0; i < buttons.size(); i++) {
                         node.addChild(Arena.this,i+1);
                         if (i == 0 && content() != null) node.addChild(Arena.this,CONTENT);
@@ -1035,6 +1229,16 @@ public class MainActivity extends Activity implements SensorEventListener {
                         if (privacyScroll < privacyScrollLimit) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
                         if (privacyScroll > 0) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
                     }
+                    if (screen == CHAPTERS) {
+                        node.setScrollable(true);
+                        if ((chapterPage+1)*6 < StageCatalog.COUNT) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+                        if (chapterPage > 0) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
+                    }
+                    if (screen == HELP) {
+                        node.setScrollable(true);
+                        if (helpPage < 2) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+                        if (helpPage > 0) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
+                    }
                     return node;
                 }
                 if (!valid(virtualId)) return null;
@@ -1044,7 +1248,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 node.setFocusable(true); node.setAccessibilityFocused(focused == virtualId);
                 node.addAction(focused == virtualId ? AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS : AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS);
                 if (virtualId == CONTENT) {
-                    node.setClassName("android.widget.TextView"); node.setText(content()); node.setEnabled(true);
+                    node.setClassName("android.widget.TextView"); node.setText(spoken(content())); node.setEnabled(true);
                     bounds(node,24,128,446,704);
                     if (screen == PRIVACY) {
                         node.setScrollable(true);
@@ -1054,7 +1258,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 } else {
                     Hit button = hit(virtualId);
                     node.setClassName(button.checkable ? "android.widget.Switch" : "android.widget.Button");
-                    node.setText(button.label); node.setEnabled(button.enabled); node.setClickable(button.enabled);
+                    node.setText(spoken(button.label)); node.setEnabled(button.enabled); node.setClickable(button.enabled);
                     node.setCheckable(button.checkable); node.setChecked(button.checked);
                     if (button.enabled) node.addAction(AccessibilityNodeInfo.ACTION_CLICK);
                     bounds(node,button.left,button.top,button.right,button.bottom);
@@ -1074,6 +1278,12 @@ public class MainActivity extends Activity implements SensorEventListener {
                 return matches;
             }
             @Override public boolean performAction(int virtualId,int action,Bundle arguments) {
+                if (screen == HELP && (action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD || action == AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) {
+                    activate(action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD ? "help_next" : "help_prev"); return true;
+                }
+                if (screen == CHAPTERS && (action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD || action == AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) {
+                    activate(action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD ? "next_chapters" : "prev_chapters"); return true;
+                }
                 if (screen == PRIVACY && (action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD || action == AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) {
                     scrollPrivacy(action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD ? 470 : -470); return true;
                 }
@@ -1114,6 +1324,9 @@ public class MainActivity extends Activity implements SensorEventListener {
             int action = event.getActionMasked(), index = event.getActionIndex();
             float x = (event.getX(index)-ox)/scale, y = (event.getY(index)-oy)/scale;
             if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
+                if (screen == CHAPTERS && chapterSwipePointer < 0 && y >= 128 && y <= 714) {
+                    chapterSwipePointer = event.getPointerId(index); chapterSwipeX = x;
+                }
                 for (int i = buttons.size()-1; i >= 0; i--) if (buttons.get(i).contains(x,y)) {
                     if (buttonPointer < 0 && buttons.get(i).enabled) { pressed = buttons.get(i); buttonPointer = event.getPointerId(index); }
                     return true;
@@ -1139,6 +1352,13 @@ public class MainActivity extends Activity implements SensorEventListener {
             } else if (action == MotionEvent.ACTION_CANCEL) clearTouch();
             else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP) {
                 int id = event.getPointerId(index);
+                if (id == chapterSwipePointer) {
+                    chapterSwipePointer = -1;
+                    if (screen == CHAPTERS && Math.abs(x-chapterSwipeX) > 70) {
+                        buttonPointer = -1; pressed = null;
+                        activate(x < chapterSwipeX ? "next_chapters" : "prev_chapters"); return true;
+                    }
+                }
                 if (id == privacyPointer) privacyPointer = -1;
                 if (id == buttonPointer) {
                     Hit hit = pressed; pressed = null; buttonPointer = -1;

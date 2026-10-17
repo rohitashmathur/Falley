@@ -4,6 +4,11 @@ package com.perfgames.ropelab;
 public final class Physics {
     public static final float W = 480, H = 820, DT = 1f / 240, R = 17;
     public static final float GRAVITY = 900, ROPE_SPACING = 170;
+    public static final float MAX_MOTION_SPEED = 240;
+    public static final int MAX_JUMPS = 2;
+    public static final float BURST_DROP = 45, BURST_RECOVERY_TIME = .90f;
+    public static final float ARENA_TOP = 160;
+    private static final float FIRST_ROPE_Y = 450, FLOOR_ROPE_CLEARANCE = 320;
     public static final float GROUND_Y = 4200, TARGET_LEFT = 158, TARGET_RIGHT = 322;
     public static final int SFX_FIRE_LAUNCH = 1, SFX_FIRE_BURN = 2, SFX_LASER = 3,
             SFX_LIGHTNING = 4, SFX_SAW_MOTOR = 5, SFX_SAW_IMPACT = 6;
@@ -42,7 +47,8 @@ public final class Physics {
     public float winTime, landingPulse, groundBounce;
     public String deathReason = "";
     private float jumpCooldown, nextRopeY, attackCountdown, touchVelocity, deepestY;
-    private int attackCount;
+    private float burstStartY, burstPeakY, lastJumpTime;
+    private int attackCount, jumpsLeft, manualJumps;
     private boolean touchControl;
     private java.util.Random random;
 
@@ -85,10 +91,12 @@ public final class Physics {
     public void reset() {
         x = 240; y = 310; vx = vy = gx = cameraY = elapsed = flash = blast = 0;
         score = brokenCount = 0; lost = won = false; deathReason = ""; jumpCooldown = 0;
+        jumpsLeft = MAX_JUMPS;
+        manualJumps = 0; burstStartY = burstPeakY = y; lastJumpTime = -BURST_RECOVERY_TIME;
         winTime = landingPulse = groundBounce = 0;
         touchVelocity = 0;
         deepestY = y;
-        nextRopeY = 450 + ropes.length * ROPE_SPACING;
+        nextRopeY = FIRST_ROPE_Y + ropes.length * ROPE_SPACING;
         random = new java.util.Random(7283L + stage.index * 101L);
         attackCountdown = 2.0f;
         attackCount = 0;
@@ -103,22 +111,46 @@ public final class Physics {
             saw.x = saw.y = saw.previousX = saw.previousY = saw.pathX1 = saw.pathX2 = 0;
             saw.warningTime = saw.liveTime = saw.velocityX = 0; saw.radius = 16;
         }
-        for (int i = 0; i < ropes.length; i++) ropes[i].reset(450 + i * ROPE_SPACING, leftWall(), rightWall());
+        for (int i = 0; i < ropes.length; i++) ropes[i].reset(FIRST_ROPE_Y + i * ROPE_SPACING, leftWall(), rightWall());
     }
     public float groundY() { return arcade ? 1_000_000 : stage.groundY; }
+    /** Full chapter rope schedule, including recycled ropes; Arcade is endless. */
+    public int totalRopes() {
+        if (arcade) return 0;
+        int total = ropes.length;
+        for (float height = FIRST_ROPE_Y + ropes.length * ROPE_SPACING;
+                height < groundY()-FLOOR_ROPE_CLEARANCE; height += ROPE_SPACING) total++;
+        return total;
+    }
+    /** Ease in after 30% of chapter cuts, or over Arcade Wave 2. */
+    private float steeringChallenge() {
+        float progress = arcade ? (elapsed-20f)/20f : (brokenCount/(float)totalRopes()-.30f)/.70f;
+        progress = clamp(progress, 0, 1);
+        return progress*progress*(3-2*progress);
+    }
+    public float steeringScale() { return 1-.12f*steeringChallenge(); }
+    /** A gentle alternating deviation, shared by touch and tilt; never a fixed pull. */
+    public float nudgeVelocity() {
+        return 12*steeringChallenge()*(float)Math.sin(elapsed*.9f + stage.index*.8f);
+    }
     public float targetLeft() { return stage.targetCenter - stage.targetWidth / 2; }
     public float targetRight() { return stage.targetCenter + stage.targetWidth / 2; }
     public float hazardInset() { return stage.hazard == StageCatalog.SPIKES ? 18 : stage.hazard == StageCatalog.FIRE ? 10 : 4; }
-    public void touchControlled(boolean enabled) { touchControl = enabled; if (enabled) gx = 0; }
+    public void touchControlled(boolean enabled) {
+        // Releasing a swipe must not carry touch-only wind into motion play.
+        if (touchControl && !enabled) { vx = 0; touchVelocity = 0; }
+        touchControl = enabled;
+        if (enabled) gx = 0;
+    }
     public void steerTouch(float desiredVelocity) {
         touchVelocity = clamp(desiredVelocity, -340, 340);
-        if (touchControl && !lost && !won) vx = touchVelocity + driftVelocity();
+        if (touchControl && !lost && !won) vx = touchVelocity * steeringScale() + driftVelocity() + nudgeVelocity();
     }
     public float steeringVelocity() { return touchVelocity; }
     /** A bounded, alternating air current makes idle touch-only runs require correction. */
     public float driftVelocity() {
         float phase = stage.index * 1.13f + (arcade ? .6f : 0);
-        return 72 * (float)Math.sin(elapsed * .63f + phase) + 28 * (float)Math.sin(elapsed * 1.17f + .8f + phase);
+        return .35f*(72 * (float)Math.sin(elapsed * .63f + phase) + 28 * (float)Math.sin(elapsed * 1.17f + .8f + phase));
     }
     public float mass() { return Math.min(6, 1 + score * .012f); }
     public float radius() { return R + (mass() - 1) * 1.1f; }
@@ -129,10 +161,31 @@ public final class Physics {
     }
     public float rightWall() { return W - leftWall(); }
     public float jumpRemaining() { return jumpCooldown; }
+    public int jumpsRemaining() { return jumpsLeft; }
+    /** A generous total allowance grows with chapter difficulty; Arcade has no lifetime cap. */
+    public int jumpLimit() { return arcade ? 0 : 8+2*stage.chapterIndex; }
+    public int jumpsUsed() { return manualJumps; }
+    public int jumpAllowanceRemaining() { return arcade ? -1 : Math.max(0,jumpLimit()-manualJumps); }
+    public boolean canJump() {
+        return !lost && !won && jumpCooldown <= 0 && jumpsLeft > 0 && (arcade || manualJumps < jumpLimit());
+    }
+    /** Recover while actually descending, rather than waiting forever for a surviving rope. */
+    public float burstRecoveryProgress() {
+        if (jumpsLeft == MAX_JUMPS) return 1;
+        float fall = (y-burstPeakY)/Math.max(1,burstStartY+BURST_DROP-burstPeakY);
+        return Math.min(clamp((elapsed-lastJumpTime)/BURST_RECOVERY_TIME,0,1),clamp(fall,0,1));
+    }
+    private void refillBurst() { jumpsLeft = MAX_JUMPS; burstStartY = burstPeakY = y; }
+    /** Matches the highest visible hair point in the upright human figure. */
+    public float headTop() { return y-cameraY-1.42f*radius(); }
     public boolean jump() {
-        if (lost || won || jumpCooldown > 0) return false;
-        // Same impulse is less effective as the ball gets heavier, with a playability floor.
-        vy = -Math.max(350, 650 / (float) Math.sqrt(mass()));
+        if (!canJump()) return false;
+        if (jumpsLeft == MAX_JUMPS) burstStartY = burstPeakY = y;
+        // One fresh jump fits beneath the ceiling; a second near it is a deliberate risk.
+        vy = -Math.max(350, 450 / (float) Math.sqrt(mass()));
+        jumpsLeft--;
+        manualJumps++;
+        lastJumpTime = elapsed;
         jumpCooldown = .30f;
         flash = .65f;
         return true;
@@ -150,24 +203,41 @@ public final class Physics {
         flash = Math.max(0, flash - DT * 2);
         float left = leftWall(), right = rightWall();
         for (Rope rope : ropes) {
-            if (rope.base < cameraY - 240 && (arcade || nextRopeY < groundY() - 320)) {
+            if (rope.base < cameraY - 240 && (arcade || nextRopeY < groundY() - FLOOR_ROPE_CLEARANCE)) {
                 rope.reset(nextRopeY, left, right);
                 nextRopeY += ROPE_SPACING;
             }
             simulateRope(rope, left, right);
         }
         float previousX = x, previousY = y;
-        vx = touchControl ? touchVelocity + driftVelocity() : clamp((vx + clamp(gx, -950, 950) * DT) * .9995f, -950, 950);
+        if (touchControl) vx = touchVelocity * steeringScale() + driftVelocity() + nudgeVelocity();
+        else {
+            // Tilt requests a bounded sideways speed. Returning to neutral
+            // brakes momentum and rope kicks instead of coasting for seconds.
+            float command = clamp(gx, -950, 950) * (MAX_MOTION_SPEED/950) * steeringScale();
+            float target = clamp(command+nudgeVelocity(), -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
+            float response = Math.abs(command) < 1 ? 14 : 10;
+            vx += (target-vx) * (1f-(float)Math.exp(-response*DT));
+            vx = clamp(vx, -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
+            if (target == 0 && Math.abs(vx) < .5f) vx = 0;
+        }
         vy = clamp(vy + GRAVITY * DT, -1100, 800);
         x += vx * DT;
         y += vy * DT;
         deepestY = Math.max(deepestY, y);
         // Walls are lethal on first overlap, including walls that move into a stationary ball.
         if (hitsSide()) { die(sideReason()); return; }
-        if (y - cameraY < 160 + radius()) { y = cameraY + 160 + radius(); vy = Math.abs(vy) * .25f; }
+        if (hitsCeiling()) return;
         for (Rope rope : ropes) contact(rope);
+        if (!touchControl) vx = clamp(vx, -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
         if (lost) return;
+        if (hitsCeiling()) return;
         if (!arcade) contactGround();
+        if (!won && !lost && jumpsLeft < MAX_JUMPS) {
+            burstPeakY = Math.min(burstPeakY,y);
+            if (elapsed-lastJumpTime >= BURST_RECOVERY_TIME && vy >= 80 && y >= burstStartY+BURST_DROP)
+                refillBurst();
+        }
         if (!won && !lost) simulateHazards(previousX, previousY);
         // Follow downwards, stopping where the target floor remains in view.
         cameraY = arcade ? Math.max(cameraY, y - 430) : Math.min(groundY() - 675, Math.max(cameraY, y - 430));
@@ -244,6 +314,7 @@ public final class Physics {
                 if (!touchControl) vx += nx * impulse;
                 vy += ny * impulse;
                 if (ny < -.45f && normalVelocity < -55) {
+                    refillBurst();
                     landingPulse = .18f;
                     // A landing naturally produces a small spring-assisted human jump.
                     vy = -Math.max(235, 325 / (float) Math.sqrt(mass()));
@@ -269,6 +340,7 @@ public final class Physics {
         vy = -Math.min(350, Math.max(90, impact * .32f));
         landingPulse = .18f;
         groundBounce = 1;
+        refillBurst();
         if (inside) {
             won = true;
             winTime = 0;
@@ -293,6 +365,13 @@ public final class Physics {
     private boolean hitsSide() {
         return x - radius() <= leftWall() + hazardInset() || x + radius() >= rightWall() - hazardInset();
     }
+    private boolean hitsCeiling() {
+        if (headTop() > ARENA_TOP) return false;
+        y = cameraY+ARENA_TOP+1.42f*radius();
+        vx = vy = 0;
+        die("CEILING");
+        return true;
+    }
     private String sideReason() {
         return stage.hazard == StageCatalog.LASER ? "LASER" : stage.hazard == StageCatalog.SPIKES ? "SPIKES" : "FIRE";
     }
@@ -304,7 +383,7 @@ public final class Physics {
             for (SawHazard saw : sawHazards) saw.active = false;
             return;
         }
-        int difficulty = arcade ? arcadeDifficulty : Math.min(2, stage.index / 2);
+        int difficulty = arcade ? arcadeDifficulty : stage.attackDifficulty;
         int mask = arcade ? arcadeHazards : stage.extraHazards;
         boolean occupied = false;
         for (FireHazard fire : fireHazards) if (fire.active) occupied = true;
@@ -317,7 +396,7 @@ public final class Physics {
                 int count = Integer.bitCount(mask), choice = random.nextInt(count), kind = 1;
                 for (; kind <= ArcadeRules.BUZZSAWS; kind <<= 1) if ((mask & kind) != 0 && choice-- == 0) break;
                 // Introduce the new blade predictably before mixing it with side lasers.
-                if (!arcade && stage.index == 3 && attackCount == 0) kind = ArcadeRules.BUZZSAWS;
+                if (!arcade && stage.openingHazard != 0 && attackCount == 0) kind = stage.openingHazard;
                 spawnAttack(kind, difficulty);
                 attackCount++;
                 attackCountdown = ArcadeRules.attackGap(difficulty, wave) + random.nextFloat() * .3f;

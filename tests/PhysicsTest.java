@@ -16,14 +16,14 @@ public final class PhysicsTest {
         p.y=r.y[Physics.Rope.N/2]-p.radius()-5; p.vx=0; p.vy=80;
     }
     private static void catalogAndReset() {
-        check(StageCatalog.COUNT==6,"six stages are available");
+        check(StageCatalog.COUNT==12 && StageCatalog.CHAPTER_COUNT==6,"twelve stages in six chapters are available");
         float previous=0;
         for(int i=0;i<StageCatalog.COUNT;i++) {
             StageCatalog.Stage s=StageCatalog.get(i);
-            check(s.index==i && s.chapterIndex==i/2 && !s.title.isEmpty() && !s.chapterTitle.isEmpty(),"stages form three named chapters");
-            check(s.groundY>previous && s.groundY>=4200 && s.hazard==i/2,"stages are longer and use the chapter hazard");
-            check(s.fireRain==(i==StageCatalog.COUNT-1),"only the last stage rains fire"); previous=s.groundY;
-            check(s.fatalMiss==(i>=3),"only the latter three campaign stages make a floor miss fatal");
+            check(s.index==i && s.chapterIndex==i/2 && !s.title.isEmpty() && !s.chapterTitle.isEmpty(),"stages form six named chapter pairs");
+            check(s.groundY>=4200 && (i%2==0 || s.groundY>previous) && s.hazard>=StageCatalog.LASER && s.hazard<=StageCatalog.FIRE,"each chapter has a longer second descent and an explicit valid boundary hazard");
+            check(s.fireRain==((s.extraHazards&ArcadeRules.FIREBALLS)!=0),"fire-rain capability matches each stage's explicit incoming attack mask"); previous=s.groundY;
+            check(s.fatalMiss==(i>=3),"stages after the first three make a floor miss fatal");
             Physics p=stage(i); p.score=99;p.won=true;p.reset();
             check(p.stage.index==i && p.score==0 && !p.won && !p.lost && p.cameraY==0,"restart preserves the chosen stage and clears gameplay");
             for(Physics.FireHazard f:p.fireHazards) check(!f.active && f.warningTime==0,"restart clears the fire pool");
@@ -56,12 +56,12 @@ public final class PhysicsTest {
             float start=p.x;p.steerTouch(direction*160);run(p,48);
             check((p.x-start)*direction>20 && p.vx*direction>0,"each swipe moves in its direction despite rope contact or stale sensor force");
             p.steerTouch(0);float released=p.x;run(p,200);
-            check(p.steeringVelocity()==0 && Math.abs(p.vx-p.driftVelocity())<.1f,
-                    "release/cancel removes player steering while the intentional air current remains");
-            check(Math.abs(p.x-released)>5 && Math.abs(p.driftVelocity())<=100.01f,"the visible air current requires a correction after release");
+            check(p.steeringVelocity()==0 && Math.abs(p.vx-p.driftVelocity()-p.nudgeVelocity())<.1f,
+                    "release/cancel removes player steering while the intentional air current/nudge remain");
+            check(Math.abs(p.x-released)>1 && Math.abs(p.driftVelocity())<=35.01f,"the visible air current requires a correction after release");
         }
         Physics neutral=stage(0);aboveRope(neutral);float center=neutral.x;
-        for(int i=0;i<1000 && !neutral.lost;i++){neutral.steerTouch(-neutral.driftVelocity());neutral.step();}
+        for(int i=0;i<1000 && !neutral.lost;i++){neutral.steerTouch((-neutral.driftVelocity()-neutral.nudgeVelocity())/neutral.steeringScale());neutral.step();}
         check(!neutral.lost && Math.abs(neutral.x-center)<1,"countersteering can hold position through air current and rope reactions");
         neutral.touchControlled(false);neutral.gx=450;run(neutral,30);
         check(neutral.vx>0 && neutral.x>center+2,"sensor/acceleration steering still works outside touch-only mode");
@@ -71,7 +71,7 @@ public final class PhysicsTest {
             Physics p=stage(i);float initial=p.rightWall()-p.leftWall();
             p.y=p.groundY()/2; p.elapsed=10;p.score=200;
             check(p.rightWall()-p.leftWall()<initial-30,"the sides narrow during a long descent");
-            String reason=i<2?"LASER":i<4?"SPIKES":"FIRE";
+            String reason=p.stage.hazard==StageCatalog.LASER?"LASER":p.stage.hazard==StageCatalog.SPIKES?"SPIKES":"FIRE";
             for(boolean right:new boolean[]{false,true}) {
                 p.reset();p.x=right?p.rightWall()-p.hazardInset()-p.radius()+.5f:p.leftWall()+p.hazardInset()+p.radius()-.5f;
                 p.step();check(p.lost && !p.won && p.blast>0 && reason.equals(p.deathReason),"both chapter sides kill with the correct hazard reason");
@@ -93,11 +93,11 @@ public final class PhysicsTest {
                     "actual manual/automatic jumps cannot reopen the narrowing sides");
             left=p.leftWall();right=p.rightWall();
         }
-        check(jumps>100 && right-left<initialGap-50,"a sustained real jump run keeps increasing side pressure");
+        check(jumps>0 && right-left<=initialGap && (!p.lost || p.deathReason.equals("CEILING") || p.deathReason.equals("LASER")),"budgeted jumps cannot widen the sides, including a terminal ceiling contact");
     }
     private static void safeSteer(Physics p) {
-        float safeLeft=p.leftWall()+p.hazardInset()+p.radius()+3;
-        float safeRight=p.rightWall()-p.hazardInset()-p.radius()-3;
+        float safeLeft=p.leftWall()+p.hazardInset()+p.radius()+8;
+        float safeRight=p.rightWall()-p.hazardInset()-p.radius()-8;
         // Dodge telegraphed fire in the whole safe arena, then line up to finish.
         if(p.y>p.groundY()-350) {
             safeLeft=Math.max(safeLeft,p.targetLeft()+p.radius()+3);
@@ -128,7 +128,7 @@ public final class PhysicsTest {
         for(Physics.SawHazard s:p.sawHazards)if(s.active)
             centerClearance=Math.min(centerClearance,Math.abs(center-Physics.clamp(center,Math.min(s.warningTime>0?s.pathX1:s.x,s.pathX2),Math.max(s.warningTime>0?s.pathX1:s.x,s.pathX2)))-s.radius);
         if(centerClearance>p.radius()+9)best=center;
-        p.steerTouch(Physics.clamp((best-p.x)*10-p.driftVelocity(),-300,300));
+        p.steerTouch(Physics.clamp(((best-p.x)*10-p.driftVelocity()-p.nudgeVelocity())/p.steeringScale(),-300,300));
     }
     private static void variedTargetsRequireSteering() {
         for(int i=0;i<StageCatalog.COUNT;i++) {
@@ -238,6 +238,6 @@ public final class PhysicsTest {
     public static void main(String[] args) {
         catalogAndReset();ropesMassAndJump();touchDirectionAndRelease();sideHazardsAndNarrowing();jumpsNeverWidenHazards();
         variedTargetsRequireSteering();allCoursesWinAndRecycle();fireWarningAndContact();floorRecoveryAndWinFreeze();stress();
-        System.out.println("PASS: six chapter courses, intentional drift/countersteer/release, ropes/weight, narrowing hazards, warning fire/contact, forgiving and fatal floors, terminal wins/reset and 100000 seeded stability steps ("+checks+" checks)");
+        System.out.println("PASS: twelve campaign courses, intentional drift/nudge/countersteer, ropes/weight, narrowing/ceiling hazards, warning fire/contact, forgiving and fatal floors, terminal wins/reset and 100000 seeded stability steps ("+checks+" checks)");
     }
 }

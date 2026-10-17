@@ -10,7 +10,7 @@ public final class BuzzsawPhysicsTest {
         for (Physics.Rope r : p.ropes) r.cut = 12;
         return p;
     }
-    private static void stepCentered(Physics p) { p.steerTouch(-p.driftVelocity()); p.step(); }
+    private static void stepCentered(Physics p) { p.steerTouch((-p.driftVelocity()-p.nudgeVelocity())/p.steeringScale()); p.step(); }
     private static Physics.SawHazard saw(Physics p, float x, float y, float velocity, float warning) {
         Physics.SawHazard s = p.sawHazards[0];
         s.active = true; s.x = x; s.y = y; s.radius = 16; s.velocityX = velocity;
@@ -61,13 +61,13 @@ public final class BuzzsawPhysicsTest {
             float clearance = (float)Math.sqrt(Physics.pointSegmentDistanceSquared(refuge, s.y,
                     path1, s.y, path2, s.y)) - s.radius;
             check(clearance > p.radius() + 8, "entire advertised sweep leaves a full-body refuge with margin");
-            check(Math.abs(refuge - p.x) < (340 - 100) * warning,
+            check(Math.abs(refuge - p.x) < (340*p.steeringScale() - 35 - 12) * warning,
                     "refuge is reachable before activation with bounded touch speed against maximum drift");
             float expectedMotorSequence = p.soundSequence + 1;
             int steps = 0;
             while (s.active && !p.lost && steps++ < 600) {
                 for (Physics.Rope r : p.ropes) r.cut = 12;
-                p.steerTouch(Physics.clamp((refuge - p.x) * 12 - p.driftVelocity(), -340, 340)); p.step();
+                p.steerTouch(Physics.clamp(((refuge - p.x) * 12 - p.driftVelocity()-p.nudgeVelocity())/p.steeringScale(), -340, 340)); p.step();
                 check(activeCount(p) <= 1 && s.pathX1 == path1 && s.pathX2 == path2,
                         "saw path stays locked and cannot stack another incoming attack");
             }

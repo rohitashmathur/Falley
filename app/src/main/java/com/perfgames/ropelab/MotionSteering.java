@@ -10,14 +10,15 @@ package com.perfgames.ropelab;
 public final class MotionSteering {
     public static final int LOOSE = 0, BALANCED = 1, TIGHT = 2;
     private static final float[] GAIN = {1850f, 1350f, 950f};
-    private static final float[] DEAD_ZONE = {.012f, .025f, .055f};
-    private static final float[] OUTPUT_TAU = {.045f, .085f, .15f};
-    private static final float[] ACCEL_TAU = {.09f, .16f, .28f};
+    private static final float[] DEAD_ZONE = {.03f, .045f, .065f};
+    private static final float[] OUTPUT_TAU = {.045f, .065f, .09f};
+    private static final float[] ACCEL_TAU = {.06f, .08f, .10f};
+    private static final long SETTLE_NS = 250000000L, STALE_NS = 250000000L;
     private final boolean gyroAvailable;
     private int preset = BALANCED;
     private float gx, gy, gz = 1f, neutral, output;
-    private long accelTime, gyroTime, outputTime;
-    private boolean sampled;
+    private long accelTime, gyroTime, outputTime, centerStart;
+    private boolean sampled, centering;
 
     public MotionSteering(boolean gyroAvailable) { this.gyroAvailable = gyroAvailable; }
     public int preset() { return preset; }
@@ -27,18 +28,23 @@ public final class MotionSteering {
         output = clamp(output, -1400f, 1400f);
     }
     public boolean hasSample() { return sampled; }
+    public boolean isCentering() { return !sampled || centering; }
     public float acceleration() { return sampled ? output : 0f; }
+    /** nowNs must use Android's elapsedRealtimeNanos clock, like SensorEvent. */
+    public float acceleration(long nowNs) {
+        return !sampled || nowNs < accelTime || nowNs-accelTime > STALE_NS ? 0f : output;
+    }
 
     /** Clears stale integration and automatically centers the next valid pose. */
     public void resetSamples() {
         gx = gy = neutral = output = 0f; gz = 1f;
-        accelTime = gyroTime = outputTime = 0L;
-        sampled = false;
+        accelTime = gyroTime = outputTime = centerStart = 0L;
+        sampled = false; centering = true;
     }
     public boolean calibrate() {
         if (!sampled) return false;
         neutral = -gx;
-        output = 0f;
+        output = 0f; centering = false;
         return true;
     }
 
@@ -49,24 +55,27 @@ public final class MotionSteering {
         if (!finite(length) || length < 3f || length > 18f) return;
         if (accelTime != 0L && timestampNs <= accelTime) return;
         x /= length; y /= length; z /= length;
-        if (!sampled) {
+        if (!sampled || timestampNs-accelTime > STALE_NS) {
             gx = x; gy = y; gz = z; sampled = true;
             neutral = -gx; output = 0f;
-            accelTime = outputTime = timestampNs;
+            accelTime = outputTime = centerStart = timestampNs;
+            gyroTime = 0L; centering = true;
             return;
         }
         float dt = seconds(timestampNs - accelTime);
         accelTime = timestampNs;
-        if (dt > .5f) {
-            // A sensor delivery gap must not integrate old angular velocities.
-            gx = x; gy = y; gz = z; gyroTime = 0L; output = 0f;
-        } else {
-            boolean gyroRecent = gyroAvailable && gyroTime != 0L
-                    && Math.abs(timestampNs - gyroTime) < 150000000L;
-            float tau = gyroRecent ? .55f : ACCEL_TAU[preset];
-            float blend = 1f - (float)Math.exp(-dt / tau);
-            gx += (x - gx) * blend; gy += (y - gy) * blend; gz += (z - gz) * blend;
-            normalize();
+        boolean gyroRecent = gyroAvailable && gyroTime != 0L
+                && Math.abs(timestampNs - gyroTime) < 150000000L;
+        // Settle to the latest natural hold, rather than anchoring a noisy
+        // first sample taken while tapping Play or picking up the phone.
+        float tau = centering ? .04f : gyroRecent ? .35f : ACCEL_TAU[preset];
+        float blend = 1f - (float)Math.exp(-dt / tau);
+        gx += (x - gx) * blend; gy += (y - gy) * blend; gz += (z - gz) * blend;
+        normalize();
+        if (centering) {
+            neutral = -gx; output = 0f; outputTime = timestampNs;
+            if (timestampNs-centerStart >= SETTLE_NS) centering = false;
+            return;
         }
         updateOutput(timestampNs);
     }
@@ -77,6 +86,8 @@ public final class MotionSteering {
         long previous = gyroTime;
         gyroTime = timestampNs;
         if (!sampled || previous == 0L) return;
+        if (timestampNs-accelTime > STALE_NS) { output = 0f; return; }
+        if (centering) return;
         float dt = seconds(timestampNs - previous);
         if (dt > .15f) return;
         // Gravity is fixed in world space, so in the device frame it rotates by
@@ -103,7 +114,9 @@ public final class MotionSteering {
         float tilt = -gx - neutral;
         float magnitude = Math.max(0f, Math.abs(tilt)-DEAD_ZONE[preset]);
         float target = clamp(Math.copySign(magnitude*GAIN[preset], tilt), -1400f, 1400f);
-        output += (target-output)*(1f-(float)Math.exp(-dt/OUTPUT_TAU[preset]));
+        // A level hold means brake now, not a slowly decaying old turn.
+        if (magnitude == 0f) output = 0f;
+        else output += (target-output)*(1f-(float)Math.exp(-dt/OUTPUT_TAU[preset]));
     }
     private void normalize() {
         float length = (float)Math.sqrt(gx*gx+gy*gy+gz*gz);

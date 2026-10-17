@@ -10,8 +10,8 @@ public final class FalleyProfileTest {
     public static void main(String[] args) {
         FalleyProfile profile = new FalleyProfile();
         check(profile.motion && profile.sound && profile.haptics
-                && profile.preset == MotionSteering.BALANCED,
-                "a fresh profile enables feedback with Balanced motion feel");
+                && profile.preset == MotionSteering.LOOSE,
+                "a fresh profile enables feedback with Loose motion feel");
         profile.motion = profile.sound = profile.haptics = false;
         profile.preset = MotionSteering.TIGHT;
         profile.bestScore = 250;
@@ -26,7 +26,7 @@ public final class FalleyProfileTest {
         profile.wins = -9;
         profile.fastestWin = Float.NaN;
         profile.sanitize();
-        check(profile.preset == MotionSteering.BALANCED && profile.bestScore == 0
+        check(profile.preset == MotionSteering.LOOSE && profile.bestScore == 0
                 && profile.wins == 0 && profile.fastestWin == 0,
                 "corrupted local preference values restore safe defaults");
         for (float invalid : new float[] {Float.POSITIVE_INFINITY, -5, 0}) {
@@ -130,6 +130,15 @@ public final class FalleyProfileTest {
                 "arcade survival never creates campaign wins or changes campaign records");
         check(!profile.blood && !profile.motion && !profile.sound && !profile.haptics,
                 "arcade record updates preserve the user's feedback/control choices");
-        System.out.println("PASS: local preferences/blood, campaign and per-stage records, Arcade mask/difficulty sanitization, independent survival score/runs/longest time and campaign isolation (" + checks + " checks)");
+        FalleyProfile localized=new FalleyProfile();
+        check(localized.language==FalleyStrings.ENGLISH && localized.preset==MotionSteering.LOOSE,"fresh installs default to English and Loose");
+        for(int preset=MotionSteering.LOOSE;preset<=MotionSteering.TIGHT;preset++) {
+            localized.language=FalleyStrings.INDONESIAN;localized.preset=preset;localized.sanitize();
+            check(localized.language==FalleyStrings.INDONESIAN && localized.preset==preset,"valid saved language and every motion preset survive sanitization");
+        }
+        localized.language=99;localized.sanitize();check(localized.language==FalleyStrings.ENGLISH,"invalid saved language falls back to English");
+        localized.recordResult(11,true,700,18);localized.language=FalleyStrings.HINDI;localized.sanitize();
+        check(localized.stageWins[11]==1 && localized.best[11]==700 && localized.stageTimes[11]==18 && localized.language==FalleyStrings.HINDI,"expanded last-stage records and language selection remain independent");
+        System.out.println("PASS: local preferences/language/Loose default, expanded campaign records, Arcade sanitization/independent survival records and campaign isolation (" + checks + " checks)");
     }
 }

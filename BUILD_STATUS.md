@@ -1,4 +1,20 @@
-# Falley 3.2 beta build status
+# Falley build status
+
+## Current 3.3 controls update — 17 October 2026
+
+Source metadata: **3.3.0 / code 10**, package `com.perfgames.falley`; Android API 24–36, offline/ad-free. Recoverable two-jump bursts now allow further airborne jumps after actual descent; campaign total allowances grow from 8 to 18 by chapter. Campaign stages unlock sequentially. Touch drift is 35% of its old strength. Settings labels Language, and the visual Touch/Motion guide replaces overlapping numbered rows.
+
+Portable acceptance passes all 13 test classes / **41,965,180 assertions**, including both 100,000-step stability runs, all twelve actual courses, 65-second mixed Arcade runs, recovery/caps/unlocks and 211-key localization checks. The first two forgiving stages can now finish idle; later stages still require input. Independent cross-review found no actionable burst, progression or release-output defect.
+
+Local debug APK: `C:\Users\mathu\Documents\Codex\2026-10-17\Falley-3.3.0\Falley-3.3.0-debug.apk`, **3.3.0-controls-test / code 10**, package `com.perfgames.falley.motiontest`, **341,456 bytes**, SHA-256 `62AE017D69D6752E3CE8EC0F8D48F97311CCB7F01E475E6D1DE821B7F8DF6AE4`; APK v2/v3 verification passes. Native debug checks and signed release generation are in progress. Source will be committed/pushed only after acceptance; binaries and keys remain local. [Current notes](docs/CONTROLS_UPDATE_3_3.md) record exact behavior, reproduction and limits.
+
+## Historical local debug update — 17 October 2026
+
+That earlier local checkpoint added the two-jump/ceiling rules, chapter steering onset after 30% of cuts, Arcade Wave 2 nudge/ramp, Loose default, twelve stages/six chapters, wordmark/avatar splash and English/Hindi/Bahasa Indonesia. It was local and uncommitted/unpushed at that point. Its jump rule and fully unlocked campaign are superseded by 3.3. No release bundle or store artwork was regenerated for that checkpoint; the older 3.2 release proof below remains historical.
+
+Local debug APK: `C:\Users\mathu\Documents\Codex\2026-10-17\Falley-Campaign-Languages-Test\Falley-Campaign-debug.apk`, **3.2.0-campaign-test / code 9**, app `com.perfgames.falley.motiontest`, **337,360 bytes**, SHA-256 `4C83BD6992A886C93E3DDC86F8AF2057D0223A0D48AD0495DA0F59142CAF8A7A`. Build and APK v2/v3 signature verification pass. All 12 portable test classes pass across the broad and corrected targeted runs; both 100,000-step stability suites pass. Final Android 15/API 35 focused checks pass: feature suites at 480×800 and 720×1600, launcher-splash proof and retained motion regression, **5,049 checks/72 distinct PNGs**. Final system frames visibly show FALLEY/avatar after adding Android 13+ `icon_preferred`. Read-only source review found no actionable defect. [Current test notes](docs/LOCAL_TEST_BUILD.md) record changes, reproduction, exact receipts and limits; phone motion comfort and human translation review remain for owner feedback.
+
+## Historical 3.2 store-preparation checkpoint
 
 Current source: **3.2.0 / code 7**, application ID `com.perfgames.falley`; minimum API 24, compile/target API 36. Preparation date: **16 October 2026**. Scope is an offline, ad-free Android phone beta. Binaries and signing material remain local; no Play upload/rollout has occurred.
 

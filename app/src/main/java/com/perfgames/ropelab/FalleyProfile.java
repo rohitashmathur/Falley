@@ -3,7 +3,8 @@ package com.perfgames.ropelab;
 /** Portable local preferences plus independent campaign and arcade records. */
 public final class FalleyProfile {
     public boolean motion = true, sound = true, haptics = true;
-    public int preset = MotionSteering.BALANCED, bestScore, wins;
+    public int preset = MotionSteering.LOOSE, bestScore, wins;
+    public int language = FalleyStrings.ENGLISH;
     public float fastestWin;
     public int selectedStage;
     public final int[] best = new int[StageCatalog.COUNT], stageWins = new int[StageCatalog.COUNT];
@@ -14,11 +15,11 @@ public final class FalleyProfile {
     public final float[] arcadeLongest = new float[3];
 
     public void sanitize() {
-        if (preset < MotionSteering.LOOSE || preset > MotionSteering.TIGHT) preset = MotionSteering.BALANCED;
+        language = FalleyStrings.sanitize(language);
+        if (preset < MotionSteering.LOOSE || preset > MotionSteering.TIGHT) preset = MotionSteering.LOOSE;
         bestScore = Math.max(0, bestScore);
         wins = Math.max(0, wins);
         if (!Float.isFinite(fastestWin) || fastestWin <= 0f) fastestWin = 0f;
-        selectedStage = Math.max(0, Math.min(StageCatalog.COUNT-1, selectedStage));
         arcadeDifficulty = Math.max(0, Math.min(2, arcadeDifficulty));
         arcadeHazards = ArcadeRules.normalizeMask(arcadeHazards);
         for (int i = 0; i < arcadeBest.length; i++) {
@@ -31,6 +32,21 @@ public final class FalleyProfile {
             stageWins[i] = Math.max(0, stageWins[i]);
             if (!Float.isFinite(stageTimes[i]) || stageTimes[i] <= 0f) stageTimes[i] = 0f;
         }
+        selectedStage = Math.max(0, Math.min(highestUnlockedStage(), selectedStage));
+    }
+
+    /** Stage zero is open; each contiguous recorded win opens the following stage. */
+    public int highestUnlockedStage() {
+        int next = 0;
+        while (next < StageCatalog.COUNT && stageWins[next] > 0) next++;
+        return Math.min(StageCatalog.COUNT - 1, next);
+    }
+    public boolean isStageUnlocked(int stageIndex) {
+        return stageIndex >= 0 && stageIndex < StageCatalog.COUNT && stageIndex <= highestUnlockedStage();
+    }
+    public boolean isChapterUnlocked(int chapterIndex) {
+        return chapterIndex >= 0 && chapterIndex < StageCatalog.CHAPTER_COUNT
+                && isStageUnlocked(StageCatalog.firstStageInChapter(chapterIndex));
     }
 
     /** The UI calls once per finished run. Losses can improve score but never add wins. */

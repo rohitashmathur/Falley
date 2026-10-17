@@ -1,6 +1,17 @@
-param([string]$SdkRoot=$env:ANDROID_HOME,[string]$JdkRoot=$env:JAVA_HOME)
+param(
+    [string]$SdkRoot=$env:ANDROID_HOME,
+    [string]$JdkRoot=$env:JAVA_HOME,
+    [ValidatePattern('^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$')][string]$ApplicationId='com.perfgames.falley',
+    [string]$AppLabel='Falley',
+    [string]$VersionName='3.3.0',
+    [ValidateRange(1,2100000000)][int]$VersionCode=10,
+    [string]$OutputApk
+)
 $ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
+if (!$OutputApk) { $OutputApk=Join-Path $root 'Falley-debug.apk' }
+$OutputApk=[IO.Path]::GetFullPath($OutputApk)
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $OutputApk) | Out-Null
 if(!$SdkRoot -or !$JdkRoot){throw 'Set ANDROID_HOME and JAVA_HOME, or pass -SdkRoot and -JdkRoot. Requires SDK 36 / build tools 35.0.0 and JDK 17.'}
 $tools=Join-Path $SdkRoot 'build-tools\35.0.0'
 $androidJar=Join-Path $SdkRoot 'platforms\android-36\android.jar'
@@ -13,9 +24,10 @@ $build=Join-Path $root 'build'
 $stage=Join-Path $build ('falley-'+[guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Force "$stage\generated","$stage\classes","$stage\dex" | Out-Null
 function Run([string]$exe,[string[]]$argsList){ & $exe @argsList; if($LASTEXITCODE -ne 0){throw "$exe failed ($LASTEXITCODE)"} }
-$manifest=(Get-Content "$root\app\src\main\AndroidManifest.xml" -Raw).Replace('<manifest ', '<manifest package="com.perfgames.falley" ')
+$manifest=(Get-Content "$root\app\src\main\AndroidManifest.xml" -Raw).Replace('<manifest ', ('<manifest package="'+$ApplicationId+'" '))
+$manifest=$manifest.Replace('android:label="Falley"',('android:label="'+[Security.SecurityElement]::Escape($AppLabel)+'"'))
 $manifest | Set-Content -Encoding utf8 "$stage\AndroidManifest.xml"
-Run "$tools\aapt.exe" @('package','-f','-m','--debug-mode','--custom-package','com.perfgames.ropelab','-J',"$stage\generated",'-M',"$stage\AndroidManifest.xml",'-S',"$root\app\src\main\res",'-I',$androidJar,'-F',"$stage\unsigned.apk",'--version-code','7','--version-name','3.2.0')
+Run "$tools\aapt.exe" @('package','-f','-m','--debug-mode','--custom-package','com.perfgames.ropelab','-J',"$stage\generated",'-M',"$stage\AndroidManifest.xml",'-S',"$root\app\src\main\res",'-I',$androidJar,'-F',"$stage\unsigned.apk",'--version-code',([string]$VersionCode),'--version-name',$VersionName)
 $files=@((Get-ChildItem "$root\app\src\main\java","$stage\generated" -Recurse -Filter '*.java').FullName)
 Run 'javac.exe' (@('-encoding','UTF-8','-source','8','-target','8','-classpath',$androidJar,'-d',"$stage\classes")+$files)
 Run 'jar.exe' @('cf',"$stage\classes.jar",'-C',"$stage\classes",'.')
@@ -27,6 +39,6 @@ try{[IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip,"$stage\dex\cla
 Run "$tools\zipalign.exe" @('-f','-p','4',"$stage\unsigned.apk","$stage\aligned.apk")
 $key="$build\debug.keystore"
 if(!(Test-Path $key)){Run 'keytool.exe' @('-genkeypair','-keystore',$key,'-storepass','android','-alias','androiddebugkey','-keypass','android','-keyalg','RSA','-keysize','2048','-validity','10000','-dname','CN=Falley Debug,O=Perf Games,C=IN')}
-Run "$tools\apksigner.bat" @('sign','--ks',$key,'--ks-pass','pass:android','--key-pass','pass:android','--out',"$root\Falley-debug.apk","$stage\aligned.apk")
-Run "$tools\apksigner.bat" @('verify','--verbose',"$root\Falley-debug.apk")
-Write-Host "Built $root\Falley-debug.apk"
+Run "$tools\apksigner.bat" @('sign','--ks',$key,'--ks-pass','pass:android','--key-pass','pass:android','--out',$OutputApk,"$stage\aligned.apk")
+Run "$tools\apksigner.bat" @('verify','--verbose',$OutputApk)
+Write-Host "Built $OutputApk"

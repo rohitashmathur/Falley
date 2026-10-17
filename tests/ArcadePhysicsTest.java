@@ -17,8 +17,8 @@ public final class ArcadePhysicsTest {
         check(p.arcade && p.arcadeDifficulty==2 && p.arcadeHazards==31 && !p.lost && !p.won && p.elapsed==0 && p.score==0 && p.wave==1 && p.steeringVelocity()==0,"restart retains survival setup and clears the whole run");
         for(Physics.FireHazard f:p.fireHazards)check(!f.active,"restart removes falling fire");
         for(Physics.BeamHazard b:p.beamHazards)check(!b.active && !b.followCamera,"restart removes live/warning beams");
-        p.y=StageCatalog.get(5).groundY+1200;p.vy=800;p.step();
-        check(!p.won && !p.lost && p.cameraY>StageCatalog.get(5).groundY,"survival continues below every campaign floor without a false win");
+        p.y=StageCatalog.get(StageCatalog.COUNT-1).groundY+1200;p.vy=800;p.step();
+        check(!p.won && !p.lost && p.cameraY>StageCatalog.get(StageCatalog.COUNT-1).groundY,"survival continues below every campaign floor without a false win");
         p.reset(3);check(!p.arcade && p.stage.index==3 && p.groundY()==p.stage.groundY,"campaign selection exits survival");
         p.reset();check(!p.arcade && p.stage.index==3,"campaign restart retains its own stage/mode");
     }
@@ -78,7 +78,7 @@ public final class ArcadePhysicsTest {
                 float candidate=low+(high-low)*k/60;
                 float clearance=fire!=null?Math.abs(candidate-fire.x)-fire.radius:
                     (float)Math.sqrt(Physics.pointSegmentDistanceSquared(candidate,p.y,beam.x1,beam.y1,beam.x2,beam.y2))-beam.width/2;
-                if(clearance>p.radius()+5 && Math.abs(candidate-p.x)<(340-100)*warning)reachableRefuge=true;
+                if(clearance>p.radius()+5 && Math.abs(candidate-p.x)<(340*p.steeringScale()-35-12)*warning)reachableRefuge=true;
             }
             check(reachableRefuge,"a spawned telegraph leaves a reachable full-body refuge within the warning budget");
             for(int k=0;k<24;k++){p.steerTouch(100-p.driftVelocity());p.step();check(activeCount(p)<=1,"warnings never stack incompatible simultaneous attacks");}
@@ -90,11 +90,12 @@ public final class ArcadePhysicsTest {
         for(int i=0;i<StageCatalog.COUNT;i++){
             Physics p=new Physics();p.reset(i);p.touchControlled(true);
             for(int k=0;k<240*60 && !p.lost && !p.won;k++)p.step();
-            check(p.lost && !p.won,"an idle touch-only character cannot automatically clear campaign stage "+i);
+            if(i>=2)check(p.lost && !p.won,"later campaign hazards still require active input with gentle wind: stage "+i);
+            else check(p.lost || p.won,"gentler introductory courses reach a terminal outcome without an artificial fixed pull");
         }
         Physics p=arcade(0,ArcadeRules.FIREBALLS);float initial=p.x;
         for(int k=0;k<120;k++)p.step();
-        check(Math.abs(p.x-initial)>15 && Math.abs(p.driftVelocity())<=100.01f,"survival begins with a bounded, intentional current");
+        check(Math.abs(p.x-initial)>4 && Math.abs(p.driftVelocity())<=35.01f,"survival begins with a bounded, intentional current");
         p.reset();
         for(int k=0;k<240;k++){p.steerTouch(-p.driftVelocity());p.step();}
         check(!p.lost && Math.abs(p.x-240)<1,"the intentional current is controllable with opposite steering");
@@ -111,7 +112,7 @@ public final class ArcadePhysicsTest {
             if(clearance>bestClearance){bestClearance=clearance;best=candidate;}
         }
         if(centerClearance>p.radius()+9)best=center;
-        p.steerTouch(Physics.clamp((best-p.x)*12-p.driftVelocity(),-340,340));
+        p.steerTouch(Physics.clamp(((best-p.x)*12-p.driftVelocity()-p.nudgeVelocity())/p.steeringScale(),-340,340));
     }
     private static void naturalSurvivalAndStress(){
         for(int d=0;d<3;d++){
@@ -141,6 +142,6 @@ public final class ArcadePhysicsTest {
     }
     public static void main(String[] args){
         rulesAndModes();geometry();beamWarningsAndDeaths();spawnedWarningsAndRefuges();idleRequiresCorrection();naturalSurvivalAndStress();
-        System.out.println("PASS: Arcade configuration/reset, swept geometry, three beam deaths/near misses, warning/refuge/lock fairness, intentional drift/no idle wins, three-difficulty natural survival and 100000 survival stability steps ("+checks+" checks)");
+        System.out.println("PASS: Arcade configuration/reset, swept geometry, three beam deaths/near misses, warning/refuge/lock fairness, gentle drift/later-stage challenge, three-difficulty natural survival and 100000 survival stability steps ("+checks+" checks)");
     }
 }

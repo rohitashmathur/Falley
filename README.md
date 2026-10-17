@@ -1,24 +1,28 @@
-# Falley — 3.2 offline beta
+# Falley — 3.3 offline beta
 
-**Physics at play.** An offline Android physics game with elastic ropes, a falling human and two ways to play: a six-stage campaign and configurable Arcade survival.
+An offline Android physics game with elastic ropes, a falling human and two ways to play: a twelve-stage campaign and configurable Arcade survival.
 
-Version **3.2.0 / code 7** prepares an **offline, ad-free Android phone beta**. APKs, AABs and keys stay local; source, screenshots, test evidence and store artwork may be shared. No Google Play upload or rollout has been performed.
+Version **3.3.0 / code 10** adds recoverable two-jump bursts, chapter jump allowances, sequential campaign unlocks, gentler touch drift, labeled language selection and visual Touch/Motion guides. It includes the earlier twelve-stage campaign, motion centering fix, name/avatar splash and English/Hindi/Bahasa Indonesia support. New profiles default to Loose motion; saved choices remain intact. [Current build and test notes](docs/CONTROLS_UPDATE_3_3.md) describe local debug/release artifacts and verification limits. APKs/AABs and keys stay local; only source, documentation and test evidence are pushed to GitHub.
+
+The previous store-preparation checkpoint was **3.2.0 / code 7**, an offline, ad-free phone beta. Its release evidence below is historical and does not validate the current debug update. APKs, AABs and keys stay local; no Google Play upload or rollout has been performed.
 
 ## Play
 
-**Campaign:** choose one of six stages across Laser, Spike and Fire chapters. Survive the narrowing sides, cut ropes as weight increases, and land with the whole contact area inside the stage's target. Later stages shift and narrow the target. Stages 1–3 allow an off-target bounce and recovery; **stages 4–6 make a missed floor target fatal**.
+**Campaign:** progress through twelve stages across Laser descent, Spike canyon, Fire fall, Storm passage, Blade foundry and Last descent. The first stage starts unlocked; winning each stage opens the next, and completing both stages of a chapter opens the next chapter. Earlier sparse records are kept, but missing earlier wins must be completed before later stages become reachable. Chapter pages each show six stages. Survive narrowing sides, cut ropes as weight increases, and land with the whole contact area inside the target. Stages 1–3 allow an off-target bounce and recovery; **stages 4–12 make a missed floor target fatal**. Specialist stages introduce threats before mixing hazards; the final descent reaches 10,800 world units.
 
 Stage 4, **Needle run**, introduces a guaranteed telegraphed buzzsaw before mixing saws with side lasers. Stage 6 mixes all five incoming attack families. Incoming attacks retire within the final 650 world units so they cannot conflict with the target approach; narrowing boundaries and floor rules remain active.
 
 **Arcade:** configure **Chill / Standard / Brutal** and enable one or more incoming attacks: falling fire, top laser, side laser, diagonal lightning and **buzzsaws**. A saw warns along a locked lateral path, then sweeps across part of the corridor while leaving an escape side. These toggles select incoming attacks; the narrowing boundary hazards always remain lethal. Survive for score and time; there is no campaign finish or win. Warning cues precede active hazards. Arcade records are separate for each difficulty and never increase campaign wins.
 
-Tap to jump and swipe horizontally to steer, or enable phone motion. In non-motion play, deliberate drift requires continued steering; leaving the figure idle is not an automatic route to a win. Pause, restart and Home navigation remain available. The human uses jumping, falling and crouched landing poses, plus hazard-specific death reactions.
+Tap to jump and swipe horizontally to steer, or enable phone motion. There are **two quick jumps per burst**, followed by recovery after a brief delay and actual downward progress below where the burst began. A surviving rope is not needed for recovery. Supporting rope/floor landings can refill the burst sooner. Campaign stages allow **8, 10, 12, 14, 16 or 18 total jumps**, increasing by chapter; recovery and landings never refill that total. Arcade has no lifetime jump cap but keeps the same burst/descent rule. Touching the ceiling kills the figure. A normal first jump fits beneath the spawn ceiling; a second jump near the top is risky.
+
+In non-motion play, alternating air drift is reduced to **35% of its previous strength** while remaining nonzero. The first two forgiving introductory stages can finish idle; later stages still require steering. After 30% of a campaign stage's ropes are cut, steering gradually softens by at most 12% and gains a small alternating nudge. Arcade introduces the same effect during Wave 2, reaching its cap at Wave 3. The nudge is bounded to 12 world units per second and has no permanent leftward direction. Pause, restart and Home remain available.
 
 ## Settings and records
 
 Motion uses gyro plus accelerometer when available and filtered accelerometer fallback otherwise. Loose / Balanced / Tight tune sensor response in Settings. The first valid sample automatically centers the current phone pose; no manual centering control is shown.
 
-Motion feel, sound effects, vibration and **Blood effects** persist locally. Blood effects can be turned off. There is no music setting, downloaded audio, account, advertising or backend.
+Motion feel, language, sound effects, vibration and **Blood effects** persist locally. The labeled Language control in Settings offers English, Hindi and Bahasa Indonesia; text is bundled offline. How to Play has three illustrated pages with separate Touch/Motion tabs; it opens on the active control mode. New profiles use Loose motion. Blood effects can be turned off. There is no music setting, downloaded audio, account, advertising or backend.
 
 V3.1 bundles **11 original synthesized effects** for fire launch/burning, laser, lightning, saw motor/impact, UI, jump, rope, win and loss. Android SoundPool plays bounded one-shots with at most three voices. Sound off stops active effects; pause/background/restart clears playback and destruction releases the player. Samples still loading are dropped rather than queued, so an early cue may be silent and cannot arrive late after a pause. Real-device audibility and mix quality have not been verified.
 
@@ -50,14 +54,15 @@ $bundletool = .\scripts\setup-release-tools.ps1
 .\scripts\build-release.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17' -BundletoolJar $bundletool -InitializeSigning
 ```
 
-The script runs `lintRelease` and `bundleRelease`, validates the bundle, checks its signature and signed payload certificates, and generates/verifies a universal APK. Final completion is recorded in [build status](BUILD_STATUS.md). Local outputs are `releases/3.2.0/Falley-3.2.0-beta.aab`, `Falley-3.2.0-beta-local.apk`, its `.apks` archive, manifest and `SHA256SUMS.txt`. The AAB is for a later owner-authorized Play upload; the generated APK is for local install testing.
+The script runs `lintRelease` and `bundleRelease`, validates the bundle, checks its signature and signed payload certificates, and generates/verifies a universal APK. Final completion is recorded in [build status](BUILD_STATUS.md). Version and output filenames derive from `app/build.gradle`; current default outputs are `releases/3.3.0/Falley-3.3.0-beta.aab`, `Falley-3.3.0-beta-local.apk`, its `.apks` archive, manifest and `SHA256SUMS.txt`. `-OutputDirectory` can select another local delivery folder. The AAB is for a later owner-authorized Play upload; the generated APK is for local install testing.
 
 `scripts/release-signing.ps1` keeps the upload key under ignored `releases/private-signing/`, restricts its Windows directory access and protects its credential using the current Windows user's DPAPI. Preserve this identity and a secure recoverable backup; the encrypted credential is tied to that Windows user. See [release signing](docs/RELEASE_SIGNING.md). Never publish signing files or binaries. A release-signed install may require uninstalling an older debug-signed copy, which deletes local records. The locally derived APK uses the upload key; it does not replace testing a later Play-signed install/update.
 
-Native regressions require a running disposable emulator, the installed APK and **SDK platform 35** for the reflection-only test harness, in addition to the app builder's platform 36:
+Native regressions require a running disposable emulator, the installed APK and **SDK platform 35** for the reflection-only test harness, in addition to the app builder's platform 36. Current debug acceptance uses the revision mode; release smoke uses the existing upload identity:
 
 ```powershell
-.\scripts\test-ui.ps1 -Device emulator-5584 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
+.\scripts\test-ui.ps1 -RevisionOnly -AppPackage com.perfgames.falley.motiontest -Device emulator-5584 -FontScale 1.3 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
+.\scripts\test-ui.ps1 -RevisionSmoke -ReleaseSigning -AppPackage com.perfgames.falley -Device emulator-5584 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
 ```
 
 Controlled hazard/floor fixtures are test setups, not natural phone play sessions. Portable source tests live in `tests/`; native tests live in `android-tests/`.
@@ -69,7 +74,7 @@ python .\scripts\generate_audio.py --check
 python .\scripts\generate_audio.py
 ```
 
-## 3.2 beta status
+## Historical 3.2 beta status
 
 **The frozen release build passes:** `lintRelease` and `bundleRelease`, bundletool validation, strict bundle signature checks, all 24 payload certificates, derived APK v2/v3 signatures and `zipalign -P 16`. Lint reports **0 errors and 9 warnings**. Jarsigner also reports ZIP-attribute/archive-order warnings; the strict verification and every-entry certificate checks pass, with unsigned/added-unsigned-entry negative controls rejected. This is not a zero-warning claim.
 
@@ -97,7 +102,7 @@ Historical V3.0/code 5 passed four API 35/36 suites with 2,600 checks/208 captur
 
 Preferences, campaign/Arcade records and sensor processing stay on the device. The app has no Internet permission, analytics or backend and does not save sensor history. Clear app data or uninstall to remove local records; backup/data-extraction rules disable app-data backup and transfer. Settings includes an offline policy, but the owner still needs a real support contact and a publicly accessible policy URL before closed-beta submission.
 
-Real-phone motion/swipe comfort, blood-effect readability, haptics/audio, battery use, screen-reader use and subjective fun still need testing. Balance and difficulty are provisional. Physics uses a compact contact proxy, simplified rope cuts and fixed substeps rather than a full articulated ragdoll or continuous-collision engine. Menus remain English-only; new accessibility nodes do not establish full real-device TalkBack acceptance.
+Real-phone motion/swipe comfort, blood-effect readability, haptics/audio, battery use, screen-reader use and subjective fun still need testing. Balance and difficulty are provisional. Physics uses a compact contact proxy, simplified rope cuts and fixed substeps rather than a full articulated ragdoll or continuous-collision engine. Hindi and Indonesian wording need native-speaker review; emulator layouts do not establish full real-device TalkBack acceptance.
 
 This beta stays offline and ad-free. **AdMob and consent handling are not integrated.** [The beta submission guide](docs/BETA_SUBMISSION.md) orders the owner/Console steps; [store drafts](docs/store/README.md) contain listing, app-content, reviewer and tester material. [Store image instructions](docs/store-assets.md) describe the prepared icon, promotional graphic and six phone images. Artwork and draft text do not publish a listing or establish approval, an age rating or IP clearance.
 
