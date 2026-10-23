@@ -4,6 +4,7 @@ param(
     [switch]$EffectsOnly,
     [switch]$V31Only,
     [switch]$ReleaseOnly,
+    [switch]$PrivacyOnly,
     [switch]$StoreOnly,
     [switch]$MotionOnly,
     [switch]$ProgressionOnly,
@@ -23,7 +24,7 @@ param(
 )
 $ErrorActionPreference='Stop'
 if ($BuildOnly -and $RestoreOnly) { throw 'Choose BuildOnly or RestoreOnly.' }
-if (@($EffectsOnly,$V31Only,$ReleaseOnly,$StoreOnly,$MotionOnly,$ProgressionOnly,$FeatureOnly,$SplashOnly,$RevisionOnly,$RevisionSmoke | Where-Object { $_ }).Count -gt 1) { throw 'Choose one focused or store mode.' }
+if (@($EffectsOnly,$V31Only,$ReleaseOnly,$PrivacyOnly,$StoreOnly,$MotionOnly,$ProgressionOnly,$FeatureOnly,$SplashOnly,$RevisionOnly,$RevisionSmoke | Where-Object { $_ }).Count -gt 1) { throw 'Choose one focused or store mode.' }
 if (($MotionOnly -or $ProgressionOnly -or $FeatureOnly -or $SplashOnly -or $RevisionOnly) -and $ReleaseSigning) { throw 'This focused check is debug-only; use RevisionSmoke for release verification.' }
 if ($SplashOnly -and !$PSBoundParameters.ContainsKey('Viewport')) { $Viewport=@('small') }
 if ($ReleaseSigning -and $KeyStore) { throw 'ReleaseSigning loads the existing upload identity; do not also pass KeyStore.' }
@@ -33,8 +34,8 @@ $root=Split-Path -Parent $PSScriptRoot
 $frontlineRoot=Split-Path -Parent (Split-Path -Parent $root)
 if (!$SdkRoot) { $SdkRoot=Join-Path $frontlineRoot '.toolchain\android-sdk' }
 if (!$JdkRoot) { $JdkRoot=(Get-ChildItem -LiteralPath (Join-Path $frontlineRoot '.toolchain') -Directory -Filter 'jdk-*' | Select-Object -First 1).FullName }
-if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root $(if ($RevisionOnly -or $RevisionSmoke) { 'build\device\revision' } elseif ($SplashOnly) { 'build\device\splash' } elseif ($FeatureOnly) { 'build\device\features' } elseif ($ProgressionOnly) { 'build\device\progression' } elseif ($MotionOnly) { 'build\device\motion-fix' } elseif ($StoreOnly) { 'build\store-captures' } elseif ($ReleaseOnly) { 'build\device\v32-focused' } elseif ($V31Only) { 'build\device\v32-v31-focused' } elseif ($EffectsOnly) { 'build\device\v32-effects' } else { 'build\device\v32' }) }
-$nativeFolder=if ($RevisionOnly -or $RevisionSmoke) { 'falley-native-revision' } elseif ($SplashOnly) { 'falley-native-splash' } elseif ($FeatureOnly) { 'falley-native-features' } elseif ($ProgressionOnly) { 'falley-native-progression' } elseif ($MotionOnly) { 'falley-native-motion' } else { 'falley-native-v32' }
+if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root $(if ($PrivacyOnly) { 'build\device\privacy-contact' } elseif ($RevisionOnly -or $RevisionSmoke) { 'build\device\revision' } elseif ($SplashOnly) { 'build\device\splash' } elseif ($FeatureOnly) { 'build\device\features' } elseif ($ProgressionOnly) { 'build\device\progression' } elseif ($MotionOnly) { 'build\device\motion-fix' } elseif ($StoreOnly) { 'build\store-captures' } elseif ($ReleaseOnly) { 'build\device\v32-focused' } elseif ($V31Only) { 'build\device\v32-v31-focused' } elseif ($EffectsOnly) { 'build\device\v32-effects' } else { 'build\device\v32' }) }
+$nativeFolder=if ($PrivacyOnly) { 'falley-native-privacy' } elseif ($RevisionOnly -or $RevisionSmoke) { 'falley-native-revision' } elseif ($SplashOnly) { 'falley-native-splash' } elseif ($FeatureOnly) { 'falley-native-features' } elseif ($ProgressionOnly) { 'falley-native-progression' } elseif ($MotionOnly) { 'falley-native-motion' } else { 'falley-native-v32' }
 $output=Join-Path $root 'build\android-ui-falley'
 $apk=Join-Path $output $(if ($ReleaseSigning) { 'falley-ui-tests-release.apk' } else { 'falley-ui-tests.apk' })
 function Checked([string]$Program,[string[]]$Arguments) {
@@ -117,7 +118,7 @@ try {
         Adb @('shell','wm','density',$dimensions[1]) | Out-Null
         if ($fontScaleChanged) { Adb @('shell','settings','put','system','font_scale',$FontScale.ToString([Globalization.CultureInfo]::InvariantCulture)) | Out-Null }
         Start-Sleep -Milliseconds 650
-        try { Instrument $(if ($RevisionSmoke) { 'revision_smoke' } elseif ($RevisionOnly) { 'revision' } elseif ($SplashOnly) { 'splash' } elseif ($FeatureOnly) { 'features' } elseif ($ProgressionOnly) { 'progression' } elseif ($MotionOnly) { 'motion' } elseif ($StoreOnly) { 'store' } elseif ($ReleaseOnly) { 'release' } elseif ($V31Only) { 'v31' } elseif ($EffectsOnly) { 'effects' } else { 'suite' }) $name }
+        try { Instrument $(if ($PrivacyOnly) { 'privacy' } elseif ($RevisionSmoke) { 'revision_smoke' } elseif ($RevisionOnly) { 'revision' } elseif ($SplashOnly) { 'splash' } elseif ($FeatureOnly) { 'features' } elseif ($ProgressionOnly) { 'progression' } elseif ($MotionOnly) { 'motion' } elseif ($StoreOnly) { 'store' } elseif ($ReleaseOnly) { 'release' } elseif ($V31Only) { 'v31' } elseif ($EffectsOnly) { 'effects' } else { 'suite' }) $name }
         finally {
             if ($StoreOnly) {
                 foreach ($file in @('campaign.png','landing.png','lightning.png','saw.png','arcade.png','settings.png','sources.json','checks.txt')) {
@@ -141,7 +142,8 @@ finally {
     if ($restored) { try { Adb @('uninstall','com.perfgames.falley.tests') | Out-Null } catch { if (!$failure) { $failure=$_ } } }
 }
 if ($failure) { throw $failure }
-if ($RevisionOnly -or $RevisionSmoke) { Write-Host "PASS: focused Falley campaign locks, burst recovery/budget, drift and visual Help revision checks. Artifacts: $ArtifactRoot" }
+if ($PrivacyOnly) { Write-Host "PASS: focused Falley EN/HI/ID policy contact, URL, wrapping/accessibility, intercepted browser/mail handoff and no app permissions. Artifacts: $ArtifactRoot" }
+elseif ($RevisionOnly -or $RevisionSmoke) { Write-Host "PASS: focused Falley campaign locks, burst recovery/budget, drift and visual Help revision checks. Artifacts: $ArtifactRoot" }
 elseif ($SplashOnly) { Write-Host "PASS: focused Falley debug splash transition/resource checks; starting-window artwork requires visual review. Artifacts: $ArtifactRoot" }
 elseif ($FeatureOnly) { Write-Host "PASS: focused Falley debug localization, paging, jump budget/ceiling and splash checks. Artifacts: $ArtifactRoot" }
 elseif ($ProgressionOnly) { Write-Host "PASS: focused Falley debug late steering progression and actual HUD glyph spacing. Artifacts: $ArtifactRoot" }

@@ -60,7 +60,7 @@ public final class NativeFalleyTest extends Instrumentation {
         super.onCreate(arguments);
         Bundle args = arguments == null ? new Bundle() : arguments;
         mode=args.getString("mode","suite"); shot=args.getString("shot","small");
-        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("release") && !mode.equals("store") && !mode.equals("motion") && !mode.equals("progression") && !mode.equals("features") && !mode.equals("splash") && !mode.equals("revision") && !mode.equals("revision_smoke") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
+        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("release") && !mode.equals("privacy") && !mode.equals("store") && !mode.equals("motion") && !mode.equals("progression") && !mode.equals("features") && !mode.equals("splash") && !mode.equals("revision") && !mode.equals("revision_smoke") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
             throw new IllegalArgumentException("Falley test harness arguments");
         start();
     }
@@ -92,6 +92,8 @@ public final class NativeFalleyTest extends Instrumentation {
                     waitScreen(HOME,4000); motionRegression();
                 } else if (mode.equals("store")) {
                     waitScreen(HOME,4000); storeCaptures();
+                } else if (mode.equals("privacy")) {
+                    waitScreen(HOME,4000); privacyContactRegression();
                 } else if (mode.equals("release")) {
                     waitScreen(HOME,4000); privacyAccessibilityAndAwake();
                     legacyMaskMigration(); fifthHazardGuard(); sawVisuals(); audioLifecycle();
@@ -129,6 +131,7 @@ public final class NativeFalleyTest extends Instrumentation {
         String coverage=mode.equals("effects") ? "focused fire/three-beam warnings, collisions and early/late visual effects"
                 : mode.equals("v31") ? "focused V3.1 mask migration, five hazards, saw physics and native SoundPool counters/lifecycle; audibility not assessed"
                 : mode.equals("release") ? "V3.2 focused privacy, virtual accessibility actions, active-play screen awake, five hazards and audio lifecycle"
+                : mode.equals("privacy") ? "focused EN/HI/ID offline policy, contact/URL visibility and accessibility, long-token glyph fit, real-touch browser/mail intent handoff interception, Back and no requested app permissions"
                 : mode.equals("store") ? "V3.2 high-resolution actual native Canvas store captures and measured crop metadata"
                 : mode.equals("motion") ? "focused debug motion start/restart/resume recentering, neutral hold, bilateral tilt, release braking and touch handoff; controlled real-time accelerometer samples, not a phone comfort test"
                 : mode.equals("progression") ? "focused debug post30%-cut/Wave-2 steering progression and bounded nudge, fresh centering, actual Canvas HUD glyph gaps and native captures; controlled fixtures"
@@ -779,6 +782,78 @@ public final class NativeFalleyTest extends Instrumentation {
         accessibleClick("resume"); requireScreen(PLAY,"accessible Resume returns to gameplay"); goHome();
     }
 
+    private static final String POLICY_URL="https://falley-privacy-policy.vercel.app/";
+    private static final String PRIVACY_EMAIL="mathurrohitash16@gmail.com";
+    private String visiblePrivacyText() throws Exception {
+        final StringBuilder visible=new StringBuilder();
+        ui(() -> {
+            Bitmap bitmap=Bitmap.createBitmap(arena.getWidth(),arena.getHeight(),Bitmap.Config.ARGB_8888);
+            try {
+                HudCanvas canvas=new HudCanvas(bitmap); arena.draw(canvas);
+                for (Glyph glyph:canvas.glyphs) if (glyph.ink.top>=128&&glyph.ink.bottom<=632) visible.append(glyph.text);
+            } finally { bitmap.recycle(); }
+        });
+        return visible.toString().replaceAll("\\s+","");
+    }
+    private void privacyIntent(String id,String action,String uri,boolean accessible) throws Exception {
+        final Intent[] captured={null};
+        ActivityMonitor monitor=new ActivityMonitor() {
+            @Override public ActivityResult onStartActivity(Intent intent) {
+                captured[0]=new Intent(intent);
+                return new ActivityResult(Activity.RESULT_CANCELED,null);
+            }
+        };
+        addMonitor(monitor);
+        try {
+            if (accessible) accessibleClick(id); else click(id);
+            require(captured[0]!=null,"privacy action requests an external app: "+id);
+            require(action.equals(captured[0].getAction()),"privacy action uses the appropriate browser/mail action: "+id);
+            android.net.Uri expected=android.net.Uri.parse(uri),actual=captured[0].getData();
+            boolean destination=actual!=null&&expected.getScheme().equals(actual.getScheme())
+                    &&expected.getSchemeSpecificPart().equals(actual.getSchemeSpecificPart())&&actual.getFragment()==null;
+            require(destination,"privacy action uses the exact public destination, allowing safe URI escaping: "+id);
+            requireScreen(PRIVACY,"intercepted privacy handoff keeps the offline policy available: "+id);
+            log.append("INTERCEPTED ").append(action).append(' ').append(uri).append("; external activity and message sending blocked by test monitor\n");
+        } finally { removeMonitor(monitor); }
+    }
+    private void privacyContactRegression() throws Exception {
+        String[] requested=getTargetContext().getPackageManager().getPackageInfo(APP,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;
+        require(requested==null||requested.length==0,"policy handoffs add no requested app permissions, including no Internet permission");
+        log.append("FONT_SCALE ").append(getTargetContext().getResources().getConfiguration().fontScale).append('\n');
+        Set<String> localizedPolicies=new HashSet<>();
+        for (int language=0;language<3;language++) {
+            featureLanguage(language); click("privacy"); requireScreen(PRIVACY,"privacy opens from Settings by real touch in language "+language);
+            localizedNodes(language,"Privacy contact "+language); renderedFit("Privacy contact "+language,true);
+            require(button("privacy_web")!=null&&button("privacy_email")!=null,"both public policy/contact controls are present in language "+language);
+            capture("privacy-contact-"+language+"-top");
+            ui(() -> {
+                AccessibilityNodeInfo content=arena.getAccessibilityNodeProvider().createAccessibilityNodeInfo(10000);
+                require(content!=null&&content.isScrollable(),"policy content is readable and scrollable through accessibility");
+                String text=content.getText().toString(); localizedPolicies.add(text);
+                require(text.contains(POLICY_URL)&&text.contains(PRIVACY_EMAIL),"accessible full policy contains exact online URL and monitored contact");
+                content.recycle();
+            });
+            boolean sawUrl=false,sawEmail=false;
+            for (int swipe=0;swipe<75;swipe++) {
+                String visible=visiblePrivacyText();
+                if (!sawUrl&&visible.contains(POLICY_URL)) { sawUrl=true; capture("privacy-contact-"+language+"-url"); }
+                sawEmail|=visible.contains(PRIVACY_EMAIL);
+                if (numeric(arena,"privacyScroll")>=numeric(arena,"privacyScrollLimit")-1) break;
+                // Overlap successive viewports so a wrapped address is observed together.
+                pointer(MotionEvent.ACTION_DOWN,240,540); pointer(MotionEvent.ACTION_MOVE,240,320); release(240,320);
+            }
+            require(numeric(arena,"privacyScroll")>=numeric(arena,"privacyScrollLimit")-1,"real swipes reach the final privacy contact in language "+language);
+            require(sawUrl&&sawEmail,"scrolling exposes the entire wrapped policy URL and email as visible text in language "+language+"; URL="+sawUrl+"; email="+sawEmail);
+            renderedFit("Privacy contact end "+language,true); capture("privacy-contact-"+language+"-end");
+            privacyIntent("privacy_web",Intent.ACTION_VIEW,POLICY_URL,false);
+            privacyIntent("privacy_email",Intent.ACTION_SENDTO,"mailto:"+PRIVACY_EMAIL,true);
+            back(); requireScreen(SETTINGS,"Android Back returns privacy to Settings in language "+language);
+            click("privacy"); click("back"); requireScreen(SETTINGS,"privacy Back button returns to Settings in language "+language);
+            back(); requireScreen(HOME,"Settings Back returns to Home after policy in language "+language);
+        }
+        require(localizedPolicies.size()==3,"all three full policies keep distinct localized copy with identical contact details");
+    }
+
     private void chaptersAndPersistence() throws Exception {
         click("chapters"); requireScreen(CHAPTERS,"chapter selection opens"); capture("chapters"); freeze("chapter menu physics frozen");
         for (int i=0;i<6;i++) require(button("stage_"+i)!=null,"stage "+(i+1)+" has a real rendered card");
@@ -1344,7 +1419,7 @@ public final class NativeFalleyTest extends Instrumentation {
         finally { ui(() -> app.unregisterActivityLifecycleCallbacks(callback)); }
         if (earlyFailure[0]!=null) throw new Exception("initial intro clock fixture",earlyFailure[0]);
         bind(); if (!prepareArtifacts) return;
-        output=new File(activity.getExternalFilesDir(null),(mode.startsWith("revision")?"falley-native-revision/":mode.equals("splash")?"falley-native-splash/":mode.equals("features")?"falley-native-features/":mode.equals("motion")?"falley-native-motion/":mode.equals("progression")?"falley-native-progression/":"falley-native-v32/")+shot);
+        output=new File(activity.getExternalFilesDir(null),(mode.equals("privacy")?"falley-native-privacy/":mode.startsWith("revision")?"falley-native-revision/":mode.equals("splash")?"falley-native-splash/":mode.equals("features")?"falley-native-features/":mode.equals("motion")?"falley-native-motion/":mode.equals("progression")?"falley-native-progression/":"falley-native-v32/")+shot);
         require(output.isDirectory()||output.mkdirs(),"artifact directory ready");
         // This test-owned directory must describe only this run, not retain an old failure PNG.
         File[] prior=output.listFiles();

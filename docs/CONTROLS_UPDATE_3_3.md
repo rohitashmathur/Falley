@@ -1,5 +1,7 @@
 # Falley 3.3.0 — controls and campaign correction
 
+Later privacy update: **3.3.1/code 11**, prepared 23 October 2026, adds the real support contact, public policy URL and browser/email actions, with new local debug/release verification. See [privacy update notes](PRIVACY_UPDATE_3_3_1.md). The 3.3.0 artifact paths and checks below remain historical receipts.
+
 Prepared 17 October 2026. Android only, offline and ad-free. Source publication is authorized; APKs/AABs and signing material remain local. No Google Play upload is included in this task. Prior debug notes in `LOCAL_TEST_BUILD.md` describe the superseded code 9 jump rule and unlocked campaign, not this build.
 
 ## Player changes
@@ -60,4 +62,4 @@ The universal `.apks` archive, inspected release manifest and `SHA256SUMS.txt` a
 
 Phone motion comfort, haptic/audio quality, human success rates, native-speaker wording and real TalkBack navigation need player feedback. Chapter budgets and reduced drift are tuning choices; check that eight jumps feel generous in the first chapter and longer drops remain fair. Legacy broad native collision fixtures still need migration before claiming a complete broad release regression. Current acceptance uses the focused revision suite and release smoke.
 
-The app still has no Internet permission, analytics, advertising SDK or backend. The public support email/privacy-policy hosting and Play Console audience/rating/Data safety owner gates from the prior release preparation remain open. Existing store artwork/listing drafts predate these mechanics and need updating before a future submission. Release preparation here creates local signed files; it does not publish to Play or establish store approval.
+The app still has no Internet permission, analytics, advertising SDK or backend. Publication update, 23 October 2026: the owner supplied **mathurrohitash16@gmail.com** and published the [privacy policy](https://falley-privacy-policy.vercel.app/); the live page was checked without a login. The older 3.3.0/code 10 binaries lack that contact in their in-app policy; the [3.3.1/code 11 update](PRIVACY_UPDATE_3_3_1.md) completes the contact/URL alignment with new build and native verification. Play Console audience/rating/Data safety owner gates remain open. Existing store artwork/listing drafts predate these mechanics and need updating before a future submission. No Play release or store approval is implied.

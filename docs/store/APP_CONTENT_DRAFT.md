@@ -1,5 +1,7 @@
 # Offline beta: proposed app-content answers
 
+**Publication update — 23 October 2026:** Use **https://falley-privacy-policy.vercel.app/** for the public policy and **mathurrohitash16@gmail.com** for support/privacy contact. These two fields are no longer unset; the table below preserves the original 3.2 draft. The **3.3.1/code 11** local app builds now include the real in-app contact and policy URL. Current app/artifact declarations still require owner review; see [privacy publishing notes](privacy/PUBLISHING_NOTES.md) and [current build notes](../PRIVACY_UPDATE_3_3_1.md).
+
 Prepared for **3.2.0 / code 7** only. This is a draft for an owner to review against the **final release AAB**, its merged manifest, bundled code and active Play tracks. Nothing has been submitted. Console labels and conditional questions can change; answer the meaning of the live question rather than paste an incompatible form.
 
 ## Data safety

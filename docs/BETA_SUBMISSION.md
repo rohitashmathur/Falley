@@ -1,5 +1,7 @@
 # Falley 3.2.0: Google Play beta submission pack
 
+**Publication update — 23 October 2026:** The owner has supplied **mathurrohitash16@gmail.com** and published the [privacy policy](https://falley-privacy-policy.vercel.app/), verified in a browser without a login. Those two missing-input gates below are resolved. The contact and public URL are also included in the new **3.3.1/code 11** local debug/release builds, with native checks passing; see [current privacy build notes](PRIVACY_UPDATE_3_3_1.md) and [publishing fields](store/privacy/PUBLISHING_NOTES.md). The remainder preserves the original 3.2 guide and older receipts; use the current local artifact rather than its code 7 bundle. No Play Console submission or approval is implied.
+
 Prepared **16 October 2026**, version **3.2.0 / code 7**, application ID `com.perfgames.falley`. Scope: an Android phone beta that stays **offline and ad-free**. “CPP” is treated here as Google Play store/promotion preparation. No Console app, tester list, public policy page or store release has been created or uploaded by this work.
 
 ## What is ready locally, and what still needs the owner

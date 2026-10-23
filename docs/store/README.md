@@ -1,5 +1,7 @@
 # Falley beta listing pack
 
+**Publication update — 23 October 2026:** The public policy is now **https://falley-privacy-policy.vercel.app/** and the support/privacy contact is **mathurrohitash16@gmail.com**. The [3.3.1/code 11 app update](../PRIVACY_UPDATE_3_3_1.md) includes both in the offline policy, with verified local debug/release files. See [current publishing notes](privacy/PUBLISHING_NOTES.md). The older 3.2 draft and missing-contact statements below are historical; older listing assets still need review against the current gameplay.
+
 Prepared 16 October 2026 for **3.2.0 / version code 7**, package `com.perfgames.falley`. This is an **offline, ad-free beta**. Check `../../BUILD_STATUS.md` for the final artifact and verification result before uploading. No Console entry, public policy page, support address or tester invitation has been created by these files.
 
 | File | Console use |

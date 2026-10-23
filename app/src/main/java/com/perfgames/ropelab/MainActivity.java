@@ -2,6 +2,8 @@ package com.perfgames.ropelab;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -13,6 +15,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -27,6 +30,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityNodeProvider;
+import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
@@ -130,6 +134,14 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
     void stopEffects() { if (audio != null) audio.stopAll(); }
     void setSoundEnabled(boolean enabled) { if (audio != null) audio.setEnabled(enabled); }
+    void openPrivacyLink(boolean email) {
+        Intent intent = email ? new Intent(Intent.ACTION_SENDTO,Uri.fromParts("mailto",PrivacyPolicy.CONTACT_EMAIL,null))
+                : new Intent(Intent.ACTION_VIEW,Uri.parse(PrivacyPolicy.PUBLIC_URL));
+        try { startActivity(intent); }
+        catch (ActivityNotFoundException | SecurityException unavailable) {
+            Toast.makeText(this,FalleyStrings.text(arena.profile.language,"No app is available to open this link."),Toast.LENGTH_LONG).show();
+        }
+    }
     @Override public void onAccuracyChanged(Sensor sensor, int accuracy) { }
     @Override public void onSensorChanged(SensorEvent event) {
         if (!resumed || !arena.motionEnabled) return;
@@ -626,22 +638,25 @@ public class MainActivity extends Activity implements SensorEventListener {
             // The policy supports Android text-size preferences independently of
             // the game's fixed arena scale. Only this document scrolls.
             float y = 159-privacyScroll;
-            c.save(); c.clipRect(24,128,446,704);
+            c.save(); c.clipRect(24,128,446,632);
             y = policyParagraph(c,PrivacyPolicy.TITLE,24,y,size+2,lineHeight,true,white)+8;
             y = policyParagraph(c,PrivacyPolicy.PUBLISHER,24,y,size*.85f,lineHeight*.85f,false,muted);
-            y = policyParagraph(c,PrivacyPolicy.EFFECTIVE_DATE,24,y,size*.85f,lineHeight*.85f,false,muted)+24;
+            y = policyParagraph(c,PrivacyPolicy.EFFECTIVE_DATE,24,y,size*.85f,lineHeight*.85f,false,muted);
+            y = policyParagraph(c,PrivacyPolicy.UPDATED_DATE,24,y,size*.85f,lineHeight*.85f,false,muted)+24;
             for (String[] section : PrivacyPolicy.SECTIONS) {
                 y = policyParagraph(c,section[0],24,y,size,lineHeight,true,mint)+2;
                 y = policyParagraph(c,section[1],24,y,size,lineHeight,false,white)+25;
             }
             c.restore();
-            privacyScrollLimit = Math.max(0,y+privacyScroll-714);
+            privacyScrollLimit = Math.max(0,y+privacyScroll-642);
             privacyScroll = clamp(privacyScroll,0,privacyScrollLimit);
-            float viewport = 576, content = viewport+privacyScrollLimit, thumb = viewport*viewport/content;
-            rect(c,452,128,456,704,2,panel);
+            float viewport = 504, content = viewport+privacyScrollLimit, thumb = viewport*viewport/content;
+            rect(c,452,128,456,632,2,panel);
             rect(c,452,128+(viewport-thumb)*(privacyScrollLimit == 0 ? 0 : privacyScroll/privacyScrollLimit),
                     456,128+(viewport-thumb)*(privacyScrollLimit == 0 ? 0 : privacyScroll/privacyScrollLimit)+thumb,2,mint);
-            center(c,privacyScroll >= privacyScrollLimit-1 ? "END OF POLICY" : "SWIPE UP TO READ MORE",240,726,11,muted);
+            center(c,privacyScroll >= privacyScrollLimit-1 ? "END OF POLICY" : "SWIPE UP TO READ MORE",240,655,11,muted);
+            button(c,"privacy_web",24,674,234,728,"ONLINE POLICY",mint,14);
+            button(c,"privacy_email",246,674,456,728,"EMAIL PERF GAMES",white,14);
             button(c,"back",24,744,456,816,"BACK TO SETTINGS",mint,17);
         }
         private float policyParagraph(Canvas c,String value,float x,float y,float size,float lineHeight,boolean bold,int color) {
@@ -650,10 +665,19 @@ public class MainActivity extends Activity implements SensorEventListener {
             paint.setStyle(Paint.Style.FILL); paint.setColor(color); paint.setTextSize(size);
             paint.setTypeface(Typeface.create("sans-serif",bold ? Typeface.BOLD : Typeface.NORMAL));
             StringBuilder row = new StringBuilder();
-            for (String word : value.split(" ")) {
+            for (String sourceWord : value.split(" ")) {
+                String word = sourceWord;
                 String candidate = row.length() == 0 ? word : row+" "+word;
                 if (row.length() > 0 && paint.measureText(candidate) > 414) {
                     c.drawText(row.toString(),x,y,paint); y += lineHeight; row.setLength(0);
+                }
+                // Long web/email addresses must stay inside the document at large text sizes.
+                while (paint.measureText(word) > 414) {
+                    int count = Math.max(1,paint.breakText(word,true,414,null));
+                    if (count < word.length() && Character.isHighSurrogate(word.charAt(count-1))) count--;
+                    if (count == 0) count = Character.charCount(word.codePointAt(0));
+                    c.drawText(word.substring(0,count),x,y,paint); y += lineHeight;
+                    word = word.substring(count);
                 }
                 if (row.length() > 0) row.append(' ');
                 row.append(word);
@@ -1130,6 +1154,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (id.equals("help_next")) helpPage = Math.min(2,helpPage+1);
             else if (id.equals("settings")) { owner.stopEffects(); settingsReturn = screen == HOME ? HOME : PAUSE; screen = SETTINGS; clearTouch(); }
             else if (id.equals("privacy")) { screen = PRIVACY; privacyScroll = 0; clearTouch(); }
+            else if (id.equals("privacy_web") && screen == PRIVACY) owner.openPrivacyLink(false);
+            else if (id.equals("privacy_email") && screen == PRIVACY) owner.openPrivacyLink(true);
             else if (id.equals("language")) { screen = LANGUAGE; clearTouch(); }
             else if (id.startsWith("language_")) { profile.language = FalleyStrings.sanitize(Integer.parseInt(id.substring(9))); saveProfile(); }
             else if (id.equals("back")) back();
@@ -1176,7 +1202,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
             private String content() {
                 if (screen == PRIVACY) {
-                    StringBuilder policy = new StringBuilder(t(PrivacyPolicy.TITLE)).append('\n').append(t(PrivacyPolicy.PUBLISHER)).append('\n').append(t(PrivacyPolicy.EFFECTIVE_DATE));
+                    StringBuilder policy = new StringBuilder(t(PrivacyPolicy.TITLE)).append('\n').append(t(PrivacyPolicy.PUBLISHER)).append('\n').append(t(PrivacyPolicy.EFFECTIVE_DATE)).append('\n').append(t(PrivacyPolicy.UPDATED_DATE));
                     for (String[] section : PrivacyPolicy.SECTIONS) policy.append("\n\n").append(t(section[0])).append('\n').append(t(section[1]));
                     return policy.toString();
                 }
@@ -1249,7 +1275,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 node.addAction(focused == virtualId ? AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS : AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS);
                 if (virtualId == CONTENT) {
                     node.setClassName("android.widget.TextView"); node.setText(spoken(content())); node.setEnabled(true);
-                    bounds(node,24,128,446,704);
+                    bounds(node,24,128,446,screen == PRIVACY ? 632 : 704);
                     if (screen == PRIVACY) {
                         node.setScrollable(true);
                         if (privacyScroll < privacyScrollLimit) node.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
@@ -1310,7 +1336,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 if (action != MotionEvent.ACTION_HOVER_EXIT) {
                     float x = (event.getX()-ox)/scale, y = (event.getY()-oy)/scale;
                     for (int i = buttons.size()-1; i >= 0; i--) if (buttons.get(i).contains(x,y)) { next = i+1; break; }
-                    if (next == NONE && content() != null && x >= 24 && x <= 446 && y >= 128 && y <= 704) next = CONTENT;
+                    if (next == NONE && content() != null && x >= 24 && x <= 446 && y >= 128 && y <= (screen == PRIVACY ? 632 : 704)) next = CONTENT;
                 }
                 if (next != hovered) {
                     if (valid(next)) event(next,AccessibilityEvent.TYPE_VIEW_HOVER_ENTER);
@@ -1331,7 +1357,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     if (buttonPointer < 0 && buttons.get(i).enabled) { pressed = buttons.get(i); buttonPointer = event.getPointerId(index); }
                     return true;
                 }
-                if (screen == PRIVACY && privacyPointer < 0 && x >= 24 && x <= 456 && y >= 128 && y <= 704) {
+                if (screen == PRIVACY && privacyPointer < 0 && x >= 24 && x <= 456 && y >= 128 && y <= 632) {
                     privacyPointer = event.getPointerId(index); privacyLastY = y; return true;
                 }
                 if (screen == PLAY && pointer < 0 && !physics.lost && !physics.won && x >= 20 && x <= 460 && y >= TOP && y <= BOTTOM) {

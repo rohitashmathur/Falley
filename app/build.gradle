@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.perfgames.ropelab'
     compileSdk 36
-    defaultConfig { applicationId 'com.perfgames.falley'; minSdk 24; targetSdk 36; versionCode 10; versionName '3.3.0' }
+    defaultConfig { applicationId 'com.perfgames.falley'; minSdk 24; targetSdk 36; versionCode 11; versionName '3.3.1' }
     compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
 
     def signingNames = ['FALLEY_UPLOAD_KEYSTORE', 'FALLEY_UPLOAD_STORE_PASSWORD', 'FALLEY_UPLOAD_KEY_ALIAS', 'FALLEY_UPLOAD_KEY_PASSWORD']

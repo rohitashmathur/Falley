@@ -1,6 +1,16 @@
 # Falley build status
 
-## Current 3.3 controls update — 17 October 2026
+## Current 3.3.1 privacy update — 23 October 2026
+
+Source metadata: **3.3.1 / code 11**, release package `com.perfgames.falley`; compatible debug package `com.perfgames.falley.motiontest`. The in-app offline policy now includes the confirmed support email and public URL, browser/email footer actions, localized support/website disclosures and long-address wrapping. No requested permissions, ads, analytics or gameplay changes were added.
+
+Local debug APK and upload-signed release AAB/derived APK build successfully. Release lint reports **0 errors / 9 warnings**; bundletool, strict signature/all 24 payload certificates, APK v2/v3 and 16 KiB alignment pass with the preserved upload identity. Language checks pass **2,276 assertions**. Exact local paths, sizes, hashes, native verification and reproduction are recorded in [3.3.1 privacy notes](docs/PRIVACY_UPDATE_3_3_1.md).
+
+Focused native Android 15/API 35 acceptance passes on both builds at 480x800 and 720x1600, all three languages and font scale 1.6: **4,807 checks / 48 captures** (including seven fixture-cleanup checks). Contact/URL visibility, bounds, scrolling, accessibility, Back and intercepted external destinations pass. Root/QA visual review found no overlap; original preferences/display/font settings were restored, the harness removed and the owned emulator stopped.
+
+Binaries and source-hash/build receipts are under `C:\Users\mathu\Documents\Codex\2026-10-23\Falley-3.3.1`. These binaries were built from the working tree before source publication; the recorded source hashes identify their exact build inputs. [Curated 3.3.1 evidence](screenshots/v3.3.1/README.md) contains the native receipts, localization result and selected screenshots. Source and the static policy website are versioned here; binaries and signing material remain local. No Play upload has occurred. Prior gameplay proof below is historical and carried forward, not rerun for this privacy-only change.
+
+## Historical 3.3 controls update — 17 October 2026
 
 Source metadata: **3.3.0 / code 10**, package `com.perfgames.falley`; Android API 24–36, offline/ad-free. Recoverable two-jump bursts now allow further airborne jumps after actual descent; campaign total allowances grow from 8 to 18 by chapter. Campaign stages unlock sequentially. Touch drift is 35% of its old strength. Settings labels Language, and the visual Touch/Motion guide replaces overlapping numbered rows.
 
