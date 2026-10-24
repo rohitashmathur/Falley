@@ -1,0 +1,16 @@
+warning: [options] bootstrap class path not set in conjunction with -source 8
+Note: C:\Users\mathu\Documents\ChatGPT\Frontline\prototypes\falley\android-tests\com\perfgames\falley\tests\NativeFalleyTest.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+1 warning
+INSTRUMENTATION_RESULT: stream=PASS: native Falley ux; checks=10155; captures=76; viewport=small; debug EN/HI/ID Chapter spotlight, bottom navigation and owner Back flows, six chapter art previews, Continue progression, named independent star objectives, immediate retry, control cues and persisted Collection; controlled fixtures; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1
+/sdcard/Android/data/com.perfgames.falley.motiontest/files/falley-native-ux/small/: 77 files pulled, 0 skipped. 7.2 MB/s (3796009 bytes in 0.503s)
+INSTRUMENTATION_RESULT: stream=PASS: native Falley ux; checks=10155; captures=76; viewport=tall; debug EN/HI/ID Chapter spotlight, bottom navigation and owner Back flows, six chapter art previews, Continue progression, named independent star objectives, immediate retry, control cues and persisted Collection; controlled fixtures; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1
+/sdcard/Android/data/com.perfgames.falley.motiontest/files/falley-native-ux/tall/: 77 files pulled, 0 skipped. 12.0 MB/s (6199977 bytes in 0.494s)
+INSTRUMENTATION_RESULT: stream=PASS: native Falley restore; checks=0; captures=0; viewport=recovery; preference recovery only; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1
+PASS: focused Falley debug Chapter spotlight navigation, localization, campaign continuation, objective stars, quick retry, control cues and Collection persistence. Controlled fixtures; phone comfort remains a local playtest. Artifacts: build/device/ux-verified

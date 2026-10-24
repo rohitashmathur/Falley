@@ -7,7 +7,7 @@ public final class SteeringProgressionTest {
     private static void near(float a,float b,float tolerance,String message){check(Math.abs(a-b)<=tolerance,message+": "+a+" versus "+b);}
     private static Physics chapter(int index){Physics p=new Physics();p.reset(index);return p;}
     private static void totalsAndStrictThresholds() {
-        int[] expected={21,25,30,35,39,44,48,51,49,54,57,59};
+        int[] expected={21,23,25,29,29,31,34,36,35,37,39,43,41,43,45,49,47,49,51,55,52,55,58,63};
         for(int stage=0;stage<StageCatalog.COUNT;stage++) {
             Physics p=chapter(stage);
             check(p.totalRopes()==expected[stage],"total mounts match the finite chapter schedule, including the strict final floor clearance");
@@ -116,12 +116,12 @@ public final class SteeringProgressionTest {
         }
         if(clearance(p,center)>p.radius()+9)best=center;
         // A bounded player-style correction; no artificial velocity or position changes.
-        p.steerTouch(Physics.clamp(((best-p.x)*10-p.driftVelocity()-p.nudgeVelocity())/p.steeringScale(),-300,300));
+        p.steerTouch(Physics.clamp(((best-p.x)*10-p.driftVelocity()-p.nudgeVelocity()-p.windVelocity())/p.steeringScale(),-300,300));
     }
     private static void wholeCourses() {
         for(int index=0;index<StageCatalog.COUNT;index++) {
             Physics p=chapter(index);p.touchControlled(true);boolean reduced=false;
-            for(int step=0;step<240*40 && !p.lost && !p.won;step++) {
+            for(int step=0;step<240*100 && !p.lost && !p.won;step++) {
                 steerCourse(p);p.step();
                 if(p.steeringScale()<.99999f)reduced=true;
             }

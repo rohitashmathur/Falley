@@ -5,7 +5,7 @@ public final class PrivacyPolicy {
     public static final String TITLE = "Falley Privacy Policy";
     public static final String PUBLISHER = "Publisher: Perf Games";
     public static final String EFFECTIVE_DATE = "Effective: 16 October 2026";
-    public static final String UPDATED_DATE = "Updated: 23 October 2026";
+    public static final String UPDATED_DATE = "Updated: 24 October 2026";
     public static final String CONTACT_EMAIL = "mathurrohitash16@gmail.com";
     public static final String PUBLIC_URL = "https://falley-privacy-policy.vercel.app/";
     public static final String[][] SECTIONS = {
@@ -17,6 +17,7 @@ public final class PrivacyPolicy {
         {"About this policy", "This policy describes the current offline version of Falley, published by Perf Games. If the app's data practices change, its policy will be updated before those changes are introduced."},
         {"Support messages", "If you email us, we receive your address, message and any attachments you choose to send. We use them to answer your inquiry or privacy request. Gmail, provided by Google, handles correspondence under Google's Privacy Policy. We keep messages only as long as needed to resolve your inquiry, unless law requires longer. You can request deletion by email. We do not sell messages or use them for advertising. Contacting us does not automatically send game records or sensor readings. Do not include sensitive information."},
         {"Online privacy policy", "Read the public policy at " + PUBLIC_URL + " Opening it uses your browser and Internet connection. Vercel hosts the website and may process technical request information to deliver and protect the page. This is separate from the offline game."},
+        {"Sharing a result", "Daily Drop records, stars, streaks and appearance choices stay on your device. If you choose Share Result, Falley creates an image with the course date, generator version, score, time, jumps, avatar and control mode. Android lets you choose where to share it. Nothing is shared automatically. The app you choose handles that shared image under its own policy."},
         {"Privacy contact", "For privacy questions about Falley, email Perf Games at " + CONTACT_EMAIL + ". The buttons below open the policy website or your email app. No message is sent automatically."}
     };
 

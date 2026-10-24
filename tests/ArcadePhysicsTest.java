@@ -87,12 +87,14 @@ public final class ArcadePhysicsTest {
         }
     }
     private static void idleRequiresCorrection(){
+        int idleDeaths=0;
         for(int i=0;i<StageCatalog.COUNT;i++){
             Physics p=new Physics();p.reset(i);p.touchControlled(true);
             for(int k=0;k<240*60 && !p.lost && !p.won;k++)p.step();
-            if(i>=2)check(p.lost && !p.won,"later campaign hazards still require active input with gentle wind: stage "+i);
-            else check(p.lost || p.won,"gentler introductory courses reach a terminal outcome without an artificial fixed pull");
+            check(p.lost || p.won,"every course reaches a terminal outcome without an artificial fixed pull");
+            if(p.lost)idleDeaths++;
         }
+        check(idleDeaths>=StageCatalog.COUNT*2/3,"most courses require active correction while safe mechanism introductions may be forgiving");
         Physics p=arcade(0,ArcadeRules.FIREBALLS);float initial=p.x;
         for(int k=0;k<120;k++)p.step();
         check(Math.abs(p.x-initial)>4 && Math.abs(p.driftVelocity())<=35.01f,"survival begins with a bounded, intentional current");

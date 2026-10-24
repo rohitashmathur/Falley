@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: native Falley ux; checks=10155; captures=76; viewport=tall; debug EN/HI/ID Chapter spotlight, bottom navigation and owner Back flows, six chapter art previews, Continue progression, named independent star objectives, immediate retry, control cues and persisted Collection; controlled fixtures; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1

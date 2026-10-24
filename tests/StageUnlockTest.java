@@ -30,9 +30,9 @@ public final class StageUnlockTest {
         check(p.wins==50 && p.bestScore==9999 && p.stageWins[10]==4 && p.stageTimes[10]==7.5f && p.best[10]==800
                 && p.stageWins[3]==2 && p.best[3]==500,"migration preserves all later/global records rather than deleting locked progress");
         p.recordResult(0,true,100,10);p.recordResult(1,true,100,10);
-        check(p.highestUnlockedStage()==2 && p.isChapterUnlocked(1) && !p.isChapterUnlocked(2),"two first-chapter wins open the second chapter without granting later chapters");
+        check(p.highestUnlockedStage()==2 && !p.isChapterUnlocked(1),"two first-chapter wins open its third stage without bypassing its finale");
         p.recordResult(2,true,100,10);
-        check(p.highestUnlockedStage()==4 && p.isChapterUnlocked(2),"filling a prefix gap correctly reuses preserved later-stage wins");
+        check(p.highestUnlockedStage()==4 && p.isChapterUnlocked(1) && !p.isChapterUnlocked(2),"filling a prefix gap reuses preserved finale wins and opens only the next chapter");
         p.selectedStage=11;p.sanitize();check(p.selectedStage==4,"an unreachable saved selection clamps to the currently reachable frontier");
         p.selectedStage=1;p.sanitize();check(p.selectedStage==1,"a valid earlier saved selection stays selected");
         p.stageWins[1]=-1;p.selectedStage=4;p.sanitize();

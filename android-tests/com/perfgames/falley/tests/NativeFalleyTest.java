@@ -45,7 +45,7 @@ public final class NativeFalleyTest extends Instrumentation {
     private String APP;
     private static final String ACTIVITY = "com.perfgames.ropelab.MainActivity";
     private static final String BACKUP_MARKER = "fixture-original-ready";
-    private static final int HOME=0, PLAY=1, SETTINGS=2, HELP=3, PAUSE=4, RESULT=5, SPLASH=6, CHAPTERS=7, ARCADE_SETUP=8, PRIVACY=9, LANGUAGE=10;
+    private static final int HOME=0, PLAY=1, SETTINGS=2, HELP=3, PAUSE=4, RESULT=5, SPLASH=6, CHAPTERS=7, ARCADE_SETUP=8, PRIVACY=9, LANGUAGE=10, DAILY=11, WARDROBE=12, BRIEF=13;
     private Activity activity;
     private View arena;
     private Object physics;
@@ -60,7 +60,7 @@ public final class NativeFalleyTest extends Instrumentation {
         super.onCreate(arguments);
         Bundle args = arguments == null ? new Bundle() : arguments;
         mode=args.getString("mode","suite"); shot=args.getString("shot","small");
-        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("release") && !mode.equals("privacy") && !mode.equals("store") && !mode.equals("motion") && !mode.equals("progression") && !mode.equals("features") && !mode.equals("splash") && !mode.equals("revision") && !mode.equals("revision_smoke") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
+        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("release") && !mode.equals("privacy") && !mode.equals("store") && !mode.equals("motion") && !mode.equals("progression") && !mode.equals("features") && !mode.equals("splash") && !mode.equals("revision") && !mode.equals("revision_smoke") && !mode.equals("expansion") && !mode.equals("ux") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
             throw new IllegalArgumentException("Falley test harness arguments");
         start();
     }
@@ -80,7 +80,11 @@ public final class NativeFalleyTest extends Instrumentation {
                 if (!mode.equals("features")) fixture.putInt("preset",1);
                 require(fixture.commit(),"deterministic emulator settings installed");
                 launch();
-                if (mode.equals("revision")||mode.equals("revision_smoke")) {
+                if (mode.equals("ux")) {
+                    waitScreen(HOME,4000); uxRegression();
+                } else if (mode.equals("expansion")) {
+                    waitScreen(HOME,4000); expansionRegression();
+                } else if (mode.equals("revision")||mode.equals("revision_smoke")) {
                     waitScreen(HOME,4000); revisionRegression(mode.equals("revision_smoke"));
                 } else if (mode.equals("splash")) {
                     splashRegression(); waitScreen(HOME,4000);
@@ -132,6 +136,8 @@ public final class NativeFalleyTest extends Instrumentation {
                 : mode.equals("v31") ? "focused V3.1 mask migration, five hazards, saw physics and native SoundPool counters/lifecycle; audibility not assessed"
                 : mode.equals("release") ? "V3.2 focused privacy, virtual accessibility actions, active-play screen awake, five hazards and audio lifecycle"
                 : mode.equals("privacy") ? "focused EN/HI/ID offline policy, contact/URL visibility and accessibility, long-token glyph fit, real-touch browser/mail intent handoff interception, Back and no requested app permissions"
+                : mode.equals("ux") ? "debug EN/HI/ID Chapter spotlight, bottom navigation and owner Back flows, six chapter art previews, Continue progression, named independent star objectives, immediate retry, control cues and persisted Collection; controlled fixtures"
+                : mode.equals("expansion") ? "debug EN/HI/ID six chapter pages, local Daily Drop retry/share intent and PNG provider, cumulative mastery stars and chapter wardrobe rewards, actual native finale/mechanic render fixtures and twelve-to-twenty-four-stage preference migration"
                 : mode.equals("store") ? "V3.2 high-resolution actual native Canvas store captures and measured crop metadata"
                 : mode.equals("motion") ? "focused debug motion start/restart/resume recentering, neutral hold, bilateral tilt, release braking and touch handoff; controlled real-time accelerometer samples, not a phone comfort test"
                 : mode.equals("progression") ? "focused debug post30%-cut/Wave-2 steering progression and bounded nudge, fresh centering, actual Canvas HUD glyph gaps and native captures; controlled fixtures"
@@ -153,6 +159,275 @@ public final class NativeFalleyTest extends Instrumentation {
         finish(failure==null?Activity.RESULT_OK:Activity.RESULT_CANCELED,result);
     }
 
+    private void uxHome() throws Exception {
+        if(screen()==PLAY)click("pause");
+        if(screen()==PAUSE||screen()==RESULT)click("home");
+        for(int i=0;i<5&&screen()!=HOME;i++)back();
+        requireScreen(HOME,"UX owner navigation returns Home");
+    }
+    private void uxNav(String id,int expected) throws Exception {
+        final float[] point={0,0};ui(() -> {
+            Object last=null;for(Object hit:(List<?>)read(arena,"buttons"))if(id.equals(read(hit,"id"))&&((Number)read(hit,"top")).floatValue()>=740)last=hit;
+            require(last!=null,"bottom navigation exposes "+id);
+            point[0]=(((Number)read(last,"left")).floatValue()+((Number)read(last,"right")).floatValue())/2;
+            point[1]=(((Number)read(last,"top")).floatValue()+((Number)read(last,"bottom")).floatValue())/2;
+        });tap(point[0],point[1]);requireScreen(expected,"actual bottom tab opens "+id);
+    }
+    private String uxText(String english) throws Exception {
+        final String[] value={null};ui(() -> value[0]=(String)call(arena,"t",english,new Object[0]));return value[0];
+    }
+    private void uxFit(String context) throws Exception {
+        renderedFit(context,false);
+        ui(() -> {
+            Bitmap bitmap=Bitmap.createBitmap(arena.getWidth(),arena.getHeight(),Bitmap.Config.ARGB_8888);
+            try {
+                HudCanvas c=new HudCanvas(bitmap,true);arena.draw(c);
+                for(int i=0;i<c.glyphs.size();i++)for(int j=i+1;j<c.glyphs.size();j++) {
+                    Glyph a=c.glyphs.get(i),b=c.glyphs.get(j);if(a.text.trim().isEmpty()||b.text.trim().isEmpty())continue;
+                    RectF overlap=new RectF(a.ink);if(!overlap.intersect(b.ink))continue;
+                    require(overlap.width()<1||overlap.height()<1,context+" distinct text has no overlap: "+a.text+" / "+b.text);
+                }
+                for(Object hit:(List<?>)read(arena,"buttons")) {
+                    float l=((Number)read(hit,"left")).floatValue(),r=((Number)read(hit,"right")).floatValue(),t=((Number)read(hit,"top")).floatValue(),b=((Number)read(hit,"bottom")).floatValue();
+                    require(l>=20&&r<=460&&t>=0&&b<=820,context+" rendered control stays visible: "+read(hit,"id"));
+                    require(r-l>=44&&b-t>=44,context+" rendered control has a practical touch target: "+read(hit,"id"));
+                }
+            }finally{bitmap.recycle();}
+        });
+    }
+    private void uxMenus() throws Exception {
+        for(int language=0;language<3;language++) {
+            uxHome();featureLanguage(language);back();requireButtonsAbsent("help","restart","pause");
+            uxFit("Home "+language);localizedNodes(language,"Home "+language);capture("ux-home-"+language);
+            ui(() -> {Object primary=button("play"),daily=button("daily");require(((Number)read(primary,"top")).floatValue()<((Number)read(daily,"top")).floatValue(),"Campaign precedes optional modes");});
+            click("play");requireScreen(BRIEF,"primary campaign action opens briefing");uxFit("brief "+language);capture("ux-brief-"+language);back();requireScreen(HOME,"Home-origin brief returns Home");
+            click("chapters");for(int chapter=0;chapter<6;chapter++) {
+                require(numeric(arena,"chapterPage")==chapter,"chapter art has correct page "+chapter);
+                for(int slot=0;slot<4;slot++)require(buttonEnabled("stage_"+(chapter*4+slot))==(chapter==0&&slot==0),"fresh campaign retains sequential locks");
+                uxFit("chapter "+chapter+" language "+language);localizedNodes(language,"chapter art");capture("ux-chapter-"+chapter+"-"+language);
+                if(chapter<5)click("next_chapters");
+            }
+            back();click("chapters");click("stage_0");back();requireScreen(CHAPTERS,"chapter-origin brief returns chapter list");back();
+            click("daily");uxFit("Daily menu "+language);localizedNodes(language,"Daily menu");capture("ux-daily-"+language);back();
+            click("arcade");uxFit("Arcade setup "+language);localizedNodes(language,"Arcade setup");capture("ux-arcade-"+language);back();
+            uxNav("wardrobe",WARDROBE);for(int tab=0;tab<4;tab++){click("closet_tab_"+tab);uxFit("Collection "+tab+" language "+language);localizedNodes(language,"Collection");if(tab==0||tab==3)capture("ux-collection-"+tab+"-"+language);}
+            uxNav("settings",SETTINGS);uxFit("Settings "+language);localizedNodes(language,"Settings");capture("ux-settings-"+language);
+            click("privacy");renderedFit("Privacy "+language,true);localizedNodes(language,"Privacy");capture("ux-privacy-"+language);back();requireScreen(SETTINGS,"Privacy returns to Settings");
+            click("help");requireScreen(HELP,"Help is discoverable from Settings");click("help_touch");
+            for(int page=0;page<6;page++){uxFit("Help page "+page+" language "+language);localizedNodes(language,"Help");if(page==0||page==5)capture("ux-help-"+page+"-"+language);if(page<5)click("help_next");}
+            while(numeric(arena,"helpPage")>0)click("help_prev");click("help_motion");uxFit("Motion Help "+language);capture("ux-help-motion-"+language);back();requireScreen(SETTINGS,"Help returns to its Settings owner");
+            uxNav("home",HOME);requireButtonsAbsent("help");
+        }
+        featureLanguage(0);back();uxNav("wardrobe",WARDROBE);click("closet_tab_2");uxNav("wardrobe",WARDROBE);require(numeric(arena,"closetTab")==2,"reselecting Collection keeps its current tab");uxNav("home",HOME);
+    }
+    private void uxCuesAndRetry() throws Exception {
+        for(int language=0;language<3;language++) {
+            uxHome();featureLanguage(language);back();click("play");click("control_touch");click("begin_campaign");runFrames(80);
+            final String[] touch={null};ui(() -> touch[0]=(String)read(arena,"contextCue"));require("Tap to jump · Swipe to steer".equals(touch[0]),"first Touch run explains jump and swipe together");capture("ux-touch-cue-"+language);
+            click("pause");uxFit("Pause "+language);capture("ux-pause-"+language);click("settings");uxFit("paused Settings "+language);back();requireScreen(PAUSE,"in-run Settings returns Pause");click("home");
+            click("play");require(buttonEnabled("control_motion"),"emulator sensor makes Motion selectable");click("control_motion");click("begin_campaign");runFrames(80);
+            ui(() -> require("Tap to jump · Tilt to steer".equals(read(arena,"contextCue")),"first Motion run explains jump and tilt together"));capture("ux-motion-cue-"+language);uxHome();
+            click("play");click("control_touch");click("begin_campaign");ceilingFixture();runFrames(500);requireScreen(RESULT,"death exposes Retry within half a second");
+            require(numeric(arena,"burstTime")<1.2f,"Retry is visible before the old two-second death delay");require(buttonEnabled("restart"),"quick Retry accepts interaction");uxFit("quick death result "+language);capture("ux-quick-retry-"+language);
+            click("restart");requireScreen(PLAY,"quick Retry starts the same run immediately");require(!physicsBool("lost")&&stageIndex()==0,"quick Retry resets loss without changing stage");uxHome();
+        }
+        featureLanguage(0);back();
+    }
+    private void uxStarState(int before,int current,int fresh,int total,String label) throws Exception {
+        require(numeric(arena,"resultStarsBefore")==before&&numeric(arena,"resultStarsThisRun")==current&&numeric(arena,"resultStarsNew")==fresh,"result retains independent before/run/new masks: "+label);
+        require(expansionStars(0)==total,"cumulative mastery survives partial later runs: "+label);
+        final String[] accessible={null};ui(() -> {AccessibilityNodeInfo n=arena.getAccessibilityNodeProvider().createAccessibilityNodeInfo(10000);require(n!=null,"result exposes objective evidence to accessibility");accessible[0]=n.getText().toString();n.recycle();});
+        for(String objective:new String[]{"Finish","Jump par","Gold centre"})require(accessible[0].contains(uxText(objective)),"result names its objective: "+objective);
+        uxFit("mastery "+label);capture("ux-stars-"+label+"-controlled");
+    }
+    private void uxMasteryAndContinue() throws Exception {
+        expansionStart(0,false);int par=((Number)read(read(physics,"stage"),"parJumps")).intValue();
+        expansionLanding(par+1,.30f);uxStarState(0,1,1,1,"finish-new");
+        click("restart");expansionLanding(par,.30f);uxStarState(1,3,2,3,"par-new");
+        click("restart");expansionLanding(par+1,0);uxStarState(3,5,4,7,"gold-new-par-saved");
+        for(int language=1;language<3;language++){uxHome();featureLanguage(language);back();expansionStart(0,false);expansionLanding(par+1,0);uxStarState(7,5,0,7,"earned-saved-language-"+language);localizedNodes(language,"mastery result");}
+        uxHome();featureLanguage(0);back();click("play");require(stageIndex()==1,"Continue selects first unfinished stage after replaying stage zero");back();
+        click("chapters");click("stage_0");require(stageIndex()==0,"chapter browser can explicitly replay a completed stage");back();requireScreen(CHAPTERS,"replay briefing preserves chapter owner");back();click("play");require(stageIndex()==1,"replay selection does not displace Continue");back();
+        int wins=storage.getInt("wins",0),stars=storage.getInt("stage_stars_0",0);expansionStart(0,true);expansionLanding(0,0);
+        require(storage.getInt("wins",0)==wins&&storage.getInt("stage_stars_0",0)==stars&&numeric(arena,"resultStarsThisRun")==0&&numeric(arena,"resultStarsNew")==0,"mirror practice cannot award star progress");requireButtonsAbsent("next_stage");uxFit("mirror result");capture("ux-mirror-result-controlled");uxHome();
+        ui(() -> {Object p=read(arena,"profile");int[] stageWins=(int[])read(p,"stageWins"),masks=(int[])read(p,"stars");for(int i=0;i<24;i++){stageWins[i]=1;masks[i]=7;}masks[7]=1;write(p,"selectedStage",20);call(arena,"saveProfile");arena.invalidate();log.append("FIXTURE all campaign completions with stage7 mastery gap for Continue and Collection checks\n");});
+        click("play");require(stageIndex()==7,"completed campaign Continue finds the first missing mastery stars");back();
+        ui(() -> {Object p=read(arena,"profile");((int[])read(p,"stars"))[7]=7;write(p,"selectedStage",20);call(arena,"saveProfile");arena.invalidate();});
+        click("play");require(stageIndex()==20,"fully mastered campaign retains the player's selected replay stage");back();
+        uxNav("wardrobe",WARDROBE);for(int i=0;i<7;i++)require(buttonEnabled("avatar_"+i),"all earned chapter rewards remain selectable");click("avatar_6");
+        String[] keys={"","rope_palette","trail_palette","landing_palette"};for(int tab=1;tab<4;tab++){click("closet_tab_"+tab);click("look_3");require(storage.getInt(keys[tab],-1)==3,"Collection saves earned category "+tab);}
+        uxNav("home",HOME);recreate();requireScreen(HOME,"Activity recreation returns to Home");ui(() -> {Object p=read(arena,"profile");require(((Number)read(p,"selectedAvatar")).intValue()==6&&((Number)call(p,"totalStars")).intValue()==72,"Collection and campaign mastery persist after Activity recreation");});capture("ux-home-mastered-controlled");
+    }
+    private void uxModeIsolation() throws Exception {
+        expansionDailyCheck();uxHome();Map<String,Object> campaign=campaignRecords();
+        click("arcade");click("start_arcade");require(physicsBool("arcade")&&!physicsBool("daily"),"Arcade remains separate from Daily and campaign");ceilingFixture();runFrames(500);requireScreen(RESULT,"Arcade also exposes quick Retry");uxFit("Arcade death result");capture("ux-arcade-result-controlled");
+        require(campaign.equals(campaignRecords()),"Arcade result cannot alter campaign stars or records");click("restart");require(physicsBool("arcade")&&!physicsBool("lost"),"Arcade Retry preserves selected mode");uxHome();
+    }
+    private void uxRegression() throws Exception {
+        require(APP.equals("com.perfgames.falley.motiontest"),"UX checks target only the isolated local debug package");require((getTargetContext().getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0,"UX package is debuggable");
+        uxMenus();uxCuesAndRetry();uxMasteryAndContinue();uxModeIsolation();
+    }
+    private void expansionHome() throws Exception {
+        if(screen()==PLAY)click("pause");
+        if(screen()==PAUSE||screen()==RESULT)click("home");
+        for(int i=0;i<3&&screen()!=HOME;i++)back();
+        requireScreen(HOME,"expanded flow returns safely to Home");
+    }
+    private void expansionStart(int stage,boolean mirror) throws Exception {
+        expansionHome();click("chapters");int page=(int)numeric(arena,"chapterPage");
+        while(page<stage/4){click("next_chapters");page++;}while(page>stage/4){click("prev_chapters");page--;}
+        require(buttonEnabled("stage_"+stage),"expanded stage is earned and playable");click("stage_"+stage);
+        requireScreen(BRIEF,"stage opens a pre-drop briefing");if(mirror)click("mirror_run");click("begin_campaign");requireScreen(PLAY,"briefing starts gameplay");
+        require(stageIndex()==stage,"selected expanded stage is active");
+    }
+    private void expansionLanding(int jumps,float offset) throws Exception {
+        stageTargetFixture();ui(() -> {
+            float center=((Number)call(physics,"targetCenter")).floatValue(),width=((Number)call(physics,"targetWidth")).floatValue();
+            write(physics,"manualJumps",jumps);write(physics,"x",center+width*offset);arena.invalidate();
+        });runUntilPhysics("won",true,2000);waitScreen(RESULT,3000);
+    }
+    private int expansionStars(int stage) throws Exception {
+        final int[] value={0};ui(() -> value[0]=((int[])read(read(arena,"profile"),"stars"))[stage]);return value[0];
+    }
+    private void expansionMenuChecks() throws Exception {
+        for(int language=0;language<3;language++) {
+            expansionHome();featureLanguage(language);back();renderedFit("expanded Home "+language,false);localizedNodes(language,"expanded Home");capture("expansion-home-"+language);
+            click("chapters");while(numeric(arena,"chapterPage")>0)click("prev_chapters");
+            for(int chapter=0;chapter<6;chapter++) {
+                require(numeric(arena,"chapterPage")==chapter,"six campaign pages remain sequential");
+                for(int row=0;row<4;row++)require(buttonEnabled("stage_"+(chapter*4+row))==(chapter==0&&row==0),"fresh profile locks every stage after the first");
+                renderedFit("chapter "+chapter+" language "+language,false);localizedNodes(language,"chapter cards");
+                if(chapter==0||chapter==5)capture("expansion-chapter-"+chapter+"-language-"+language);
+                if(chapter<5)click("next_chapters");
+            }
+            require(!buttonEnabled("next_chapters"),"sixth campaign page is the final page");back();
+            click("daily");requireScreen(DAILY,"Daily Drop menu opens");renderedFit("Daily Drop "+language,false);localizedNodes(language,"Daily Drop");capture("expansion-daily-"+language);back();
+            click("wardrobe");requireScreen(WARDROBE,"wardrobe opens");
+            for(int avatar=0;avatar<7;avatar++)require(buttonEnabled("avatar_"+avatar)==(avatar==0),"Human is the only fresh appearance unlocked");
+            click("avatar_6");require(storage.getInt("avatar",0)==0,"locked avatar rejects an actual tap");
+            for(int tab=0;tab<4;tab++){click("closet_tab_"+tab);renderedFit("wardrobe "+tab+" language "+language,false);localizedNodes(language,"wardrobe");if(tab==0)capture("expansion-wardrobe-"+language);}
+            back();click("play");requireScreen(BRIEF,"campaign opens its briefing");renderedFit("briefing "+language,false);localizedNodes(language,"briefing");capture("expansion-briefing-"+language);back();
+            click("help");for(int page=0;page<6;page++){renderedFit("Help "+page+" language "+language,false);if(page==0||page==5)capture("expansion-help-"+page+"-language-"+language);if(page<5)click("help_next");}back();
+        }
+        featureLanguage(0);back();
+    }
+    private void expansionProgressChecks() throws Exception {
+        expansionStart(0,false);int par=((Number)read(read(physics,"stage"),"parJumps")).intValue();
+        expansionLanding(par+1,.30f);require(expansionStars(0)==1,"a base finish earns completion independently of mastery");
+        click("restart");expansionLanding(par,.30f);require(expansionStars(0)==3,"par star can be earned on a later run");
+        click("restart");expansionLanding(par+1,0);require(expansionStars(0)==7,"center star combines with mastery from earlier runs");capture("expansion-cumulative-stars-controlled");
+        int wins=storage.getInt("stage_wins_0",0);freeze("result remains frozen");require(storage.getInt("stage_wins_0",0)==wins,"redrawing a result cannot duplicate the recorded run");
+        for(int stage=1;stage<4;stage++){click("next_stage");requireScreen(BRIEF,"Next Stage includes its briefing");click("begin_campaign");expansionLanding(0,0);require(expansionStars(stage)==7,"native target collision records mastery for chapter stage "+stage);}
+        expansionHome();click("wardrobe");require(buttonEnabled("avatar_1")&&!buttonEnabled("avatar_2"),"actual first chapter completion unlocks only its earned avatar");back();
+        ui(() -> {
+            Object p=read(arena,"profile");int[] stageWins=(int[])read(p,"stageWins"),stars=(int[])read(p,"stars");
+            for(int i=0;i<24;i++){stageWins[i]=Math.max(1,stageWins[i]);stars[i]=7;}call(p,"sanitize");call(arena,"saveProfile");arena.invalidate();
+            log.append("FIXTURE completed remaining chapters and stars explicitly for appearance and finale rendering checks\n");
+        });
+        click("wardrobe");for(int avatar=0;avatar<7;avatar++){require(buttonEnabled("avatar_"+avatar),"each cleared chapter exposes its earned avatar");click("avatar_"+avatar);require(storage.getInt("avatar",-1)==avatar,"earned avatar selection persists");}capture("expansion-earned-avatars-controlled");
+        String[] keys={"","rope_palette","trail_palette","landing_palette"};for(int tab=1;tab<4;tab++){click("closet_tab_"+tab);require(buttonEnabled("look_3"),"mastery unlocks the final appearance in each category");click("look_3");require(storage.getInt(keys[tab],-1)==3,"earned appearance selection is saved");capture("expansion-earned-look-"+tab);}
+        back();recreate();requireScreen(HOME,"recreated Activity opens Home");ui(() -> {Object p=read(arena,"profile");require(((Number)call(p,"totalStars")).intValue()==72&&((Number)read(p,"selectedAvatar")).intValue()==6,"stars and earned avatar survive Activity recreation");});
+    }
+    private void expansionRegression() throws Exception {
+        require(APP.equals("com.perfgames.falley.motiontest"),"expansion checks target the isolated local debug package");
+        require((getTargetContext().getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0,"expansion package is debuggable");
+        String[] permissions=getTargetContext().getPackageManager().getPackageInfo(APP,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;
+        require(permissions==null||permissions.length==0,"expanded modes still request no app permissions or Internet");
+        expansionMenuChecks();expansionProgressChecks();expansionExtraChecks();
+    }
+    // Append these methods before homeAndHelp(). Call expansionExtraChecks() after expansionProgressChecks().
+    private void expansionShareCheck() throws Exception {
+        final Intent[] captured={null};
+        ActivityMonitor monitor=new ActivityMonitor(){
+            @Override public ActivityResult onStartActivity(Intent intent){captured[0]=new Intent(intent);return new ActivityResult(Activity.RESULT_CANCELED,null);}
+        };
+        addMonitor(monitor);
+        try {
+            click("share_daily");
+            require(captured[0]!=null&&Intent.ACTION_CHOOSER.equals(captured[0].getAction()),"daily share is intercepted before any external app opens");
+            Intent send=captured[0].getParcelableExtra(Intent.EXTRA_INTENT);
+            require(send!=null&&Intent.ACTION_SEND.equals(send.getAction())&&"image/png".equals(send.getType()),"share requests a PNG through the Android chooser");
+            android.net.Uri uri=send.getParcelableExtra(Intent.EXTRA_STREAM);
+            require(uri!=null&&"content".equals(uri.getScheme())&&(APP+".share").equals(uri.getAuthority())&&"/result.png".equals(uri.getPath()),"share exposes only its exact result image URI");
+            require((send.getFlags()&Intent.FLAG_GRANT_READ_URI_PERMISSION)!=0&&(send.getFlags()&Intent.FLAG_GRANT_WRITE_URI_PERMISSION)==0,"share grants reading without write access");
+            try(java.io.InputStream stream=getTargetContext().getContentResolver().openInputStream(uri)) {
+                Bitmap card=android.graphics.BitmapFactory.decodeStream(stream);
+                require(card!=null&&card.getWidth()==1080&&card.getHeight()==1350,"share provider returns the actual native result card");
+                try(FileOutputStream file=new FileOutputStream(new File(output,"daily-share-card.png"))){require(card.compress(Bitmap.CompressFormat.PNG,100,file),"result card saved for visual review");captures++;}finally{card.recycle();}
+            }
+            boolean denied=false;
+            try(java.io.InputStream wrong=getTargetContext().getContentResolver().openInputStream(android.net.Uri.parse("content://"+APP+".share/not-a-result.png"))){ }
+            catch(java.io.FileNotFoundException|SecurityException expected){denied=true;}
+            require(denied,"share provider rejects unrecognized file paths");
+            boolean writeDenied=false;
+            try(android.os.ParcelFileDescriptor file=getTargetContext().getContentResolver().openFileDescriptor(uri,"rw")){ }
+            catch(java.io.FileNotFoundException|SecurityException|UnsupportedOperationException expected){writeDenied=true;}
+            require(writeDenied,"share provider refuses write access even to the result image");
+            requireScreen(RESULT,"intercepted sharing leaves the finished run visible");
+            log.append("INTERCEPTED Android result image chooser; no external app, recipient or message contacted\n");
+        }finally{removeMonitor(monitor);}
+    }
+    private void expansionDailyCheck() throws Exception {
+        expansionHome();int wins=storage.getInt("wins",0),best=storage.getInt("bestScore",0);final int[] stars={0};
+        ui(() -> stars[0]=((Number)call(read(arena,"profile"),"totalStars")).intValue());
+        click("daily");click("start_daily");requireScreen(PLAY,"Daily Drop starts an independent finite course");
+        require(physicsBool("daily")&&!physicsBool("arcade"),"Daily Drop uses its own mode flag");
+        int template=stageIndex();float ground=physicsCallFloat("groundY");final long[] seed={0};ui(() -> seed[0]=((Number)read(physics,"dailySeed")).longValue());
+        click("jump");click("restart");
+        ui(() -> require(((Number)read(physics,"dailySeed")).longValue()==seed[0],"retry restores the same deterministic daily seed"));require(stageIndex()==template&&physicsCallFloat("groundY")==ground,"retry restores the same dated course");
+        expansionLanding(2,0);
+        require(storage.getInt("daily_wins",0)==1&&storage.getInt("daily_attempts",0)==1&&storage.getInt("daily_streak",0)==1,"actual daily landing records one completed attempt and one streak day");
+        require(storage.getInt("wins",0)==wins&&storage.getInt("bestScore",0)==best,"daily completion never modifies campaign wins or scores");
+        ui(() -> require(((Number)call(read(arena,"profile"),"totalStars")).intValue()==stars[0],"Daily Drop never awards campaign mastery stars"));
+        capture("expansion-daily-result-controlled");expansionShareCheck();expansionHome();recreate();
+        click("daily");require(storage.getInt("daily_wins",0)==1&&storage.getInt("daily_streak",0)==1,"daily records survive actual Activity recreation");back();
+    }
+    private void expansionBossMechanismCheck() throws Exception {
+        int[] mechanismStages={1,4,8,12,16,20};
+        for(int stage:mechanismStages) {
+            expansionStart(stage,false);
+            ui(() -> {float ground=((Number)call(physics,"groundY")).floatValue();boolean target=stage==1||stage==20;write(physics,"x",240f);write(physics,"y",target?ground-220:1100f);write(physics,"vy",0f);write(physics,"cameraY",target?ground-620:700f);if(target)write(physics,"elapsed",3f);arena.invalidate();});
+            runFrames(180);settle(120);capture("expansion-mechanic-stage-"+stage+"-controlled");expansionHome();
+        }
+        for(int chapter=0;chapter<6;chapter++) {
+            expansionStart(chapter*4+3,false);
+            ui(() -> {
+                float ground=((Number)call(physics,"groundY")).floatValue(),height=Math.max(1600,ground-3500);
+                write(physics,"x",240f);write(physics,"y",height);write(physics,"deepestY",height);write(physics,"cameraY",height-430);write(physics,"vy",0f);write(physics,"bossCountdown",0f);
+                call(arena,"advance",((Number)read(physics.getClass(),"DT")).floatValue(),SystemClock.uptimeMillis());
+                require((Boolean)read(physics,"bossActive")&&((Number)read(physics,"bossWarning")).floatValue()>0,"each chapter machine starts a real telegraphed attack");
+                require(((Number)read(physics,"bossPhase")).intValue()==1,"boss warning is driven by the actual first attack phase");arena.invalidate();
+            });
+            runFrames(180);settle(120);require(physicsFloat("bossWarning")>0,"boss warning remains visible after real compositor frames");capture("expansion-boss-"+(chapter+1)+"-warning-controlled");expansionHome();
+        }
+    }
+    private void expansionMirrorCheck() throws Exception {
+        int before=storage.getInt("wins",0),stageWins=storage.getInt("stage_wins_3",0),stars=storage.getInt("stage_stars_3",0);
+        expansionStart(3,true);dragHeld(240,390,290,390);
+        require(touchVelocity()>0&&physicsCallFloat("steeringVelocity")<0,"explicit mirror practice reverses the actual swipe command");release(290,390);
+        expansionLanding(0,0);
+        require(storage.getInt("wins",0)==before&&storage.getInt("stage_wins_3",0)==stageWins&&storage.getInt("stage_stars_3",0)==stars,"winning mirrored boss practice cannot grant wins, mastery or unlock progression");
+        requireButtonsAbsent("next_stage");capture("expansion-mirror-boss-practice-controlled");expansionHome();
+    }
+    private void expansionMigrationCheck() throws Exception {
+        close();
+        SharedPreferences.Editor fixture=storage.edit().clear().putBoolean("motion",false).putBoolean("sound",false).putBoolean("haptics",false).putInt("wins",7).putInt("bestScore",999).putInt("selectedStage",4);
+        for(int i=0;i<4;i++)fixture.putInt("stage_wins_"+i,1).putInt("stage_best_"+i,100+i).putFloat("stage_time_"+i,40-i);
+        fixture.putInt("stage_wins_9",3).putInt("stage_best_9",999).putFloat("stage_time_9",42);
+        require(fixture.commit(),"controlled twelve-stage legacy save installed only in the emulator app");launch(false);waitScreen(HOME,4000);
+        ui(() -> {
+            Object p=read(arena,"profile");int[] wins=(int[])read(p,"stageWins"),best=(int[])read(p,"best"),stars=(int[])read(p,"stars");float[] times=(float[])read(p,"stageTimes");
+            require(((Number)call(p,"highestUnlockedStage")).intValue()==8&&((Number)read(p,"selectedStage")).intValue()==8,"old cleared chapters retain access to the mapped next introduction");
+            for(int i=0;i<4;i++){int mapped=i/2*4+(i%2==0?0:3);require(wins[mapped]==1&&best[mapped]==100+i&&times[mapped]==40-i,"old score, win count and time survive the explicit course map");}
+            require(wins[19]==3&&best[19]==999&&times[19]==42,"sparse historical later-stage records remain available");
+            for(int star:stars)require(star==0||star==1,"migration never fabricates optional jump or precision evidence");
+        });
+        require(storage.getInt("progression_version",0)==2&&storage.getInt("wins",0)==7,"migration saves its new format without inflating aggregate wins");
+        recreate();require(unlockedStage()==8&&storage.getInt("stage_wins_19",0)==3,"loading the expanded save cannot remigrate its records");capture("expansion-migrated-profile-controlled");
+    }
+    private void expansionExtraChecks() throws Exception {
+        expansionDailyCheck();expansionBossMechanismCheck();expansionMirrorCheck();expansionMigrationCheck();
+    }
     private void homeAndHelp() throws Exception {
         requireScreen(SPLASH,"cold launch begins custom intro");
         // Let the OS starting window yield to the custom intro before capturing its compositor.
@@ -299,7 +574,9 @@ public final class NativeFalleyTest extends Instrumentation {
     private static final class HudCanvas extends Canvas {
         final List<Glyph> glyphs=new ArrayList<>();
         RectF progress,arena; float jumpFillRight=Float.NaN;
-        HudCanvas(Bitmap bitmap) { super(bitmap); }
+        final boolean visibleOnly;
+        HudCanvas(Bitmap bitmap) { this(bitmap,false); }
+        HudCanvas(Bitmap bitmap,boolean visibleOnly) { super(bitmap); this.visibleOnly=visibleOnly; }
         @Override public void drawText(String text,float x,float y,Paint paint) {
             Rect ink=new Rect(); paint.getTextBounds(text,0,text.length(),ink);
             float offset=paint.getTextAlign()==Paint.Align.CENTER?paint.measureText(text)/2:paint.getTextAlign()==Paint.Align.RIGHT?paint.measureText(text):0;
@@ -307,6 +584,7 @@ public final class NativeFalleyTest extends Instrumentation {
             super.drawText(text,x,y,paint);
         }
         @Override public void drawRoundRect(float l,float t,float r,float b,float rx,float ry,Paint paint) {
+            if (visibleOnly&&l==0&&t==0&&r==480&&b==820) glyphs.clear();
             if (l==24&&r==456&&t>=94&&b<160&&b-t<=10) progress=new RectF(l,t,r,b);
             if (l==20&&r==460&&b-t>400) arena=new RectF(l,t,r,b);
             if (l==52&&t==802&&b==806) jumpFillRight=r;
@@ -397,8 +675,9 @@ public final class NativeFalleyTest extends Instrumentation {
                 for (Glyph glyph:canvas.glyphs) if (!glyph.text.trim().isEmpty()) {
                     require(glyph.ink.left>=19&&glyph.ink.right<=461,context+" text fits horizontal app bounds: "+glyph.text);
                     if (!document) require(glyph.ink.top>=0&&glyph.ink.bottom<=820,context+" text fits vertical app bounds: "+glyph.text);
-                    for (Object hit:(List<?>)read(arena,"buttons")) if (glyph.text.equals(read(hit,"label"))) {
+                    for (Object hit:(List<?>)read(arena,"buttons")) if (glyph.text.equals(read(hit,"label")) && glyph.ink.centerY()>=((Number)read(hit,"top")).floatValue() && glyph.ink.centerY()<=((Number)read(hit,"bottom")).floatValue()) {
                         require(glyph.ink.left>=((Number)read(hit,"left")).floatValue()+1&&glyph.ink.right<=((Number)read(hit,"right")).floatValue()-1,context+" button label fits its control: "+glyph.text);
+                        require(glyph.ink.top>=((Number)read(hit,"top")).floatValue()&&glyph.ink.bottom<=((Number)read(hit,"bottom")).floatValue(),context+" button label fits its control vertically: "+glyph.text);
                     }
                     rows++;
                 }
@@ -1419,7 +1698,7 @@ public final class NativeFalleyTest extends Instrumentation {
         finally { ui(() -> app.unregisterActivityLifecycleCallbacks(callback)); }
         if (earlyFailure[0]!=null) throw new Exception("initial intro clock fixture",earlyFailure[0]);
         bind(); if (!prepareArtifacts) return;
-        output=new File(activity.getExternalFilesDir(null),(mode.equals("privacy")?"falley-native-privacy/":mode.startsWith("revision")?"falley-native-revision/":mode.equals("splash")?"falley-native-splash/":mode.equals("features")?"falley-native-features/":mode.equals("motion")?"falley-native-motion/":mode.equals("progression")?"falley-native-progression/":"falley-native-v32/")+shot);
+        output=new File(activity.getExternalFilesDir(null),(mode.equals("ux")?"falley-native-ux/":mode.equals("expansion")?"falley-native-expansion/":mode.equals("privacy")?"falley-native-privacy/":mode.startsWith("revision")?"falley-native-revision/":mode.equals("splash")?"falley-native-splash/":mode.equals("features")?"falley-native-features/":mode.equals("motion")?"falley-native-motion/":mode.equals("progression")?"falley-native-progression/":"falley-native-v32/")+shot);
         require(output.isDirectory()||output.mkdirs(),"artifact directory ready");
         // This test-owned directory must describe only this run, not retain an old failure PNG.
         File[] prior=output.listFiles();
@@ -1491,6 +1770,20 @@ public final class NativeFalleyTest extends Instrumentation {
         require(edit.commit(),"preferences committed");
     }
     private void capture(String name) throws Exception {
+        if(mode.equals("ux")) {
+            // Frozen fixture state still needs a real window frame before a compositor shot.
+            // Manual Canvas fit checks do not submit a Surface frame and are never screenshots.
+            final CountDownLatch committed=new CountDownLatch(1);
+            final boolean[] hardware={false};
+            ui(() -> {
+                hardware[0]=android.os.Build.VERSION.SDK_INT>=29&&arena.isHardwareAccelerated();
+                if(hardware[0])arena.getViewTreeObserver().registerFrameCommitCallback(committed::countDown);
+                arena.invalidate();
+            });
+            if(hardware[0])require(committed.await(1500,TimeUnit.MILLISECONDS),"UX screenshot waits for its native window frame: "+name);
+            // A submitted frame can precede the display compositor by a vsync or two.
+            settle(180);
+        }
         settle(45); Bitmap bitmap=getUiAutomation().takeScreenshot();
         require(bitmap!=null,"native compositor screenshot "+name);
         try (FileOutputStream stream=new FileOutputStream(new File(output,name+".png"))) {

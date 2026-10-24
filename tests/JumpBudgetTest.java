@@ -13,6 +13,9 @@ public final class JumpBudgetTest {
             countdown.setAccessible(true);countdown.setFloat(p,100000);
         } catch(ReflectiveOperationException e){throw new AssertionError("jump fixture cannot isolate incoming attacks",e);}
         for(Physics.Rope r:p.ropes){r.cut=12;r.base=100000;}
+        for(Physics.WindZone z:p.windZones)z.active=false;
+        for(Physics.BouncePad pad:p.bouncePads)pad.active=false;
+        for(Physics.SlowPickup pickup:p.slowPickups)pickup.active=false;
         return p;
     }
     private static void step(Physics p){p.steerTouch((-p.driftVelocity()-p.nudgeVelocity())/p.steeringScale());p.step();}
@@ -51,7 +54,7 @@ public final class JumpBudgetTest {
         Physics p=isolated(0,true);int used=0,steps=0;
         while(!p.lost && used<24 && steps++<240*60){if(p.canJump()){check(p.jump(),"Arcade recovered burst permits another jump");used++;}step(p);}
         check(!p.lost && used==24 && p.jumpLimit()==0 && p.jumpAllowanceRemaining()==-1 && p.jumpsUsed()==24,"Arcade has no campaign total cap while keeping the same descent-based burst recovery");
-        p.reset(4);check(!p.arcade && p.jumpsUsed()==0 && p.jumpLimit()==12,"starting a chapter after Arcade installs its own fresh finite allowance");
+        p.reset(8);check(!p.arcade && p.jumpsUsed()==0 && p.jumpLimit()==12,"starting a chapter after Arcade installs its own fresh finite allowance");
     }
     private static void landingsAndCeiling() {
         Physics p=isolated(0,false);p.jump();steps(p,73);p.jump();int used=p.jumpsUsed();

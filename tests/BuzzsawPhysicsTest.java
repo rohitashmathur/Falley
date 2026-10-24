@@ -85,9 +85,9 @@ public final class BuzzsawPhysicsTest {
                 "restart retains saw-only selection and clears pending sound events");
         for (Physics.SawHazard s : p.sawHazards) check(!s.active && !s.followCamera && s.warningTime == 0,
                 "restart clears live and warning saws");
-        check((StageCatalog.get(3).extraHazards & ArcadeRules.BUZZSAWS) != 0,
-                "a later campaign stage introduces saws alongside its existing attack");
-        p.reset(3); p.touchControlled(true); p.y = p.groundY() - 600; p.cameraY = p.y - 430;
+        check((StageCatalog.get(6).extraHazards & ArcadeRules.BUZZSAWS) != 0,
+                "a later campaign stage introduces saws alongside spring pads");
+        p.reset(6); p.touchControlled(true); p.y = p.groundY() - 600; p.cameraY = p.y - 430;
         Physics.FireHazard approachFire=p.fireHazards[0]; approachFire.active=true; approachFire.x=p.x; approachFire.y=p.y;
         Physics.BeamHazard approachBeam=p.beamHazards[0]; approachBeam.active=true; approachBeam.kind=ArcadeRules.SIDE_LASERS;
         approachBeam.x1=100;approachBeam.x2=380;approachBeam.y1=approachBeam.y2=p.y;

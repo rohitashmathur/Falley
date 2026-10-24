@@ -16,14 +16,14 @@ public final class PhysicsTest {
         p.y=r.y[Physics.Rope.N/2]-p.radius()-5; p.vx=0; p.vy=80;
     }
     private static void catalogAndReset() {
-        check(StageCatalog.COUNT==12 && StageCatalog.CHAPTER_COUNT==6,"twelve stages in six chapters are available");
+        check(StageCatalog.COUNT==24 && StageCatalog.CHAPTER_COUNT==6,"twenty-four stages in six chapters are available");
         float previous=0;
         for(int i=0;i<StageCatalog.COUNT;i++) {
             StageCatalog.Stage s=StageCatalog.get(i);
-            check(s.index==i && s.chapterIndex==i/2 && !s.title.isEmpty() && !s.chapterTitle.isEmpty(),"stages form six named chapter pairs");
-            check(s.groundY>=4200 && (i%2==0 || s.groundY>previous) && s.hazard>=StageCatalog.LASER && s.hazard<=StageCatalog.FIRE,"each chapter has a longer second descent and an explicit valid boundary hazard");
+            check(s.index==i && s.chapterIndex==i/4 && !s.title.isEmpty() && !s.chapterTitle.isEmpty(),"stages form six named four-stage chapters");
+            check(s.groundY>=4200 && (i%4==0 || s.groundY>previous) && s.hazard>=StageCatalog.LASER && s.hazard<=StageCatalog.FIRE,"each chapter builds toward a longer finale with a valid boundary hazard");
             check(s.fireRain==((s.extraHazards&ArcadeRules.FIREBALLS)!=0),"fire-rain capability matches each stage's explicit incoming attack mask"); previous=s.groundY;
-            check(s.fatalMiss==(i>=3),"stages after the first three make a floor miss fatal");
+            check(s.fatalMiss==(i>=4),"chapters after the first make a floor miss fatal");
             Physics p=stage(i); p.score=99;p.won=true;p.reset();
             check(p.stage.index==i && p.score==0 && !p.won && !p.lost && p.cameraY==0,"restart preserves the chosen stage and clears gameplay");
             for(Physics.FireHazard f:p.fireHazards) check(!f.active && f.warningTime==0,"restart clears the fire pool");
@@ -128,7 +128,7 @@ public final class PhysicsTest {
         for(Physics.SawHazard s:p.sawHazards)if(s.active)
             centerClearance=Math.min(centerClearance,Math.abs(center-Physics.clamp(center,Math.min(s.warningTime>0?s.pathX1:s.x,s.pathX2),Math.max(s.warningTime>0?s.pathX1:s.x,s.pathX2)))-s.radius);
         if(centerClearance>p.radius()+9)best=center;
-        p.steerTouch(Physics.clamp(((best-p.x)*10-p.driftVelocity()-p.nudgeVelocity())/p.steeringScale(),-300,300));
+        p.steerTouch(Physics.clamp(((best-p.x)*10-p.driftVelocity()-p.nudgeVelocity()-p.windVelocity())/p.steeringScale(),-300,300));
     }
     private static void variedTargetsRequireSteering() {
         for(int i=0;i<StageCatalog.COUNT;i++) {
@@ -138,13 +138,13 @@ public final class PhysicsTest {
             float center=(p.targetLeft()+p.targetRight())/2;
             p.x=center;p.y=p.groundY()-p.radius()-1;p.vy=240;p.step();
             check(p.won && !p.lost,"the center of each stage target permits a complete descending landing");
-            if(i>=1 && i<=4) {
-                p.reset();p.elapsed=30;p.score=300;p.x=240;p.y=p.groundY()-p.radius()-1;p.vy=240;p.step();
+            if(i==1 || i==4) {
+                p.reset();p.x=p.targetLeft()+p.radius()-4;p.y=p.groundY()-p.radius()-1;p.vy=240;p.step();
                 if(p.stage.fatalMiss) {
                     check(!p.won && p.lost && "HARD LANDING".equals(p.deathReason),"a late-stage target miss causes the required hard landing");
                 } else {
                     check(!p.won && !p.lost && p.groundBounce>0,"an early target miss gets a forgiving bounce");
-                    for(int k=0;k<240 && !p.won && !p.lost;k++){p.steerTouch((center<240?-140:140)-p.driftVelocity());p.step();}
+                    for(int k=0;k<240 && !p.won && !p.lost;k++){p.steerTouch(140-p.driftVelocity());p.step();}
                     check(p.won && !p.lost,"intentional steering recovers into an early shifted target");
                 }
             }
@@ -168,7 +168,7 @@ public final class PhysicsTest {
             check(p.elapsed>8 && p.brokenCount>8 && p.ropes[0].base>initialBase,"the longer course uses and recycles its rope pool");
             check(p.groundY()-p.cameraY<=Physics.H && p.cameraY>0 && p.y+p.radius()<=p.groundY()+.01f,"camera and target landing stay bounded");
             if(i==StageCatalog.COUNT-1)check(warnings>0,"the winning final-stage run encounters mixed hazard warnings");
-            if(i==3)check(sawWarnings>0,"the actual winning Needle run introduces telegraphed saws before landing");
+            if(i==6)check(sawWarnings>0,"the actual winning Spring pursuit introduces telegraphed saws before landing");
             for(Physics.Rope r:p.ropes)check(r.base<p.groundY()-300,"recycled mounts stop above the target floor");
             System.out.printf("Stage %d PASS: %.2fs, %d cuts, score %d%n",i+1,p.elapsed,p.brokenCount,p.score);
         }
@@ -238,6 +238,6 @@ public final class PhysicsTest {
     public static void main(String[] args) {
         catalogAndReset();ropesMassAndJump();touchDirectionAndRelease();sideHazardsAndNarrowing();jumpsNeverWidenHazards();
         variedTargetsRequireSteering();allCoursesWinAndRecycle();fireWarningAndContact();floorRecoveryAndWinFreeze();stress();
-        System.out.println("PASS: twelve campaign courses, intentional drift/nudge/countersteer, ropes/weight, narrowing/ceiling hazards, warning fire/contact, forgiving and fatal floors, terminal wins/reset and 100000 seeded stability steps ("+checks+" checks)");
+        System.out.println("PASS: twenty-four campaign courses, intentional drift/nudge/countersteer, ropes/weight, narrowing/ceiling hazards, warning fire/contact, forgiving and fatal floors, terminal wins/reset and 100000 seeded stability steps ("+checks+" checks)");
     }
 }

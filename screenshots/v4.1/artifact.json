@@ -1,0 +1,22 @@
+{
+  "artifact": "C:\\Users\\mathu\\Documents\\Codex\\2026-10-24\\Falley-4.1.0-debug\\Falley-4.1.0-debug.apk",
+  "versionName": "4.1.0-ux-test",
+  "versionCode": 13,
+  "applicationId": "com.perfgames.falley.motiontest",
+  "label": "Falley Motion Test",
+  "bytes": 386512,
+  "sha256": "d7b77c23afccbb768de75ad395216d890140092dc47b8853f0c6548b95d2a078",
+  "minSdk": 24,
+  "targetSdk": 36,
+  "debuggable": true,
+  "permissions": [],
+  "shareAuthority": "com.perfgames.falley.motiontest.share",
+  "signatureSchemes": [
+    "v2",
+    "v3"
+  ],
+  "zipalign16KiB": true,
+  "baseCommit": "5ef23fb21067ecdc0421e489876b79a8a985d99d",
+  "scope": "Debug only; no release APK/AAB built; binaries stay local",
+  "inputsChangedAfterBuild": []
+}

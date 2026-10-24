@@ -3,8 +3,8 @@ param(
     [string]$JdkRoot=$env:JAVA_HOME,
     [ValidatePattern('^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$')][string]$ApplicationId='com.perfgames.falley',
     [string]$AppLabel='Falley',
-    [string]$VersionName='3.3.1',
-    [ValidateRange(1,2100000000)][int]$VersionCode=11,
+    [string]$VersionName='4.1.0-ux-test',
+    [ValidateRange(1,2100000000)][int]$VersionCode=13,
     [string]$OutputApk
 )
 $ErrorActionPreference='Stop'
@@ -26,6 +26,7 @@ New-Item -ItemType Directory -Force "$stage\generated","$stage\classes","$stage\
 function Run([string]$exe,[string[]]$argsList){ & $exe @argsList; if($LASTEXITCODE -ne 0){throw "$exe failed ($LASTEXITCODE)"} }
 $manifest=(Get-Content "$root\app\src\main\AndroidManifest.xml" -Raw).Replace('<manifest ', ('<manifest package="'+$ApplicationId+'" '))
 $manifest=$manifest.Replace('android:label="Falley"',('android:label="'+[Security.SecurityElement]::Escape($AppLabel)+'"'))
+$manifest=$manifest.Replace('${applicationId}',$ApplicationId)
 $manifest | Set-Content -Encoding utf8 "$stage\AndroidManifest.xml"
 Run "$tools\aapt.exe" @('package','-f','-m','--debug-mode','--custom-package','com.perfgames.ropelab','-J',"$stage\generated",'-M',"$stage\AndroidManifest.xml",'-S',"$root\app\src\main\res",'-I',$androidJar,'-F',"$stage\unsigned.apk",'--version-code',([string]$VersionCode),'--version-name',$VersionName)
 $files=@((Get-ChildItem "$root\app\src\main\java","$stage\generated" -Recurse -Filter '*.java').FullName)

@@ -1,0 +1,12 @@
+Owned Android 15/API35 emulator: emulator-5580
+Physical size: 320x640
+Override size: 720x1280
+Physical density: 160
+Override density: 320
+Restored font_scale: 1.0
+PASS: instrumentation package absent; native restore receipt confirms exact original preferences
+OK: killing emulator, bye bye
+
+OK
+
+PASS: owned emulator shutdown requested; no physical device was used

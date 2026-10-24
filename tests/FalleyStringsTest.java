@@ -50,8 +50,8 @@ public final class FalleyStringsTest {
         for(int language=1;language<=2;language++) {
             for(int i=0;i<StageCatalog.COUNT;i++) {
                 StageCatalog.Stage s=StageCatalog.get(i);
-                check(!FalleyStrings.text(language,s.title).equals(s.title),"every playable stage title has a translation");
-                check(!FalleyStrings.text(language,s.chapterTitle).equals(s.chapterTitle),"every campaign chapter title has a translation");
+                check(!ExpansionStrings.text(language,s.title).equals(s.title),"every playable stage title has a translation through the current UI catalog");
+                check(!ExpansionStrings.text(language,s.chapterTitle).equals(s.chapterTitle),"every campaign chapter title has a translation");
             }
             for(String key:new String[]{"SETTINGS","LANGUAGE","CEILING","DOUBLE JUMP","PRIVACY POLICY"})
                 check(!FalleyStrings.text(language,key).equals(key),"core settings/gameplay/privacy labels are localized");
@@ -59,6 +59,6 @@ public final class FalleyStringsTest {
     }
     public static void main(String[] args) throws ReflectiveOperationException {
         behavior();catalogFormats();
-        System.out.println("PASS: EN/HI/ID selection/fallback, safe formatting, whole-catalog argument integrity and all12stage/6chapter names ("+checks+" checks)");
+        System.out.println("PASS: EN/HI/ID selection/fallback, safe formatting, whole-catalog argument integrity and all "+StageCatalog.COUNT+" stage names ("+checks+" checks)");
     }
 }

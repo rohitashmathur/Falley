@@ -39,7 +39,19 @@ public final class Physics {
         private boolean activated;
     }
     public final SawHazard[] sawHazards = new SawHazard[2];
-    public boolean arcade;
+    public boolean arcade, daily;
+    /** Static world-space mechanisms, generated before input is read. */
+    public static final class WindZone { public float top, bottom, strength; public boolean active; }
+    public static final class BouncePad { public float x, y, width = 76, cooldown; public boolean active; }
+    public static final class SlowPickup { public float x, y; public boolean active, collected; }
+    public final WindZone[] windZones = {new WindZone(), new WindZone(), new WindZone()};
+    public final BouncePad[] bouncePads = {new BouncePad(), new BouncePad(), new BouncePad()};
+    public final SlowPickup[] slowPickups = {new SlowPickup(), new SlowPickup(), new SlowPickup()};
+    public float slowTimeRemaining, landingX, landingTargetCenter, landingTargetWidth;
+    /** Boss cues stay visible before any existing hazard becomes lethal. */
+    public int bossPhase;
+    public float bossWarning, bossLive, bossSafeX, bossY;
+    public boolean bossActive;
     public int arcadeDifficulty = 1, arcadeHazards = ArcadeRules.ALL, wave = 1;
     public float x, y, vx, vy, gx, cameraY, elapsed, flash, blast;
     public int score, brokenCount;
@@ -51,13 +63,16 @@ public final class Physics {
     private int attackCount, jumpsLeft, manualJumps;
     private boolean touchControl;
     private java.util.Random random;
+    private long dailySeed;
+    private float dt = DT, bossCountdown;
 
     public static final class Rope {
         public static final int N = 25;
         public final float[] x = new float[N], y = new float[N];
         public final float[] px = new float[N], py = new float[N];
         public final float[] oldX = new float[N], oldY = new float[N];
-        public float base, strength, tension;
+        public float base, strength, tension, anchorStress;
+        public boolean fragile;
         // One removed constraint creates two visibly separated, independently simulated ends.
         public int cut = -1;
         private final int index;
@@ -68,6 +83,7 @@ public final class Physics {
             strength = 1650 + (index % 3) * 80;
             cut = -1;
             tension = 0;
+            anchorStress = 0; fragile = false;
             for (int i = 0; i < N; i++) {
                 x[i] = px[i] = oldX[i] = left + (right - left) * i / (N - 1f);
                 y[i] = py[i] = oldY[i] = base + 18 * (float) Math.sin(Math.PI * i / (N - 1));
@@ -82,22 +98,29 @@ public final class Physics {
         for (int i = 0; i < sawHazards.length; i++) sawHazards[i] = new SawHazard();
         reset();
     }
-    public void reset(int stageIndex) { arcade = false; stage = StageCatalog.get(stageIndex); reset(); }
+    public void reset(int stageIndex) { arcade = daily = false; stage = StageCatalog.get(stageIndex); reset(); }
+    public void resetDaily(long seed) {
+        daily = true; arcade = false; dailySeed = seed; stage = StageCatalog.daily(seed); reset();
+    }
     public void resetArcade(int difficulty, int mask) {
-        arcade = true; arcadeDifficulty = ArcadeRules.clampDifficulty(difficulty);
-        arcadeHazards = ArcadeRules.normalizeMask(mask); stage = StageCatalog.get(arcadeDifficulty * 2);
+        arcade = true; daily = false; arcadeDifficulty = ArcadeRules.clampDifficulty(difficulty);
+        arcadeHazards = ArcadeRules.normalizeMask(mask); stage = StageCatalog.get(arcadeDifficulty * 4);
         reset();
     }
     public void reset() {
         x = 240; y = 310; vx = vy = gx = cameraY = elapsed = flash = blast = 0;
         score = brokenCount = 0; lost = won = false; deathReason = ""; jumpCooldown = 0;
-        jumpsLeft = MAX_JUMPS;
+        jumpsLeft = maxBurstJumps();
         manualJumps = 0; burstStartY = burstPeakY = y; lastJumpTime = -BURST_RECOVERY_TIME;
         winTime = landingPulse = groundBounce = 0;
         touchVelocity = 0;
         deepestY = y;
         nextRopeY = FIRST_ROPE_Y + ropes.length * ROPE_SPACING;
-        random = new java.util.Random(7283L + stage.index * 101L);
+        random = new java.util.Random(daily ? dailySeed : 7283L + courseSalt() * 101L);
+        dt = DT; slowTimeRemaining = 0;
+        landingX = landingTargetCenter = landingTargetWidth = Float.NaN;
+        bossPhase = 0; bossWarning = bossLive = 0; bossCountdown = .6f;
+        bossActive = false; bossSafeX = 240; bossY = groundY() - 1550;
         attackCountdown = 2.0f;
         attackCount = 0;
         wave = 1;
@@ -111,7 +134,8 @@ public final class Physics {
             saw.x = saw.y = saw.previousX = saw.previousY = saw.pathX1 = saw.pathX2 = 0;
             saw.warningTime = saw.liveTime = saw.velocityX = 0; saw.radius = 16;
         }
-        for (int i = 0; i < ropes.length; i++) ropes[i].reset(FIRST_ROPE_Y + i * ROPE_SPACING, leftWall(), rightWall());
+        for (int i = 0; i < ropes.length; i++) resetRope(ropes[i], FIRST_ROPE_Y + i * ROPE_SPACING, leftWall(), rightWall());
+        resetMechanisms();
     }
     public float groundY() { return arcade ? 1_000_000 : stage.groundY; }
     /** Full chapter rope schedule, including recycled ropes; Arcade is endless. */
@@ -129,12 +153,31 @@ public final class Physics {
         return progress*progress*(3-2*progress);
     }
     public float steeringScale() { return 1-.12f*steeringChallenge(); }
+    private int courseSalt() { return arcade ? arcadeDifficulty*2 : stage.index; }
     /** A gentle alternating deviation, shared by touch and tilt; never a fixed pull. */
     public float nudgeVelocity() {
-        return 12*steeringChallenge()*(float)Math.sin(elapsed*.9f + stage.index*.8f);
+        return 12*steeringChallenge()*(float)Math.sin(elapsed*.9f + courseSalt()*.8f);
     }
-    public float targetLeft() { return stage.targetCenter - stage.targetWidth / 2; }
-    public float targetRight() { return stage.targetCenter + stage.targetWidth / 2; }
+    public float targetWidth() {
+        if (won) return landingTargetWidth;
+        if (arcade || !stage.hasMechanic(StageCatalog.SHRINKING_TARGET)) return stage.targetWidth;
+        return stage.targetWidth * (.82f + .18f * (float)Math.cos(elapsed * .65f));
+    }
+    public float targetCenter() {
+        if (won) return landingTargetCenter;
+        float center = stage.targetCenter;
+        if (!arcade && stage.hasMechanic(StageCatalog.MOVING_TARGET))
+            center += 23 * (float)Math.sin(elapsed * .55f);
+        // Keep the target's centre reachable by a whole avatar even as the corridor narrows.
+        // Using the full target width here would silently stop its motion on later stages.
+        float margin = leftWall() + hazardInset() + radius() + 10;
+        return clamp(center, Math.min(240, margin), Math.max(240, W-margin));
+    }
+    public float targetLeft() { return targetCenter() - targetWidth() / 2; }
+    public float targetRight() { return targetCenter() + targetWidth() / 2; }
+    public float gravityScale() { return !arcade && stage.hasModifier(StageCatalog.LOW_GRAVITY) ? .72f : 1; }
+    public int maxBurstJumps() { return !arcade && stage.hasModifier(StageCatalog.SINGLE_JUMP) ? 1 : MAX_JUMPS; }
+    public float worldTimeScale() { return slowTimeRemaining > 0 ? .58f : 1; }
     public float hazardInset() { return stage.hazard == StageCatalog.SPIKES ? 18 : stage.hazard == StageCatalog.FIRE ? 10 : 4; }
     public void touchControlled(boolean enabled) {
         // Releasing a swipe must not carry touch-only wind into motion play.
@@ -144,15 +187,15 @@ public final class Physics {
     }
     public void steerTouch(float desiredVelocity) {
         touchVelocity = clamp(desiredVelocity, -340, 340);
-        if (touchControl && !lost && !won) vx = touchVelocity * steeringScale() + driftVelocity() + nudgeVelocity();
+        if (touchControl && !lost && !won) vx = touchVelocity * steeringScale() + driftVelocity() + nudgeVelocity() + windVelocity();
     }
     public float steeringVelocity() { return touchVelocity; }
     /** A bounded, alternating air current makes idle touch-only runs require correction. */
     public float driftVelocity() {
-        float phase = stage.index * 1.13f + (arcade ? .6f : 0);
+        float phase = courseSalt() * 1.13f + (arcade ? .6f : 0);
         return .35f*(72 * (float)Math.sin(elapsed * .63f + phase) + 28 * (float)Math.sin(elapsed * 1.17f + .8f + phase));
     }
-    public float mass() { return Math.min(6, 1 + score * .012f); }
+    public float mass() { return Math.min(6, (1 + score * .012f) * (!arcade && stage.hasModifier(StageCatalog.HEAVY_LOAD) ? 1.3f : 1)); }
     public float radius() { return R + (mass() - 1) * 1.1f; }
     public float leftWall() {
         if (arcade) return Math.min(145, 28 + Math.min(1, deepestY / 18000f) * 65 + elapsed * .35f + score * .008f);
@@ -163,7 +206,7 @@ public final class Physics {
     public float jumpRemaining() { return jumpCooldown; }
     public int jumpsRemaining() { return jumpsLeft; }
     /** A generous total allowance grows with chapter difficulty; Arcade has no lifetime cap. */
-    public int jumpLimit() { return arcade ? 0 : 8+2*stage.chapterIndex; }
+    public int jumpLimit() { return arcade ? 0 : daily ? 14 : 8+2*stage.chapterIndex; }
     public int jumpsUsed() { return manualJumps; }
     public int jumpAllowanceRemaining() { return arcade ? -1 : Math.max(0,jumpLimit()-manualJumps); }
     public boolean canJump() {
@@ -171,16 +214,16 @@ public final class Physics {
     }
     /** Recover while actually descending, rather than waiting forever for a surviving rope. */
     public float burstRecoveryProgress() {
-        if (jumpsLeft == MAX_JUMPS) return 1;
+        if (jumpsLeft == maxBurstJumps()) return 1;
         float fall = (y-burstPeakY)/Math.max(1,burstStartY+BURST_DROP-burstPeakY);
         return Math.min(clamp((elapsed-lastJumpTime)/BURST_RECOVERY_TIME,0,1),clamp(fall,0,1));
     }
-    private void refillBurst() { jumpsLeft = MAX_JUMPS; burstStartY = burstPeakY = y; }
+    private void refillBurst() { jumpsLeft = maxBurstJumps(); burstStartY = burstPeakY = y; }
     /** Matches the highest visible hair point in the upright human figure. */
     public float headTop() { return y-cameraY-1.42f*radius(); }
     public boolean jump() {
         if (!canJump()) return false;
-        if (jumpsLeft == MAX_JUMPS) burstStartY = burstPeakY = y;
+        if (jumpsLeft == maxBurstJumps()) burstStartY = burstPeakY = y;
         // One fresh jump fits beneath the ceiling; a second near it is a deliberate risk.
         vy = -Math.max(350, 450 / (float) Math.sqrt(mass()));
         jumpsLeft--;
@@ -191,49 +234,104 @@ public final class Physics {
         return true;
     }
 
+    private void resetRope(Rope rope, float height, float left, float right) {
+        rope.reset(height, left, right);
+        int ordinal = Math.round((height-FIRST_ROPE_Y)/ROPE_SPACING);
+        rope.fragile = !arcade && stage.hasMechanic(StageCatalog.BREAKABLE_ANCHORS) && ordinal > 1 && ordinal % 3 == 2;
+    }
+    private void resetMechanisms() {
+        for (int i=0;i<3;i++) {
+            WindZone wind = windZones[i];
+            wind.active = !arcade && stage.hasMechanic(StageCatalog.WIND_ZONES);
+            wind.top = 1100 + i*(groundY()-2400)/3;
+            wind.bottom = wind.top+380;
+            wind.strength = (i%2==0 ? 1 : -1)*(daily ? 24 : 36);
+            BouncePad pad = bouncePads[i];
+            pad.active = !arcade && stage.hasMechanic(StageCatalog.BOUNCE_PADS);
+            pad.x = i%2==0 ? 210 : 270;
+            pad.y = 1250+i*(groundY()-2550)/3;
+            pad.cooldown = 0;
+            SlowPickup pickup = slowPickups[i];
+            pickup.active = !arcade && stage.hasMechanic(StageCatalog.SLOW_PICKUPS);
+            pickup.x = i%2==0 ? 220 : 260;
+            pickup.y = 1000+i*(groundY()-2200)/3;
+            pickup.collected = false;
+        }
+    }
+    /** Motion and touch experience the same bounded, visibly advertised air currents. */
+    public float windVelocity() {
+        if (arcade) return 0;
+        float wind = 0;
+        for (WindZone zone : windZones) if (zone.active && y>=zone.top && y<=zone.bottom) {
+            float edge = Math.min((y-zone.top)/80, (zone.bottom-y)/80);
+            wind += zone.strength*clamp(edge,0,1);
+        }
+        if (stage.hasModifier(StageCatalog.GUSTS)) wind *= .65f+.35f*(float)Math.sin(elapsed*1.6f);
+        return wind;
+    }
+    private void simulateMechanisms(float oldX, float oldY) {
+        for (BouncePad pad : bouncePads) if (pad.active) {
+            pad.cooldown = Math.max(0,pad.cooldown-dt);
+            if (pad.cooldown<=0 && vy>0 && oldY+radius()<=pad.y && y+radius()>=pad.y
+                    && Math.abs(x-pad.x)<=pad.width/2+radius()*.4f) {
+                y=pad.y-radius(); vy=-390; pad.cooldown=1.1f;
+                landingPulse=.28f; flash=.7f; refillBurst();
+            }
+        }
+        for (SlowPickup pickup : slowPickups) if (pickup.active && !pickup.collected) {
+            float reach=radius()+15;
+            if (pointSegmentDistanceSquared(pickup.x,pickup.y,oldX,oldY,x,y)<=reach*reach) {
+                pickup.collected=true; slowTimeRemaining=3.5f; flash=.8f;
+            }
+        }
+    }
+
     public void step() {
-        if (lost) { blast = Math.max(0, blast - DT * .7f); return; }
-        landingPulse = Math.max(0, landingPulse - DT);
-        groundBounce = Math.max(0, groundBounce - DT * 2);
+        if (lost) { blast = Math.max(0, blast - dt * .7f); return; }
+        dt = DT * worldTimeScale();
+        slowTimeRemaining = Math.max(0,slowTimeRemaining-DT);
+        landingPulse = Math.max(0, landingPulse - dt);
+        groundBounce = Math.max(0, groundBounce - dt * 2);
         if (won) { celebrateLanding(); return; }
-        elapsed += DT;
+        elapsed += dt;
         score = (int) (elapsed * 10) + brokenCount * 30;
         wave = 1 + (int)(elapsed / 20);
-        jumpCooldown = Math.max(0, jumpCooldown - DT);
-        flash = Math.max(0, flash - DT * 2);
+        jumpCooldown = Math.max(0, jumpCooldown - dt);
+        flash = Math.max(0, flash - dt * 2);
         float left = leftWall(), right = rightWall();
         for (Rope rope : ropes) {
             if (rope.base < cameraY - 240 && (arcade || nextRopeY < groundY() - FLOOR_ROPE_CLEARANCE)) {
-                rope.reset(nextRopeY, left, right);
+                resetRope(rope, nextRopeY, left, right);
                 nextRopeY += ROPE_SPACING;
             }
             simulateRope(rope, left, right);
         }
         float previousX = x, previousY = y;
-        if (touchControl) vx = touchVelocity * steeringScale() + driftVelocity() + nudgeVelocity();
+        if (touchControl) vx = touchVelocity * steeringScale() + driftVelocity() + nudgeVelocity() + windVelocity();
         else {
             // Tilt requests a bounded sideways speed. Returning to neutral
             // brakes momentum and rope kicks instead of coasting for seconds.
             float command = clamp(gx, -950, 950) * (MAX_MOTION_SPEED/950) * steeringScale();
-            float target = clamp(command+nudgeVelocity(), -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
+            float target = clamp(command+nudgeVelocity()+windVelocity(), -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
             float response = Math.abs(command) < 1 ? 14 : 10;
-            vx += (target-vx) * (1f-(float)Math.exp(-response*DT));
+            vx += (target-vx) * (1f-(float)Math.exp(-response*dt));
             vx = clamp(vx, -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
             if (target == 0 && Math.abs(vx) < .5f) vx = 0;
         }
-        vy = clamp(vy + GRAVITY * DT, -1100, 800);
-        x += vx * DT;
-        y += vy * DT;
+        vy = clamp(vy + GRAVITY * gravityScale() * dt, -1100, 800);
+        x += vx * dt;
+        y += vy * dt;
         deepestY = Math.max(deepestY, y);
         // Walls are lethal on first overlap, including walls that move into a stationary ball.
         if (hitsSide()) { die(sideReason()); return; }
         if (hitsCeiling()) return;
         for (Rope rope : ropes) contact(rope);
+        simulateMechanisms(previousX, previousY);
         if (!touchControl) vx = clamp(vx, -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
         if (lost) return;
         if (hitsCeiling()) return;
         if (!arcade) contactGround();
-        if (!won && !lost && jumpsLeft < MAX_JUMPS) {
+        if (!won && !lost && jumpsLeft < maxBurstJumps()) {
             burstPeakY = Math.min(burstPeakY,y);
             if (elapsed-lastJumpTime >= BURST_RECOVERY_TIME && vy >= 80 && y >= burstStartY+BURST_DROP)
                 refillBurst();
@@ -250,7 +348,7 @@ public final class Physics {
             float dx = clamp((r.x[i] - r.px[i]) * .998f, -4, 4);
             float dy = clamp((r.y[i] - r.py[i]) * .998f, -4, 4);
             r.px[i] = r.x[i]; r.py[i] = r.y[i];
-            r.x[i] += dx; r.y[i] += dy + 380 * DT * DT;
+            r.x[i] += dx; r.y[i] += dy + 380 * dt * dt;
         }
         float rest = (right - left) * 1.025f / (Rope.N - 1);
         for (int iteration = 0; iteration < 8; iteration++) {
@@ -289,12 +387,15 @@ public final class Physics {
             if (distance >= radius() + 3) continue;
             if (distance < .001f) { nx = 0; ny = -1; distance = .001f; }
             else { nx /= distance; ny /= distance; }
-            float ropeVx = ((r.x[i] - r.oldX[i]) * (1 - t) + (r.x[i + 1] - r.oldX[i + 1]) * t) / DT;
-            float ropeVy = ((r.y[i] - r.oldY[i]) * (1 - t) + (r.y[i + 1] - r.oldY[i + 1]) * t) / DT;
+            float ropeVx = ((r.x[i] - r.oldX[i]) * (1 - t) + (r.x[i + 1] - r.oldX[i + 1]) * t) / dt;
+            float ropeVy = ((r.y[i] - r.oldY[i]) * (1 - t) + (r.y[i + 1] - r.oldY[i + 1]) * t) / dt;
             float normalVelocity = (vx - ropeVx) * nx + (vy - ropeVy) * ny;
             float load = mass() * (GRAVITY + Math.max(0, -normalVelocity) * .6f);
-            if (ny < -.25f && vy >= 0 && load > r.strength) {
-                r.cut = i;
+            if (r.fragile && ny < -.25f && vy>=0 && normalVelocity < -45)
+                r.anchorStress = Math.min(1,r.anchorStress+.42f+Math.max(0,-normalVelocity)/1600);
+            if (ny < -.25f && vy >= 0 && (load > r.strength || r.anchorStress >= 1)) {
+                // Fragile anchors detach at their advertised end, while ordinary ropes cut underfoot.
+                r.cut = r.anchorStress>=1 ? (r.index%2==0 ? 0 : Rope.N-2) : i;
                 landingPulse = .18f;
                 brokenCount++;
                 score = (int) (elapsed * 10) + brokenCount * 30;
@@ -322,8 +423,8 @@ public final class Physics {
                 }
                 for (int k = i; k <= i + 1; k++) if (k > 0 && k < Rope.N - 1) {
                     float weight = k == i ? 1 - t : t;
-                    r.px[k] += nx * impulse * DT * .18f * mass() * weight;
-                    r.py[k] += ny * impulse * DT * .18f * mass() * weight;
+                    r.px[k] += nx * impulse * dt * .18f * mass() * weight;
+                    r.py[k] += ny * impulse * dt * .18f * mass() * weight;
                 }
             }
         }
@@ -342,6 +443,7 @@ public final class Physics {
         groundBounce = 1;
         refillBurst();
         if (inside) {
+            landingX=x; landingTargetCenter=targetCenter(); landingTargetWidth=targetWidth();
             won = true;
             winTime = 0;
             score += 100;
@@ -352,10 +454,10 @@ public final class Physics {
     }
     private void celebrateLanding() {
         // Gameplay is terminal, but a short real bounce plays before the result panel.
-        winTime += DT;
+        winTime += dt;
         gx = vx = 0;
-        vy += GRAVITY * DT;
-        y += vy * DT;
+        vy += GRAVITY * dt;
+        y += vy * dt;
         if (y + radius() >= groundY() && vy > 0) {
             y = groundY() - radius();
             vy = vy < 55 ? 0 : -vy * .25f;
@@ -381,6 +483,7 @@ public final class Physics {
             for (FireHazard fire : fireHazards) fire.active = false;
             for (BeamHazard beam : beamHazards) beam.active = false;
             for (SawHazard saw : sawHazards) saw.active = false;
+            bossActive=false; bossWarning=bossLive=0;
             return;
         }
         int difficulty = arcade ? arcadeDifficulty : stage.attackDifficulty;
@@ -389,8 +492,33 @@ public final class Physics {
         for (FireHazard fire : fireHazards) if (fire.active) occupied = true;
         for (BeamHazard beam : beamHazards) if (beam.active) occupied = true;
         for (SawHazard saw : sawHazards) if (saw.active) occupied = true;
+        boolean inBoss = !arcade && stage.bossKind!=StageCatalog.BOSS_NONE
+                && deepestY>=Math.max(1400,groundY()-4200);
+        bossActive=inBoss;
+        bossWarning=bossLive=0;
+        if (inBoss) {
+            for (FireHazard fire:fireHazards) if(fire.active) {
+                bossWarning=Math.max(bossWarning,fire.warningTime);
+                if(fire.warningTime<=0)bossLive=1;
+            }
+            for (BeamHazard beam:beamHazards) if(beam.active) {
+                bossWarning=Math.max(bossWarning,beam.warningTime);
+                if(beam.warningTime<=0)bossLive=Math.max(bossLive,beam.liveTime);
+            }
+            for (SawHazard saw:sawHazards) if(saw.active) {
+                bossWarning=Math.max(bossWarning,saw.warningTime);
+                if(saw.warningTime<=0)bossLive=Math.max(bossLive,saw.liveTime);
+            }
+            if (!occupied) {
+                bossCountdown-=dt;
+                if(bossCountdown<=0) {
+                    spawnBossAttack(); bossPhase++; bossCountdown=.45f;
+                    occupied=true;
+                }
+            }
+        }
         // One attack at a time preserves a readable escape route, including in mixed skirmishes.
-        if (!occupied && mask != 0 && (arcade || y < groundY() - 650)) {
+        if (!inBoss && !occupied && mask != 0 && (arcade || y < groundY() - 650)) {
             attackCountdown -= DT;
             if (attackCountdown <= 0) {
                 int count = Integer.bitCount(mask), choice = random.nextInt(count), kind = 1;
@@ -405,13 +533,13 @@ public final class Physics {
         for (FireHazard fire : fireHazards) if (fire.active) {
             if (fire.warningTime > 0) {
                 fire.y = cameraY + 155;
-                fire.warningTime = Math.max(0, fire.warningTime - DT);
+                fire.warningTime = Math.max(0, fire.warningTime - dt);
                 continue;
             }
             if (!fire.activated) { fire.activated = true; emitSound(SFX_FIRE_LAUNCH); }
             float oldY = fire.y;
-            fire.speed = Math.min(1400, fire.speed + 100 * DT);
-            fire.y += fire.speed * DT;
+            fire.speed = Math.min(1400, fire.speed + 100 * dt);
+            fire.y += fire.speed * dt;
             // Relative swept motion covers the whole step, not only its end positions.
             float reach = radius() + fire.radius;
             if (pointSegmentDistanceSquared(0, 0, previousX - fire.x, previousY - oldY, x - fire.x, y - fire.y) <= reach * reach) {
@@ -423,7 +551,7 @@ public final class Physics {
             float oldY1 = beam.y1, oldY2 = beam.y2;
             if (beam.followCamera) { beam.y1 = cameraY + beam.screenY1; beam.y2 = cameraY + beam.screenY2; }
             if (beam.warningTime > 0) {
-                beam.warningTime = Math.max(0, beam.warningTime - DT);
+                beam.warningTime = Math.max(0, beam.warningTime - dt);
                 continue;
             }
             if (!beam.activated) { beam.activated = true; emitSound(beam.kind == ArcadeRules.LIGHTNING ? SFX_LIGHTNING : SFX_LASER); }
@@ -439,11 +567,11 @@ public final class Physics {
             saw.previousX = saw.x; saw.previousY = saw.y;
             if (saw.followCamera) saw.y = cameraY + saw.screenY;
             if (saw.warningTime > 0) {
-                saw.warningTime = Math.max(0, saw.warningTime - DT);
+                saw.warningTime = Math.max(0, saw.warningTime - dt);
                 continue;
             }
             if (!saw.activated) { saw.activated = true; emitSound(SFX_SAW_MOTOR); }
-            float travel = saw.velocityX * DT;
+            float travel = saw.velocityX * dt;
             if (saw.followCamera) {
                 // Stop at the advertised endpoint; the far side remains a usable refuge.
                 saw.x = saw.velocityX > 0 ? Math.min(saw.pathX2, saw.x + travel) : Math.max(saw.pathX2, saw.x + travel);
@@ -457,9 +585,52 @@ public final class Physics {
             if (saw.liveTime <= 0 || saw.followCamera && Math.abs(saw.x - saw.pathX2) < .001f) saw.active = false;
         }
     }
+    private void spawnBossAttack() {
+        int kind;
+        switch(stage.bossKind) {
+            case StageCatalog.BOSS_LASER: kind=bossPhase%2==0?ArcadeRules.TOP_LASERS:ArcadeRules.SIDE_LASERS; break;
+            case StageCatalog.BOSS_SAW: kind=ArcadeRules.BUZZSAWS; break;
+            case StageCatalog.BOSS_FIRE: kind=ArcadeRules.FIREBALLS; break;
+            case StageCatalog.BOSS_STORM: kind=ArcadeRules.LIGHTNING; break;
+            case StageCatalog.BOSS_FORGE: kind=bossPhase%2==0?ArcadeRules.BUZZSAWS:ArcadeRules.SIDE_LASERS; break;
+            default:
+                int[] sequence={ArcadeRules.TOP_LASERS,ArcadeRules.FIREBALLS,ArcadeRules.LIGHTNING,ArcadeRules.BUZZSAWS};
+                kind=sequence[bossPhase%sequence.length];
+        }
+        spawnAttack(kind,0);
+        float left=leftWall()+hazardInset(), right=rightWall()-hazardInset();
+        boolean fromLeft=bossPhase%2==0;
+        bossSafeX=240+(fromLeft?1:-1)*Math.min(42,(right-left)/5);
+        for(FireHazard fire:fireHazards)if(fire.active) {
+            fire.warningTime=1.55f; fire.x=240+(fromLeft?-1:1)*Math.min(40,(right-left)/5);
+            fire.radius=14; fire.speed=1100;
+        }
+        for(BeamHazard beam:beamHazards)if(beam.active) {
+            beam.warningTime=1.55f; beam.liveTime=.34f;
+            if(kind==ArcadeRules.TOP_LASERS)beam.x1=beam.x2=240+(fromLeft?-1:1)*Math.min(42,(right-left)/5);
+            else if(kind==ArcadeRules.SIDE_LASERS) {
+                float length=Math.max(20,(right-left)*.45f);
+                beam.x1=fromLeft?left:right; beam.x2=fromLeft?left+length:right-length;
+            } else {
+                // A diagonal bolt occupies one half, leaving a full avatar-wide refuge.
+                beam.x1=fromLeft?left:right; beam.x2=240;
+                beam.screenY1=190; beam.screenY2=710;
+                beam.y1=cameraY+beam.screenY1;beam.y2=cameraY+beam.screenY2;
+            }
+        }
+        for(SawHazard saw:sawHazards)if(saw.active) {
+            saw.warningTime=1.55f;
+            saw.pathX1=fromLeft?left-saw.radius-8:right+saw.radius+8;
+            saw.pathX2=fromLeft?240-12:240+12;
+            saw.x=saw.previousX=saw.pathX1;
+            saw.velocityX=fromLeft?420:-420;
+            saw.liveTime=Math.abs(saw.pathX2-saw.pathX1)/420+dt;
+        }
+        bossWarning=1.55f;
+    }
     private void spawnAttack(int kind, int difficulty) {
         float left = leftWall() + hazardInset(), right = rightWall() - hazardInset();
-        float warning = ArcadeRules.warning(difficulty, wave);
+        float warning = daily ? Math.max(1.45f,ArcadeRules.warning(0,1)) : ArcadeRules.warning(difficulty, wave);
         if (kind == ArcadeRules.FIREBALLS) {
             for (FireHazard fire : fireHazards) if (!fire.active) {
                 fire.x = left + 26 + random.nextFloat() * Math.max(1, right - left - 52);
@@ -480,7 +651,7 @@ public final class Physics {
                 saw.y = saw.previousY = cameraY + saw.screenY;
                 saw.velocityX = (fromLeft ? 1 : -1) * (420 + difficulty * 100);
                 saw.warningTime = warning;
-                saw.liveTime = Math.abs(saw.pathX2 - saw.pathX1) / Math.abs(saw.velocityX) + DT;
+                saw.liveTime = Math.abs(saw.pathX2 - saw.pathX1) / Math.abs(saw.velocityX) + dt;
                 saw.active = saw.followCamera = true; saw.activated = false;
                 return;
             }

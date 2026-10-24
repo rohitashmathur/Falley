@@ -1,6 +1,26 @@
 # Falley build status
 
-## Current 3.3.1 privacy update — 23 October 2026
+## Current Chapter spotlight debug — 24 October 2026
+
+**4.1.0-ux-test / code 13**, package `com.perfgames.falley.motiontest`, is ready for owner testing. Home spotlights the next Campaign stage with one primary action and smaller Daily/Arcade cards. Play / Collection / Settings navigation, six chapter illustrations, consistent cards/buttons, a labeled Language row, briefing controls, simpler HUD/jump charges, contextual first-stage guidance, named star objectives and quick Retry are implemented across the native screens. The previously local 24-stage expansion is included in this source update.
+
+Debug compilation, APK v2/v3 signature and 16 KiB ZIP alignment **PASS**. All **20 portable test groups PASS**; final focused UX checks **71,120 rules / 1,067 copy assertions PASS**. Final Android 15/API 35 acceptance **PASS**, small/tall layouts, font scale 1.3 and EN/HI/ID: **20,310 checks / 152 captures**. Final compositor timing is synchronized and representative screenshots reviewed. Original test preferences/display/font were restored and the test harness removed; the owned emulator was stopped. Details and limits: [4.1 notes](docs/UX_UPDATE_4_1.md), [curated evidence](screenshots/v4.1/README.md).
+
+Local APK: `C:\Users\mathu\Documents\Codex\2026-10-24\Falley-4.1.0-debug\Falley-4.1.0-debug.apk`, **386,512 bytes**, SHA-256 `d7b77c23afccbb768de75ad395216d890140092dc47b8853f0c6548b95d2a078`. It uses the preserved debug identity. Source publication is authorized; APK/AAB files, generated builds and signing material remain local. **No release APK/AAB, release lint, website deployment or Play submission was performed.** Production metadata is 4.1.0/code 13 for a future separately verified release. Historical signed builds below do not validate this version for store submission.
+
+Phone feel, audio/haptics, performance, TalkBack and native-speaker feedback remain necessary. Redeploy the updated local privacy-policy website source before a future store release; monetization remains deferred.
+
+## Historical local expansion checkpoint — 24 October 2026
+
+**4.0.0-expansion-test / code 12**, package `com.perfgames.falley.motiontest`, is prepared for owner testing. The 24-stage/six-boss Campaign, cumulative stars, offline Daily Drop/share card, earned wardrobe and expanded EN/HI/ID guidance are implemented. The approved avatar roster uses identical physics/hitboxes. No ads, purchases, revives, donations or backend were added.
+
+Debug compilation and APK v2/v3 signatures **PASS**. All **18 portable suites PASS**, including all 24 courses with touch and motion controllers, all six daily templates, physical mechanism effects, boss warning/live attacks, stability, migration/stars/cosmetics/daily and translations. Focused string checks were rerun after the final review fix. Final Android 15/API 35 acceptance **PASS** on small/tall layouts, font scale 1.3 and all three languages: **10,140 checks / 96 captures**. Current visual review passes after moving boss status into the header and correcting fixture screenshot timing. Exact identity, scope, limits and local receipts are recorded in [expansion debug notes](docs/EXPANSION_DEBUG_4_0.md).
+
+Local output: `C:\Users\mathu\Documents\Codex\2026-10-24\Falley-4.0.0-debug\Falley-4.0.0-debug.apk`. At that checkpoint the source was uncommitted/unpushed; it is included in the subsequently authorized 4.1 source publication. **No release APK/AAB, release lint, website deployment or Play upload was performed.** At that checkpoint, production metadata was 4.0.0/code 12 for a future separately authorized release; previous signed releases below are historical and do not validate this expansion.
+
+The local privacy website now includes optional Daily Drop sharing and new local records; redeploy it before publishing this version. Physical-phone feel, balance, performance and translation feedback remain necessary. See the current README for build/install instructions and known limits.
+
+## Historical 3.3.1 privacy update — 23 October 2026
 
 Source metadata: **3.3.1 / code 11**, release package `com.perfgames.falley`; compatible debug package `com.perfgames.falley.motiontest`. The in-app offline policy now includes the confirmed support email and public URL, browser/email footer actions, localized support/website disclosures and long-address wrapping. No requested permissions, ads, analytics or gameplay changes were added.
 
