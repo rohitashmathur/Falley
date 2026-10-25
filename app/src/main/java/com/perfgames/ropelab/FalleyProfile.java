@@ -16,7 +16,12 @@ public final class FalleyProfile {
     public final int[] stars = new int[StageCatalog.COUNT];
     public int progressionVersion = PROGRESSION_VERSION;
     public int selectedAvatar, selectedPalette, selectedTrail, selectedLanding;
+    /** Legacy equipment preference retained for save compatibility; mixed ropes ignore it. */
     public int selectedRope;
+    public int avatarRewardsVersion=AvatarRewards.VERSION;
+    public int avatarRewardsSeenMask=AvatarRewards.STARTER_MASK, avatarRewardsPendingMask;
+    /** In-memory retry marker; only a successful durable reward save clears it. */
+    public boolean avatarRewardsNeedCommit;
     public long dailyDay = DailyDrop.NO_DAY, lastDailyCompletedDay = DailyDrop.NO_DAY,
             lastObservedDay = DailyDrop.NO_DAY;
     public int dailyBestScore, dailyAttempts, dailyWins, dailyBestJumps = -1,
@@ -51,7 +56,7 @@ public final class FalleyProfile {
         if (!Cosmetics.isAvatarUnlocked(this, selectedAvatar)) selectedAvatar = AvatarCatalog.HUMAN;
         if (!Cosmetics.isPaletteUnlocked(this, selectedPalette)) selectedPalette = 0;
         selectedRope=RopeCatalog.normalize(selectedRope);
-        if(totalStars()<RopeCatalog.requiredStars(selectedRope))selectedRope=RopeCatalog.CLASSIC;
+
         if (!Cosmetics.isTrailUnlocked(this, selectedTrail)) selectedTrail = 0;
         if (!Cosmetics.isLandingUnlocked(this, selectedLanding)) selectedLanding = 0;
         if(dailyGeneratorVersion!=DailyDrop.GENERATOR_VERSION){
@@ -79,6 +84,7 @@ public final class FalleyProfile {
             dailyBestJumps = -1; dailyBestTime = 0; dailyBestControlMode = DailyDrop.TOUCH;
         }
         progressionVersion = PROGRESSION_VERSION;
+        AvatarRewards.sanitize(this);
     }
 
     /** Stage zero is open; each contiguous recorded win opens the following stage. */
@@ -144,6 +150,8 @@ public final class FalleyProfile {
     }
     public boolean recordResult(int stageIndex, boolean won, int score, float elapsed) {
         int index = Math.max(0, Math.min(StageCatalog.COUNT-1, stageIndex));
+        if(won)AvatarRewards.sanitize(this);
+        int avatarsBefore=won?AvatarRewards.unlockedMask(this):AvatarRewards.STARTER_MASK;
         boolean changed = false;
         if (Math.max(0, score) > bestScore) { bestScore = score; changed = true; }
         if (Math.max(0, score) > best[index]) { best[index] = score; changed = true; }
@@ -156,6 +164,7 @@ public final class FalleyProfile {
                 fastestWin = elapsed;
             if (Float.isFinite(elapsed) && elapsed > 0f && (stageTimes[index] == 0f || elapsed < stageTimes[index]))
                 stageTimes[index] = elapsed;
+            AvatarRewards.noteUnlocked(this,avatarsBefore);
         }
         return changed;
     }

@@ -26,10 +26,18 @@ final class ProfileStorage {
         p.dailyDay=s.getLong("daily_day",DailyDrop.NO_DAY);p.lastDailyCompletedDay=s.getLong("daily_completed",DailyDrop.NO_DAY);p.lastObservedDay=s.getLong("daily_observed",DailyDrop.NO_DAY);
         p.dailyBestScore=s.getInt("daily_best_score",0);p.dailyAttempts=s.getInt("daily_attempts",0);p.dailyWins=s.getInt("daily_wins",0);p.dailyBestJumps=s.getInt("daily_best_jumps",-1);
         p.dailyBestControlMode=s.getInt("daily_control",0);p.dailyBestTime=s.getFloat("daily_best_time",0);p.dailyStreak=s.getInt("daily_streak",0);p.dailyBestStreak=s.getInt("daily_best_streak",0);
+        p.avatarRewardsVersion=s.getInt("avatar_rewards_version",0);
+        p.avatarRewardsSeenMask=s.getInt("avatar_rewards_seen",AvatarRewards.STARTER_MASK);
+        p.avatarRewardsPendingMask=s.getInt("avatar_rewards_pending",0);
+        p.avatarRewardsNeedCommit=false;
         p.sanitize();
     }
-    static void save(SharedPreferences s,FalleyProfile p) {
-        SharedPreferences.Editor e=s.edit().putInt("daily_generator",p.dailyGeneratorVersion).putBoolean("music",p.music).putBoolean("language_confirmed",p.languageConfirmed).putInt("rope_type",p.selectedRope).putInt("progression_version",2).putBoolean("motion",p.motion).putBoolean("sound",p.sound).putBoolean("haptics",p.haptics)
+    static boolean save(SharedPreferences s,FalleyProfile p) {
+        boolean durable=p.avatarRewardsNeedCommit||s.getInt("avatar_rewards_version",0)!=p.avatarRewardsVersion
+                ||s.getInt("avatar_rewards_seen",AvatarRewards.STARTER_MASK)!=p.avatarRewardsSeenMask
+                ||s.getInt("avatar_rewards_pending",0)!=p.avatarRewardsPendingMask;
+        SharedPreferences.Editor e=s.edit().putInt("avatar_rewards_version",p.avatarRewardsVersion)
+                .putInt("avatar_rewards_seen",p.avatarRewardsSeenMask).putInt("avatar_rewards_pending",p.avatarRewardsPendingMask).putInt("daily_generator",p.dailyGeneratorVersion).putBoolean("music",p.music).putBoolean("language_confirmed",p.languageConfirmed).putInt("rope_type",p.selectedRope).putInt("progression_version",2).putBoolean("motion",p.motion).putBoolean("sound",p.sound).putBoolean("haptics",p.haptics)
                 .putInt("preset",p.preset).putInt("language",p.language).putBoolean("blood",p.blood).putInt("bestScore",p.bestScore).putInt("wins",p.wins)
                 .putFloat("fastestWin",p.fastestWin).putInt("selectedStage",p.selectedStage).putInt("arcadeDifficulty",p.arcadeDifficulty).putInt("arcadeHazards",p.arcadeHazards);
         for(int i=0;i<3;i++)e.putInt("arcade_best_"+i,p.arcadeBest[i]).putInt("arcade_runs_"+i,p.arcadeRuns[i]).putFloat("arcade_longest_"+i,p.arcadeLongest[i]);
@@ -37,7 +45,24 @@ final class ProfileStorage {
         e.putInt("avatar",p.selectedAvatar).putInt("rope_palette",p.selectedPalette).putInt("trail_palette",p.selectedTrail).putInt("landing_palette",p.selectedLanding)
                 .putLong("daily_day",p.dailyDay).putLong("daily_completed",p.lastDailyCompletedDay).putLong("daily_observed",p.lastObservedDay)
                 .putInt("daily_best_score",p.dailyBestScore).putInt("daily_attempts",p.dailyAttempts).putInt("daily_wins",p.dailyWins).putInt("daily_best_jumps",p.dailyBestJumps)
-                .putInt("daily_control",p.dailyBestControlMode).putFloat("daily_best_time",p.dailyBestTime).putInt("daily_streak",p.dailyStreak).putInt("daily_best_streak",p.dailyBestStreak).apply();
+                .putInt("daily_control",p.dailyBestControlMode).putFloat("daily_best_time",p.dailyBestTime).putInt("daily_streak",p.dailyStreak).putInt("daily_best_streak",p.dailyBestStreak);
+        if(durable){boolean saved=e.commit();if(saved)p.avatarRewardsNeedCommit=false;return saved;}
+        e.apply();return true;
+    }
+    /** Acknowledgement and optional equipment are one durable write; failed writes keep the offer. */
+    static boolean chooseAvatarReward(SharedPreferences s,FalleyProfile p,boolean useNew){
+        int avatar=p.selectedAvatar,version=p.avatarRewardsVersion,seen=p.avatarRewardsSeenMask,pending=p.avatarRewardsPendingMask;
+        if(!AvatarRewards.choose(p,useNew))return false;
+        boolean saved=false;
+        try{saved=save(s,p);}catch(RuntimeException unavailable){/* Keep the same offer in memory. */}
+        if(!saved){
+            p.selectedAvatar=avatar;p.avatarRewardsVersion=version;p.avatarRewardsSeenMask=seen;p.avatarRewardsPendingMask=pending;p.avatarRewardsNeedCommit=true;
+            // Android commit(false) can still change its in-memory preference map.
+            // Restore the old snapshot too, so Activity recreation cannot mistake
+            // an uncommitted choice for an acknowledgement. Success uses one write.
+            try{save(s,p);}catch(RuntimeException unavailable){/* Keep dirty for a later retry. */}
+        }
+        return saved;
     }
     private ProfileStorage(){}
 }

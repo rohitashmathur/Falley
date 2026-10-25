@@ -1,6 +1,6 @@
 package com.perfgames.ropelab;
 
-/** Earned campaign rope abilities; Daily and Arcade always use Classic. */
+/** Per-surface abilities in Campaign and Arcade; Daily stays Classic. */
 public final class RopeCatalog {
     public static final int CLASSIC=0, SPRING=1, STATIC=2, COUNT=3;
     public static int normalize(int id){return id>=0&&id<COUNT?id:CLASSIC;}

@@ -65,13 +65,13 @@ public final class Physics {
     private java.util.Random random;
     private long dailySeed;
     private float dt = DT, bossCountdown;
-    private int configuredRope=RopeCatalog.CLASSIC, activeRope=RopeCatalog.CLASSIC;
+    /** Type of the most recent intact supporting rope, for feedback only. */
+    public int lastSupportRope=RopeCatalog.CLASSIC;
+    private float staticCurrentTime;
     /** Short cosmetic feedback/damping pulse. Static's next-jump charge lasts until consumed. */
     public float ropeAbilityTime;
     public boolean staticJumpReady;
-    public void configureRope(int rope){configuredRope=RopeCatalog.normalize(rope);}
-    public int effectiveRope(){return arcade||daily?RopeCatalog.CLASSIC:activeRope;}
-    public float ropeSteeringScale(){return effectiveRope()==RopeCatalog.STATIC&&ropeAbilityTime>0?.84f:1;}
+    public float ropeSteeringScale(){return staticCurrentTime>0?.84f:1;}
 
     public static final class Rope {
         public static final int N = 25;
@@ -79,6 +79,8 @@ public final class Physics {
         public final float[] px = new float[N], py = new float[N];
         public final float[] oldX = new float[N], oldY = new float[N];
         public float base, strength, tension, anchorStress;
+        /** Stable world mount identity; type is assigned before its rope becomes visible. */
+        public int courseIndex, type=RopeCatalog.CLASSIC;
         public boolean fragile;
         // One removed constraint creates two visibly separated, independently simulated ends.
         public int cut = -1;
@@ -89,6 +91,7 @@ public final class Physics {
             base = height;
             strength = 1650 + (index % 3) * 80;
             cut = -1;
+            type=RopeCatalog.CLASSIC;
             tension = 0;
             anchorStress = 0; fragile = false;
             for (int i = 0; i < N; i++) {
@@ -124,7 +127,7 @@ public final class Physics {
         deepestY = y;
         nextRopeY = FIRST_ROPE_Y + ropes.length * ROPE_SPACING;
         random = new java.util.Random(daily ? dailySeed : 7283L + courseSalt() * 101L);
-        dt = DT; slowTimeRemaining = 0; activeRope=arcade||daily?RopeCatalog.CLASSIC:configuredRope; ropeAbilityTime=0; staticJumpReady=false;
+        dt = DT; slowTimeRemaining = 0; lastSupportRope=RopeCatalog.CLASSIC; ropeAbilityTime=staticCurrentTime=0; staticJumpReady=false;
         landingX = landingTargetCenter = landingTargetWidth = Float.NaN;
         bossPhase = 0; bossWarning = bossLive = 0; bossCountdown = .6f;
         bossActive = false; bossSafeX = 240; bossY = groundY() - 1550;
@@ -163,8 +166,19 @@ public final class Physics {
     private int courseSalt() { return arcade ? arcadeDifficulty*2 : stage.index; }
     /** A gentle alternating deviation, shared by touch and tilt; never a fixed pull. */
     public float nudgeVelocity() {
-        return 12*steeringChallenge()*(float)Math.sin(elapsed*.9f + courseSalt()*.8f);
+        return 12*steeringChallenge()*(float)Math.sin(elapsed*.9f + courseSalt()*.8f)
+                *(!touchControl&&!daily?motionLandingFade():1);
     }
+    /** Intentional environmental motion challenge, separate from calibrated sensor output.
+     * Touch and Daily retain their existing rules. The opening eases in over 2.5s after
+     * a 2.5s grace; it gives way to the existing later nudge rather than stacking it. */
+    public float motionGustVelocity() {
+        if(touchControl||daily||lost||won)return 0;
+        float opening=smooth(clamp((elapsed-2.5f)/2.5f,0,1));
+        return 6*opening*(1-steeringChallenge())*(float)Math.sin(elapsed*.9f+courseSalt()*.8f)*motionLandingFade();
+    }
+    private float motionLandingFade(){return arcade?1:smooth(clamp((groundY()-y-350)/650,0,1));}
+    private static float smooth(float value){return value*value*(3-2*value);}
     public float targetWidth() {
         if (won) return landingTargetWidth;
         if (arcade || !stage.hasMechanic(StageCatalog.SHRINKING_TARGET)) return stage.targetWidth;
@@ -232,7 +246,7 @@ public final class Physics {
         if (!canJump()) return false;
         if (jumpsLeft == maxBurstJumps()) burstStartY = burstPeakY = y;
         // One fresh jump fits beneath the ceiling; a second near it is a deliberate risk.
-        float jumpScale=effectiveRope()==RopeCatalog.STATIC&&staticJumpReady?.8f:1;
+        float jumpScale=staticJumpReady?.8f:1;
         vy = -Math.max(350, 450 / (float) Math.sqrt(mass()))*jumpScale;
         staticJumpReady=false;
         jumpsLeft--;
@@ -246,7 +260,24 @@ public final class Physics {
     private void resetRope(Rope rope, float height, float left, float right) {
         rope.reset(height, left, right);
         int ordinal = Math.round((height-FIRST_ROPE_Y)/ROPE_SPACING);
+        rope.courseIndex=ordinal;
+        rope.type=scheduledRopeType(ordinal);
         rope.fragile = !arcade && stage.hasMechanic(StageCatalog.BREAKABLE_ANCHORS) && ordinal > 1 && ordinal % 3 == 2;
+    }
+    /** No hazard RNG is consumed: retries use the same readable world-space pattern.
+     * Arcade only introduces specials on newly generated Wave 2+ mounts; existing
+     * visible ropes never change type underneath the player. */
+    private int scheduledRopeType(int ordinal){
+        if(daily||ordinal<3)return RopeCatalog.CLASSIC;
+        if(arcade){
+            if(elapsed<20)return RopeCatalog.CLASSIC;
+            int phase=Math.floorMod(ordinal,8);
+            return phase==3?RopeCatalog.SPRING:phase==7?RopeCatalog.STATIC:RopeCatalog.CLASSIC;
+        }
+        if(ordinal>=totalRopes()-3)return RopeCatalog.CLASSIC;
+        if(stage.index<2)return ordinal%8==(stage.index==0?4:3)?RopeCatalog.SPRING:RopeCatalog.CLASSIC;
+        int phase=Math.floorMod(ordinal+stage.index%4,8);
+        return phase==3?RopeCatalog.SPRING:phase==7?RopeCatalog.STATIC:RopeCatalog.CLASSIC;
     }
     private void resetMechanisms() {
         for (int i=0;i<3;i++) {
@@ -300,6 +331,7 @@ public final class Physics {
         dt = DT * worldTimeScale();
         slowTimeRemaining = Math.max(0,slowTimeRemaining-DT);
         ropeAbilityTime=Math.max(0,ropeAbilityTime-dt);
+        staticCurrentTime=Math.max(0,staticCurrentTime-dt);
         landingPulse = Math.max(0, landingPulse - dt);
         groundBounce = Math.max(0, groundBounce - dt * 2);
         if (won) { celebrateLanding(); return; }
@@ -322,7 +354,7 @@ public final class Physics {
             // Tilt requests a bounded sideways speed. Returning to neutral
             // brakes momentum and rope kicks instead of coasting for seconds.
             float command = clamp(gx, -950, 950) * (MAX_MOTION_SPEED/950) * steeringScale() * ropeSteeringScale();
-            float target = clamp(command+nudgeVelocity()+windVelocity(), -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
+            float target = clamp(command+nudgeVelocity()+motionGustVelocity()+windVelocity(), -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
             float response = Math.abs(command) < 1 ? 14 : 10;
             vx += (target-vx) * (1f-(float)Math.exp(-response*dt));
             vx = clamp(vx, -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
@@ -429,14 +461,15 @@ public final class Physics {
                     landingPulse = .18f;
                     // A landing naturally produces a small spring-assisted human jump.
                     float rebound=Math.max(235,325/(float)Math.sqrt(mass()));
-                    if(effectiveRope()==RopeCatalog.SPRING){
+                    lastSupportRope=RopeCatalog.normalize(r.type);
+                    if(lastSupportRope==RopeCatalog.SPRING){
                         // The bonus belongs to rope support, never to manual jumps or cutting.
                         float ceilingRoom=Math.max(0,headTop()-ARENA_TOP-12);
                         rebound=Math.min(rebound*1.5f,(float)Math.sqrt(2*GRAVITY*gravityScale()*ceilingRoom)*.95f);
                         ropeAbilityTime=.65f;
-                    }else if(effectiveRope()==RopeCatalog.STATIC){
-                        staticJumpReady=true;ropeAbilityTime=.75f;
-                    }
+                    }else if(lastSupportRope==RopeCatalog.STATIC){
+                        staticJumpReady=true;ropeAbilityTime=staticCurrentTime=.75f;
+                    }else ropeAbilityTime=0;
                     vy=-rebound;
                     flash = Math.max(flash, .35f);
                 }
