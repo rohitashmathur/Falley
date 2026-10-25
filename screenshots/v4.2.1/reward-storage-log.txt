@@ -1,0 +1,2 @@
+PASS: once-only avatar rewards, current-equipment choices, stable queue, legacy acknowledgement and mode isolation (704 checks)
+PASS: durable avatar result/choice snapshots, process recreation, legacy upgrade and commit-failure rollback (32 checks)

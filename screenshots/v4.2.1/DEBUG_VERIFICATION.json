@@ -1,0 +1,227 @@
+{
+  "date": "2026-10-25",
+  "sourceCommit": "09108128247ec41bc9d0ef3cf8b09419778e0e59",
+  "sourceReceipt": "SOURCE_HASHES.json",
+  "sourceAggregateSha256": "ba0917edb7494d1e92f4d255580980fcdaea98ed883af9fff194a6102c80c497",
+  "package": "com.perfgames.falley.motiontest",
+  "versionName": "4.2.1-beta-test",
+  "versionCode": 15,
+  "artifact": {
+    "file": "Falley-4.2.1-debug.apk",
+    "bytes": 1120186,
+    "sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+    "includedInRepository": false
+  },
+  "environment": {
+    "android": "15 / API 35",
+    "fontScale": 1.3,
+    "languages": [
+      "English",
+      "Hindi",
+      "Bahasa Indonesia"
+    ]
+  },
+  "nativeResults": [
+    {
+      "layout": "small",
+      "resolution": "480x800",
+      "density": 240,
+      "checks": 11065,
+      "captures": 92,
+      "result": "PASS"
+    },
+    {
+      "layout": "tall",
+      "resolution": "720x1600",
+      "density": 320,
+      "checks": 11086,
+      "captures": 92,
+      "result": "PASS"
+    }
+  ],
+  "totalChecks": 22151,
+  "totalCaptures": 184,
+  "curatedCaptures": 18,
+  "recovery": "PASS; original preferences restored; runner restored display/font and removed instrumentation",
+  "legacyAndroidVerification": {
+    "android": "7.1 / API 25",
+    "layout": "480x800 / density240",
+    "fontScale": 1.3,
+    "checks": 11000,
+    "captures": 92,
+    "result": "PASS",
+    "scope": "Same debug APK; real legacy Back, native music/focus/background/resume and all UX groups. Legacy chooser monitor blocks an actual share attempt and reads its PNG provider; modern deep SEND intent/flag inspection is API35 proof only."
+  },
+  "release": "No new release APK/AAB built for 4.2.1",
+  "method": "Actual native Android compositor capture after view invalidation, frame-commit barrier when supported and compositor settle. Copies are byte-identical; no crop/recolor/redraw.",
+  "limitations": [
+    "Controlled prerequisite-win, collision, support, landing and death fixtures are explicitly identified; no natural player success-rate claim.",
+    "Native close/relaunch verifies saved Activity restoration; portable storage tests simulate process recreation from durable preference snapshots.",
+    "Phone sensor feel, sound/music audibility, haptics, performance, TalkBack and fluent-speaker review remain owner checks.",
+    "Debug evidence does not validate an optimized production release. No store upload or policy deployment occurred."
+  ],
+  "images": [
+    {
+      "file": "first-language-en-small.png",
+      "source": "build/device/v4.2.1-debug/small/ux-first-language-0.png",
+      "description": "Fresh English default and explicit confirmation",
+      "bytes": 30991,
+      "sha256": "2d7c865b9594f9d8cde6e27c128fc42fe47116282630d413a95b801362a43544"
+    },
+    {
+      "file": "first-language-hi-small.png",
+      "source": "build/device/v4.2.1-debug/small/ux-first-language-1.png",
+      "description": "Hindi language choice",
+      "bytes": 30438,
+      "sha256": "2f81618447d134779aecda2e98d375651b74d6370934ea24a0d5a416e88eaffc"
+    },
+    {
+      "file": "first-language-id-small.png",
+      "source": "build/device/v4.2.1-debug/small/ux-first-language-2.png",
+      "description": "Bahasa Indonesia language choice",
+      "bytes": 30194,
+      "sha256": "575a066b8b4ef4221c0fbce787b8648ee4d15f568c4a8d7d75b8b8ee384e8c9a"
+    },
+    {
+      "file": "home-tall.png",
+      "source": "build/device/v4.2.1-debug/tall/ux-home-0.png",
+      "description": "Campaign spotlight and reserved root navigation",
+      "bytes": 89818,
+      "sha256": "045571c68fb2813163d076876ab448db7deb9125de16a78efe0247d023197691"
+    },
+    {
+      "file": "collection-avatars-tall.png",
+      "source": "build/device/v4.2.1-debug/tall/ux-collection-0-0.png",
+      "description": "Selected avatar preview and earned chapter locks",
+      "bytes": 82000,
+      "sha256": "5ce1a4ddf073e6ff4d73f199137f6a54c89f494863548644a450cc11d0244be1"
+    },
+    {
+      "file": "rope-guide-hi-small.png",
+      "source": "build/device/v4.2.1-debug/small/ux-collection-1-1.png",
+      "description": "Hindi informational rope guide; no global equip control",
+      "bytes": 44170,
+      "sha256": "e9ec672837000190fe41450343d454ee22c0470cc9e3d09c5e4a3ac3dcb17f87"
+    },
+    {
+      "file": "briefing-tall.png",
+      "source": "build/device/v4.2.1-debug/tall/ux-brief-0.png",
+      "description": "Campaign briefing, star goals and control choices",
+      "bytes": 82698,
+      "sha256": "c3ea6bd99297bee5b1c6ed1a73d424098540cdd9cdf3943b650ebd6c9cc4b217"
+    },
+    {
+      "file": "settings-id-small.png",
+      "source": "build/device/v4.2.1-debug/small/ux-settings-2.png",
+      "description": "Bahasa Indonesia settings and root navigation spacing",
+      "bytes": 43439,
+      "sha256": "8b50e839413cdd85cfeecfe097f5b8a0dbc842d70c721cc393ae384bd473d19e"
+    },
+    {
+      "file": "reward-result-tall-controlled.png",
+      "source": "build/device/v4.2.1-debug/tall/ux-reward-result-controlled.png",
+      "description": "Real finale landing fixture with explicit reward Continue",
+      "bytes": 70806,
+      "sha256": "bf591afa46a152ec6060a53c8756377cfddd0c4bcf8ddbcadbf069840f68675a"
+    },
+    {
+      "file": "unlock-demon-small-controlled.png",
+      "source": "build/device/v4.2.1-debug/small/ux-unlock-demon-controlled.png",
+      "description": "New Demon versus selected Human with Use/Keep",
+      "bytes": 34887,
+      "sha256": "68beb4c4a2345f676107a5830620594e7cd02dea1a24591cd95659426e2e2f4e"
+    },
+    {
+      "file": "unlock-angel-en-tall-controlled.png",
+      "source": "build/device/v4.2.1-debug/tall/ux-unlock-angel-0-controlled.png",
+      "description": "New Angel versus currently selected Demon",
+      "bytes": 64450,
+      "sha256": "8dc76f947042d5065b0bbe82f8259bcb550fee939f46dd42fbcf045fc4a85edb"
+    },
+    {
+      "file": "unlock-angel-hi-small-controlled.png",
+      "source": "build/device/v4.2.1-debug/small/ux-unlock-angel-1-controlled.png",
+      "description": "Hindi new Angel versus currently selected Demon",
+      "bytes": 35020,
+      "sha256": "b58a8afa7534fd4e5cf7243d475a13351a4e41a1662d7ed9f85db1c32a02ca55"
+    },
+    {
+      "file": "unlock-angel-id-tall-controlled.png",
+      "source": "build/device/v4.2.1-debug/tall/ux-unlock-angel-2-controlled.png",
+      "description": "Bahasa Indonesia new Angel versus currently selected Demon",
+      "bytes": 61774,
+      "sha256": "d4f50bf33700b49636d74339929ee58b073d6f1243c6a4f135bc281d65766abd"
+    },
+    {
+      "file": "arcade-touch-small.png",
+      "source": "build/device/v4.2.1-debug/small/ux-arcade-0.png",
+      "description": "Arcade difficulty/hazard cards and Touch controls",
+      "bytes": 46490,
+      "sha256": "679512070e7191480ffa46bf8a2c86c01719a46d78ed5f6d622541b363c9da05"
+    },
+    {
+      "file": "arcade-motion-id-tall.png",
+      "source": "build/device/v4.2.1-debug/tall/ux-arcade-motion-2.png",
+      "description": "Bahasa Indonesia Arcade with Motion selected",
+      "bytes": 85467,
+      "sha256": "f6e15119eb3fdc935ee12904e1d1ad914f392e7ab476fb80996df344f6139ce0"
+    },
+    {
+      "file": "spring-support-tall-controlled.png",
+      "source": "build/device/v4.2.1-debug/tall/ux-spring-support-controlled.png",
+      "description": "Actual individual Spring support fixture and HUD feedback",
+      "bytes": 52375,
+      "sha256": "8cd6561ccdb394411bf258b49527c5febbfccd00a2f3b97936a1169f893bbe42"
+    },
+    {
+      "file": "static-support-small-controlled.png",
+      "source": "build/device/v4.2.1-debug/small/ux-static-support-controlled.png",
+      "description": "Actual individual Static support fixture and charged-jump HUD",
+      "bytes": 32356,
+      "sha256": "6c90676615a1b6ca113cbaece7d52239fde0dad831d27824db6c9d1c996f49c0"
+    },
+    {
+      "file": "retry-tall-controlled.png",
+      "source": "build/device/v4.2.1-debug/tall/ux-quick-retry-0.png",
+      "description": "Compact death result with immediately available Retry",
+      "bytes": 61635,
+      "sha256": "bcd2f452c03c31515eeab5616097e8c6f710b606dd065c93eb28098409375efb"
+    }
+  ],
+  "commentOnlyCorrection": "RopeCatalog class-header comment only; COMMENT_PROOF.json verifies an identical class to the exact tested APK compilation stage.",
+  "cleanup": {
+    "preferencesRestored": true,
+    "displayFontRestored": true,
+    "harnessRemoved": true,
+    "ownedEmulatorsStopped": true
+  },
+  "portableVerification": {
+    "groups": 29,
+    "allPassed": true,
+    "releaseStringChecks": 11489,
+    "avatarModelChecks": 704,
+    "storageChecks": 32,
+    "audioChecks": 56,
+    "dailyCompatibilityFloatChecks": 48471122
+  },
+  "legacyCaptures": [
+    {
+      "file": "api25-ux-arcade-motion-2.png",
+      "source": "build/device/v4.2.1-api25/small/ux-arcade-motion-2.png",
+      "bytes": 71679,
+      "sha256": "7d5464953458e6b1f3350d45cf823ffde6101913244336a436a9f21ca2feea98"
+    },
+    {
+      "file": "api25-ux-settings-0.png",
+      "source": "build/device/v4.2.1-api25/small/ux-settings-0.png",
+      "bytes": 59601,
+      "sha256": "56c079a64398530b88d2c1c0b1b6927964cb1b18acd7196255d7e9ffe3bff860"
+    },
+    {
+      "file": "api25-ux-unlock-angel-1-controlled.png",
+      "source": "build/device/v4.2.1-api25/small/ux-unlock-angel-1-controlled.png",
+      "bytes": 62998,
+      "sha256": "cd25122c49d6d6901d699dcaddbceed34339e18cf84dd2b0378be7c9d664a9d7"
+    }
+  ]
+}

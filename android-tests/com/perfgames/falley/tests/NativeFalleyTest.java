@@ -481,19 +481,28 @@ public final class NativeFalleyTest extends Instrumentation {
     }
     // Append these methods before homeAndHelp(). Call expansionExtraChecks() after expansionProgressChecks().
     private void expansionShareCheck() throws Exception {
-        final Intent[] captured={null};
-        ActivityMonitor monitor=new ActivityMonitor(){
+        final Intent[] captured={null};final boolean capturesPayload=android.os.Build.VERSION.SDK_INT>=26;
+        // API 25 does not call ActivityMonitor.onStartActivity(Intent). Its legacy
+        // matching monitor still blocks the real chooser before another app opens.
+        ActivityMonitor monitor=capturesPayload?new ActivityMonitor(){
             @Override public ActivityResult onStartActivity(Intent intent){captured[0]=new Intent(intent);return new ActivityResult(Activity.RESULT_CANCELED,null);}
-        };
+        }:new ActivityMonitor(new android.content.IntentFilter(Intent.ACTION_CHOOSER),new ActivityResult(Activity.RESULT_CANCELED,null),true);
         addMonitor(monitor);
         try {
-            click("share_daily");
-            require(captured[0]!=null&&Intent.ACTION_CHOOSER.equals(captured[0].getAction()),"daily share is intercepted before any external app opens");
-            Intent send=captured[0].getParcelableExtra(Intent.EXTRA_INTENT);
-            require(send!=null&&Intent.ACTION_SEND.equals(send.getAction())&&"image/png".equals(send.getType()),"share requests a PNG through the Android chooser");
-            android.net.Uri uri=send.getParcelableExtra(Intent.EXTRA_STREAM);
-            require(uri!=null&&"content".equals(uri.getScheme())&&(APP+".share").equals(uri.getAuthority())&&"/result.png".equals(uri.getPath()),"share exposes only its exact result image URI");
-            require((send.getFlags()&Intent.FLAG_GRANT_READ_URI_PERMISSION)!=0&&(send.getFlags()&Intent.FLAG_GRANT_WRITE_URI_PERMISSION)==0,"share grants reading without write access");
+            click("share_daily");android.net.Uri uri;
+            if(capturesPayload){
+                require(captured[0]!=null&&Intent.ACTION_CHOOSER.equals(captured[0].getAction()),"daily share is intercepted before any external app opens");
+                Intent send=captured[0].getParcelableExtra(Intent.EXTRA_INTENT);
+                require(send!=null&&Intent.ACTION_SEND.equals(send.getAction())&&"image/png".equals(send.getType()),"share requests a PNG through the Android chooser");
+                uri=send.getParcelableExtra(Intent.EXTRA_STREAM);
+                require(uri!=null&&"content".equals(uri.getScheme())&&(APP+".share").equals(uri.getAuthority())&&"/result.png".equals(uri.getPath()),"share exposes only its exact result image URI");
+                require((send.getFlags()&Intent.FLAG_GRANT_READ_URI_PERMISSION)!=0&&(send.getFlags()&Intent.FLAG_GRANT_WRITE_URI_PERMISSION)==0,"share grants reading without write access");
+            }else{
+                require(monitor.getHits()==1,"legacy blocking monitor intercepts the real daily chooser before any external app opens");
+                // This is the provider's public contract, not an invented captured Intent.
+                uri=android.net.Uri.parse("content://"+APP+".share/result.png");
+                log.append("API25 share scope: actual chooser blocked and result provider inspected independently; deep SEND payload/grant assertions require API26+ monitor hook and are covered by API35\n");
+            }
             try(java.io.InputStream stream=getTargetContext().getContentResolver().openInputStream(uri)) {
                 Bitmap card=android.graphics.BitmapFactory.decodeStream(stream);
                 require(card!=null&&card.getWidth()==1080&&card.getHeight()==1350,"share provider returns the actual native result card");

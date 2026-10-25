@@ -15,7 +15,7 @@ Version **4.2.1-beta-test/code 15**, local package `com.perfgames.falley.motiont
 
 ## Verification scope
 
-Portable tests cover actual mixed-course clears in both controls, Arcade through Wave 4 at all difficulties, deterministic schedule/reset behavior, bounded/no-bias gusts, one-use Static support, Daily equivalence, avatar reward migration and saved-choice failure/retry. Native fixtures cover visual layout, public actions, reward persistence, rope feedback and EN/HI/ID. Exact final receipts and checksums are recorded in [Build Status](../BUILD_STATUS.md) after native checks complete.
+Portable tests cover actual mixed-course clears in both controls, Arcade through Wave 4 at all difficulties, deterministic schedule/reset behavior, bounded/no-bias gusts, one-use Static support, Daily equivalence, avatar reward migration and saved-choice failure/retry. Native fixtures cover visual layout, public actions, reward persistence, rope feedback and EN/HI/ID. Final debug receipts and checksums are recorded in [Build Status](../BUILD_STATUS.md). Native API 35 passes 22,151 checks/ 184 captures; API 25 passes 11,000 checks/ 92 captures. Both original preference/display/font states were restored and the owned emulators stopped. Physical-phone acceptance remains distinct.
 
 Daily Drop is intentionally unchanged: generator family stays at version 2. A comparison against published 4.2 verifies identical float/event/cut traces for multiple seeds and both control paths. Campaign stars, local records and existing avatar selections are preserved. Existing Arcade personal bests are retained; rules have changed, so old and new beta runs are not a controlled balance comparison.
 

@@ -1,147 +1,35 @@
 # Falley build status
 
-## Current 4.2 beta — 25 October 2026
+**Current: 4.2.1-beta-test / code 15 — local debug testing only**, prepared 25 October 2026. Package: `com.perfgames.falley.motiontest`. Source checkpoint: `09108128247ec41bc9d0ef3cf8b09419778e0e59`; subsequent harness/evidence updates do not change the APK. One corrected source-comment difference is explicitly proven bytecode-identical in the receipt.
 
-**4.2.0 / code 14**, production package `com.perfgames.falley`, is built and verified locally for owner beta submission. New players confirm English/Hindi/Bahasa Indonesia with English selected initially and a temporary permission-free country hint. The opening three stages require active dodging. Original retro music has an independent switch and lifecycle/audio-focus handling. Avatars have distinct cosmetic jump poses; Collection has only Avatars and Ropes. Earned Spring and Static ropes add campaign support effects; Daily and Arcade retain Classic. Documentation/contact/privacy status is current and personal Windows paths have been removed from tracked Markdown.
+## What changed
 
-App source is **`2c309f1cbd12bfaa4755b6b98ad4d69d277a412d`**, also embedded as the AAB's VCS revision. Subsequent verification/documentation commits leave application/build inputs unchanged. R8 optimization/obfuscation and resource shrinking are enabled. `lintRelease` **0 errors / 10 nonfatal warnings**, `bundleRelease`, bundletool validation, strict JAR verification plus all **26 payload certificates**, APK v2/v3 and 16 KiB ZIP alignment **PASS**. The existing upload certificate is preserved. The non-debuggable bundle requests no permissions and targets API 36/minimum 24, with backup disabled. The local `mapping.txt` SHA-256 exactly matches the AAB's embedded deobfuscation mapping.
+- Animated, once-per-new-avatar reward choice: Use the unlocked avatar or Keep whichever avatar is selected. Saved acknowledgement/equipment, restart recovery and old-save migration are covered.
+- Mild alternating motion gusts with visible cues, centered calibration and a calmer landing approach.
+- Shared bottom-tab spacing based on supplied Redmi 13C screenshots.
+- Individually marked Classic/Spring/Static ropes in Campaign; new Arcade mounts mix from Wave 2. Collection explains the course mechanics. Daily physics stays unchanged.
+- Card-based Arcade difficulty/hazard choices, Touch/Motion selection and at-least-one-hazard protection.
+- Original Demon/FALLEY launcher/adaptive/themed/splash branding; current icon, promotional illustrations and six actual native store frames.
+- Short README, archived history, current GitHub description and source-only CI.
 
-| Local artifact (portable example directory) | Bytes | SHA-256 |
-| --- | ---: | --- |
-| `C:\local-delivery\2026-10-25\Falley-4.2.0\Falley-4.2.0-debug.apk` | 1,103,387 | `dc4f949497b41433bee0cb52f11710a58fc3fad49021e447ad56cc4b158442ec` |
-| `release/Falley-4.2.0-beta.aab` | 1,037,308 | `f5b93a995065da8af8f7fdb7c3cb63c85addd163911e93e93c021777dde0341c` |
-| `release/Falley-4.2.0-beta-local.apk` | 1,082,961 | `5bcb2733d4a1fd821eea51a011c4d9e2070a865dbe5fe7f76b80262d35e324b0` |
-| `release/mapping.txt` | 247,096 | `11d48e42b62050bb5e7d0b62c133690fc794739897915854145e06689a6e2cc8` |
+## Local debug deliverable
 
-All **26 portable test groups PASS**; the final focused EN/HI/ID copy suite passes **8,397 checks**. Audio/PCM/controller checks pass **56 lifecycle cases**, including API 24 and modern audio-focus branches. Native debug acceptance on Android 15/API 35 passes **20,214 checks / 166 captures** across small/tall displays, font scale 1.3 and EN/HI/ID. Reflection-free tests of the exact R8 production APK pass on **Android 15/API 35 and Android 16/API 36**, both display sizes: **850 checks including two recovery checks / 48 captures**. These cover identity, fresh language choice, packaged audio readability, Collection, settings, localized language selection, policy and real pointer/navigation paths. They do not claim complete gameplay equivalence or phone listening quality.
+`C:\local-delivery\2026-10-25\Falley-4.2.1\Falley-4.2.1-debug.apk` (portable example path), **1,120,186 bytes**. SHA-256: `487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24`.
 
-Native preference/display/font recovery is verified, test harnesses removed and both owned emulators stopped. [4.2 notes](docs/BETA_4_2.md), [curated evidence](screenshots/v4.2/README.md), and [release receipt](screenshots/v4.2/RELEASE_VERIFICATION.json) give exact scope and limits. Raw logs, full captures, R8 reports, binaries and signing material remain local. Jarsigner archive-order warnings are recorded; the independent verifier confirms every payload certificate. No Play upload or rollout has occurred.
+Debug compilation, package/version/min24/target36 inspection and APK v2/v3 signature checks **PASS** with the preserved debug identity. No APK/AAB, signing key, mapping or generated intermediate is tracked. **No new release APK/AAB, release lint/R8 bundle verification, Play upload or Vercel deployment was performed.** The older 4.2 signed files do not validate this checkpoint for submission.
 
-Before beta, redeploy the updated [policy-site source](policy-site/README.md), then confirm the support email and public policy URL in Play Console. Use [4.2 release notes](docs/PLAY_RELEASE_NOTES_4_2.md). Physical-phone motion, sound/music balance, performance, TalkBack and fluent-speaker review remain owner acceptance. No ads, purchases, revives or backend were added.
+## Completed checks
 
-## Historical Chapter spotlight debug — 24 October 2026
+- **29 portable groups PASS**, including all 24 mixed-rope Campaign courses in touch/motion and 65-second Arcade runs at all 3 difficulties/both controls. Bounded gust/no-directional-bias and support/cut/reset safety pass.
+- **11,489 translation checks**, **704 avatar-model / 32 durable-storage checks**, **56 music/controller checks** pass. Daily remains bit-identical to published 4.2 across 11 seeds/both controls/3 input patterns: **48,471,122 float checks**.
+- Android 15/API 35: **22,151 checks / 184 captures**, 480×800 and 720×1600, font 1.3, EN/HI/ID. Native reward choices include new Angel vs selected Demon, both choices/Back/recreation, no replay/cascade; actual rope contact, Arcade cards and independent audio pass.
+- Android 7.1/API 25: **11,000 checks / 92 captures**, small layout, same APK. Legacy Back/audio focus/background/resume and UX pass. Old monitor verifies blocked chooser/provider access; deep share-intent flags are API 35-only proof.
+- Both runners restore preferences/display/font, remove instrumentation and stop the owned emulators. **10 store upload assets validate** against dimension/mode/hash/crop checks. Captions and controlled-fixture provenance match the final debug app.
 
-**4.1.0-ux-test / code 13**, package `com.perfgames.falley.motiontest`, is ready for owner testing. Home spotlights the next Campaign stage with one primary action and smaller Daily/Arcade cards. Play / Collection / Settings navigation, six chapter illustrations, consistent cards/buttons, a labeled Language row, briefing controls, simpler HUD/jump charges, contextual first-stage guidance, named star objectives and quick Retry are implemented across the native screens. The previously local 24-stage expansion is included in this source update.
+Receipts and selected images: [4.2.1 evidence](screenshots/v4.2.1/README.md). Full raw logs/captures and the APK stay local. [Phone checklist](docs/BETA_4_2_1.md) covers sensor feel, performance, audio audibility, TalkBack and fluent-speaker feedback. These tests do not certify every Android version or physical Redmi behavior.
 
-Debug compilation, APK v2/v3 signature and 16 KiB ZIP alignment **PASS**. All **20 portable test groups PASS**; final focused UX checks **71,120 rules / 1,067 copy assertions PASS**. Final Android 15/API 35 acceptance **PASS**, small/tall layouts, font scale 1.3 and EN/HI/ID: **20,310 checks / 152 captures**. Final compositor timing is synchronized and representative screenshots reviewed. Original test preferences/display/font were restored and the test harness removed; the owned emulator was stopped. Details and limits: [4.1 notes](docs/UX_UPDATE_4_1.md), [curated evidence](screenshots/v4.1/README.md).
+## Before beta publication
 
-Local APK: `C:\local-delivery\2026-10-24\Falley-4.1.0-debug\Falley-4.1.0-debug.apk`, **386,512 bytes**, SHA-256 `d7b77c23afccbb768de75ad395216d890140092dc47b8853f0c6548b95d2a078`. It uses the preserved debug identity. Source publication is authorized; APK/AAB files, generated builds and signing material remain local. **No release APK/AAB, release lint, website deployment or Play submission was performed.** Production metadata is 4.1.0/code 13 for a future separately verified release. Historical signed builds below do not validate this version for store submission.
+Test this debug on the owner's phone first. Redeploy the updated [policy-site source](policy-site/) to the existing Vercel URL; no Vercel authentication is configured here. The public site was confirmed to contain older 23 October wording and still needs the prepared country/Daily/music/records disclosures. Monetization remains deferred. CI is source-only; its hosted status is recorded separately after publication.
 
-Phone feel, audio/haptics, performance, TalkBack and native-speaker feedback remain necessary. Redeploy the updated local privacy-policy website source before a future store release; monetization remains deferred.
-
-## Historical local expansion checkpoint — 24 October 2026
-
-**4.0.0-expansion-test / code 12**, package `com.perfgames.falley.motiontest`, is prepared for owner testing. The 24-stage/six-boss Campaign, cumulative stars, offline Daily Drop/share card, earned wardrobe and expanded EN/HI/ID guidance are implemented. The approved avatar roster uses identical physics/hitboxes. No ads, purchases, revives, donations or backend were added.
-
-Debug compilation and APK v2/v3 signatures **PASS**. All **18 portable suites PASS**, including all 24 courses with touch and motion controllers, all six daily templates, physical mechanism effects, boss warning/live attacks, stability, migration/stars/cosmetics/daily and translations. Focused string checks were rerun after the final review fix. Final Android 15/API 35 acceptance **PASS** on small/tall layouts, font scale 1.3 and all three languages: **10,140 checks / 96 captures**. Current visual review passes after moving boss status into the header and correcting fixture screenshot timing. Exact identity, scope, limits and local receipts are recorded in [expansion debug notes](docs/EXPANSION_DEBUG_4_0.md).
-
-Local output: `C:\local-delivery\2026-10-24\Falley-4.0.0-debug\Falley-4.0.0-debug.apk`. At that checkpoint the source was uncommitted/unpushed; it is included in the subsequently authorized 4.1 source publication. **No release APK/AAB, release lint, website deployment or Play upload was performed.** At that checkpoint, production metadata was 4.0.0/code 12 for a future separately authorized release; previous signed releases below are historical and do not validate this expansion.
-
-The local privacy website now includes optional Daily Drop sharing and new local records; redeploy it before publishing this version. Physical-phone feel, balance, performance and translation feedback remain necessary. See the current README for build/install instructions and known limits.
-
-## Historical 3.3.1 privacy update — 23 October 2026
-
-Source metadata: **3.3.1 / code 11**, release package `com.perfgames.falley`; compatible debug package `com.perfgames.falley.motiontest`. The in-app offline policy now includes the confirmed support email and public URL, browser/email footer actions, localized support/website disclosures and long-address wrapping. No requested permissions, ads, analytics or gameplay changes were added.
-
-Local debug APK and upload-signed release AAB/derived APK build successfully. Release lint reports **0 errors / 9 warnings**; bundletool, strict signature/all 24 payload certificates, APK v2/v3 and 16 KiB alignment pass with the preserved upload identity. Language checks pass **2,276 assertions**. Exact local paths, sizes, hashes, native verification and reproduction are recorded in [3.3.1 privacy notes](docs/PRIVACY_UPDATE_3_3_1.md).
-
-Focused native Android 15/API 35 acceptance passes on both builds at 480x800 and 720x1600, all three languages and font scale 1.6: **4,807 checks / 48 captures** (including seven fixture-cleanup checks). Contact/URL visibility, bounds, scrolling, accessibility, Back and intercepted external destinations pass. Root/QA visual review found no overlap; original preferences/display/font settings were restored, the harness removed and the owned emulator stopped.
-
-Binaries and source-hash/build receipts are under `C:\local-delivery\2026-10-23\Falley-3.3.1`. These binaries were built from the working tree before source publication; the recorded source hashes identify their exact build inputs. [Curated 3.3.1 evidence](screenshots/v3.3.1/README.md) contains the native receipts, localization result and selected screenshots. Source and the static policy website are versioned here; binaries and signing material remain local. No Play upload has occurred. Prior gameplay proof below is historical and carried forward, not rerun for this privacy-only change.
-
-## Historical 3.3 controls update — 17 October 2026
-
-Source metadata: **3.3.0 / code 10**, package `com.perfgames.falley`; Android API 24–36, offline/ad-free. Recoverable two-jump bursts now allow further airborne jumps after actual descent; campaign total allowances grow from 8 to 18 by chapter. Campaign stages unlock sequentially. Touch drift is 35% of its old strength. Settings labels Language, and the visual Touch/Motion guide replaces overlapping numbered rows.
-
-Portable acceptance passes all 13 test classes / **41,965,180 assertions**, including both 100,000-step stability runs, all twelve actual courses, 65-second mixed Arcade runs, recovery/caps/unlocks and 211-key localization checks. The first two forgiving stages can now finish idle; later stages still require input. Independent cross-review found no actionable burst, progression or release-output defect.
-
-Local debug APK: `C:\local-delivery\2026-10-17\Falley-3.3.0\Falley-3.3.0-debug.apk`, **3.3.0-controls-test / code 10**, package `com.perfgames.falley.motiontest`, **341,456 bytes**, SHA-256 `62AE017D69D6752E3CE8EC0F8D48F97311CCB7F01E475E6D1DE821B7F8DF6AE4`; APK v2/v3 verification passes.
-
-Signed release build: **PASS**, `lintRelease` (0 errors / 9 warnings), `bundleRelease`, bundletool validation, strict signature and all 24 payload certificates, APK v2/v3 and 16 KiB alignment. Source revision embedded in the AAB: **`f4b3a5abc465fffd50f1e904e593914bf11efb7d`**. The existing upload identity is preserved. Local release directory: `C:\local-delivery\2026-10-17\Falley-3.3.0\release\`.
-
-- AAB `Falley-3.3.0-beta.aab`: **319,650 bytes**, SHA-256 `7dc34e86db169c7698045381c18bb2f0c02f8184bd2e81274949c5d9558accee`.
-- Bundle-derived release APK `Falley-3.3.0-beta-local.apk`: **337,414 bytes**, SHA-256 `94f2ca1d134eee93bbe6848364d78df2e54d86050185db38e50264065276ce89`.
-- Current native Android 15/API 35: **19,070 checks / 80 distinct PNGs PASS** across debug and signed release at 480×800 and 720×1600. Debug checks use Android font scale 1.3 and all three languages; release smoke confirms production identity/non-debuggable status. Locks, actual unlock/persistence, burst recovery/total exhaustion, gentle drift, labeled Language and visual Touch/Motion Help pass. Source and QA visual review confirms the reported Help overlap is removed.
-
-Application source is committed; the evidence/documentation follow-up leaves that source unchanged. Binaries and keys remain local and excluded from Git. No Play upload/rollout has occurred. Jarsigner archive-order/ZIP warnings and physical-phone/owner submission gaps remain documented. [Current notes](docs/CONTROLS_UPDATE_3_3.md) and [curated evidence](screenshots/v3.3/README.md) record reproduction, receipts and limits.
-
-## Historical local debug update — 17 October 2026
-
-That earlier local checkpoint added the two-jump/ceiling rules, chapter steering onset after 30% of cuts, Arcade Wave 2 nudge/ramp, Loose default, twelve stages/six chapters, wordmark/avatar splash and English/Hindi/Bahasa Indonesia. It was local and uncommitted/unpushed at that point. Its jump rule and fully unlocked campaign are superseded by 3.3. No release bundle or store artwork was regenerated for that checkpoint; the older 3.2 release proof below remains historical.
-
-Local debug APK: `C:\local-delivery\2026-10-17\Falley-Campaign-Languages-Test\Falley-Campaign-debug.apk`, **3.2.0-campaign-test / code 9**, app `com.perfgames.falley.motiontest`, **337,360 bytes**, SHA-256 `4C83BD6992A886C93E3DDC86F8AF2057D0223A0D48AD0495DA0F59142CAF8A7A`. Build and APK v2/v3 signature verification pass. All 12 portable test classes pass across the broad and corrected targeted runs; both 100,000-step stability suites pass. Final Android 15/API 35 focused checks pass: feature suites at 480×800 and 720×1600, launcher-splash proof and retained motion regression, **5,049 checks/72 distinct PNGs**. Final system frames visibly show FALLEY/avatar after adding Android 13+ `icon_preferred`. Read-only source review found no actionable defect. [Current test notes](docs/LOCAL_TEST_BUILD.md) record changes, reproduction, exact receipts and limits; phone motion comfort and human translation review remain for owner feedback.
-
-## Historical 3.2 store-preparation checkpoint
-
-Current source: **3.2.0 / code 7**, application ID `com.perfgames.falley`; minimum API 24, compile/target API 36. Preparation date: **16 October 2026**. Scope is an offline, ad-free Android phone beta. Binaries and signing material remain local; no Play upload/rollout has occurred.
-
-- Release tooling prepared: checksum-pinned Gradle **8.11.1** wrapper, AGP **8.10.1**, JDK **17**, official bundletool **1.18.3**. `scripts/build-release.ps1` runs lint/bundle generation, strict signature and every-payload certificate checks, bundle validation and universal-APK verification.
-- Signing prepared through `scripts/release-signing.ps1`: private upload identity under ignored `releases/private-signing/`, Windows current-user directory permissions and DPAPI-protected credentials. Preserve a recoverable private backup; no key, password or binary belongs in Git.
-- Frozen release build: **PASS**, `lintRelease` and `bundleRelease`; lint reports **0 errors and 9 warnings**. Initial guarded-API errors were fixed before this successful final build. App-source revision embedded in the AAB: `21f2f87c3bc37aa9ab3fc34d3b0e62f3d2b4dd38`; later documentation/artwork commits do not identify a different app binary.
-- Local AAB: `releases/3.2.0/Falley-3.2.0-beta.aab`, **301784 bytes**, SHA-256 `2d7c7638bfbcfae1161af690bc0b3cc47bb5e8198b9c223bd76725343175b75c`.
-- Bundle-derived, upload-key-signed local APK: `releases/3.2.0/Falley-3.2.0-beta-local.apk`, **321030 bytes**, SHA-256 `2d62249186607d650a1719083e77c63a1b81f20b0a3c12c7225593f5cc508c39`. Universal `.apks`, inspected manifest and `SHA256SUMS.txt` accompany these local artifacts.
-- Bundletool **1.18.3 validation PASS**; strict jarsigner verification against the expected key **PASS**; Java `JarFile` verification confirms **all 24 payload entries** match the preserved certificate. Negative controls reject an unsigned bundle and an added unsigned payload. Missing signing-environment guard also **PASS**.
-- Public upload certificate SHA-256: `16cc163611d6a0b2f13474470ed8328e7e5093ba8c5af34ef0701ebf423f9caa`. The key and DPAPI credential remain private, excluded from Git. Derived APK v2/v3 signatures and `zipalign -P 16` **PASS**. Local upload-key testing is not proof of a later Play app-signing install/update.
-- Artifact manifest: min API **24**, target API **36**, **non-debuggable**, no requested permissions, optional accelerometer/gyroscope and backup/cloud/device-transfer exclusions.
-- Jarsigner emits POSIX ZIP-attribute and archive/JarInputStream-order warnings on the AGP-generated AAB. Strict verification and every-entry `JarFile` certificate checks pass; this report does not claim zero warnings. Raw build/controls/guard evidence: `build/release-v32.log`, `build/signature-controls.log`, `build/release-signing-guard.log`.
-- Full native Android 16/API 36 release suites: **PASS** on 480x800 @ density 240 and 720x1600 @ density 320, **1019 checks/64 captures each; 2038 checks/128 captures total**, on the frozen bundle-derived APK.
-- Focused Android 15/API 35 suites: **PASS**, **387 checks/13 captures per layout; 774 checks/26 captures total**, covering current privacy, menu-accessibility and screen-awake behavior alongside focused release regressions.
-- Four current native runs: **PASS, 2812 logged checks/154 captures**. Curated proof contains **42 PNGs** (16 API 36, 26 API 35) and **14 receipts/logs** under `screenshots/v3.2/`. Original preferences/display settings were restored, the instrumentation APK was removed and both owned emulators were stopped; no failure captures were produced. Frozen AAB/APK hashes were confirmed unchanged after testing. Controlled emulator fixtures do not establish real-phone listening, human TalkBack navigation or natural player success rates.
-- Store capture acceptance: **PASS, 125 checks**, separate from the four native-run totals; six fresh native **1080x1920** captures from 3.2.0. All **10 prepared upload assets** (including optional feature variants) pass dimension/mode/size/hash checks, alt text at most 140 characters, source/crop integrity and root/asset visual review. Store capture receipts are kept separately under `screenshots/v3.2/`; upload assets/provenance are under `store/assets/`.
-- Source changes verified in current native checks: offline Settings privacy policy, menu accessibility nodes, active-play-only screen-awake behavior/static-menu rendering, guarded API annotation, static raw-resource audio lookup and explicit backup/data-extraction rules. App-source commit and artifact hashes above remain unchanged; the later documentation/artwork commit is separate.
-- Campaign/Arcade physics and WAV payloads are unchanged from 3.1. The deterministic six-course/survival, 100,000 + 100,000 stability-step and audio-file proof below is **carried forward, not rerun as a 3.2 test claim**.
-
-Owner gates remain open: a real monitored support email, publicly hosted privacy policy/contact mechanism, Console/account/package access, audience/content-rating/Data safety review and real-phone acceptance. The in-app policy has no fabricated contact. Adding the real contact requires a **new higher version code and rebuilt/retested bundle before closed beta**. AdMob and consent are absent; this is not an advertising release or an approved closed-beta submission.
-
-Use [BETA_SUBMISSION.md](docs/BETA_SUBMISSION.md) for the internal-then-closed-test order, [release signing](docs/RELEASE_SIGNING.md) for private-key preservation, [store drafts](docs/store/README.md) for owner-reviewed content and [store-assets.md](docs/store-assets.md) for upload images. The local release artifact and technical/store-image checks pass. No Google approval, age rating, real-device acceptance or broad IP clearance is implied; owner submission gates remain open.
-
-## Historical 3.1 proof
-
-Current source: **3.1.0 / code 6**, application ID `com.perfgames.falley`; minimum API 24, compile/target API 36. APK/AAB files and signing material remain local. Verification date: 15 October 2026.
-
-- Campaign physics: **PASS, 20,939,979 checks**, including six actual full-course wins, the guaranteed stage 4 saw introduction, clear target approaches and 100,000 seeded stability steps.
-- Six bounded-controller finishes: **10.12, 11.15, 12.20, 12.61, 14.29 and 15.33 seconds**. These are simulation times, not human playtest results.
-- Arcade physics: **PASS, 21,000,408 checks**, including existing beam/fire geometry and drift tests plus the expanded five-family selection and 100,000 stability steps.
-- Natural mixed Arcade: all-five-family controller survives **25 seconds/wave 2** at Chill, Standard and Brutal; scores **3010 / 2920 / 2920**. No campaign floor or false win.
-- Focused buzzsaw/cue tests: **PASS, 879 checks**. Harmless warnings, fast relative swept-circle collision, grazing hit/near miss, actual reachable refuge dodges at minimum Arcade width/all difficulties, locked paths, exclusive attacks, reset and landing retirement.
-- Hazard audio event consumption: **PASS, 20 checks**, including duplicate/stale suppression, resume/restart and same-step motor/impact priority. Touch: **16**; motion: **17**; profile: **33**, all PASS. Existing mask 15 stays selected; fresh/empty defaults use 31.
-- Audio generator `--check`: **PASS for 11 synthesized WAV assets**, with distinct files, fades, no clipped PCM and peak/headroom validation. This is file validation, not a listening test.
-- Current proof: `screenshots/v3.1/physics-suite.log` and `screenshots/v3.1/audio-assets.log`; raw physics output: `build/physics-v3.1.log`.
-- Final V3.1 local APK: **PASS**, `Falley-debug.apk`, **312635 bytes**, version **3.1.0 / code 6**; v2/v3 signatures verified. Manifest inspection confirms min API 24, target API 36, debug build, optional sensors and no requested Internet permission.
-- SHA-256: `F50FFD0A8B228EB1869EBA24126962A12F15AB791FA1E79A25F46265AF492A6F`.
-- Full native Android 16/API 36: **PASS**, 480x800 @ density 240 and 720x1600 @ density 320, **799 logged checks and 62 captures each; 1598 checks/124 captures total**. Frozen APK checksum unchanged. All 11 SoundPool samples load; actual physics cues increment native playback once. Mute, menu/background, recreation and release checks pass. Playback counters do not verify audible output or mix quality.
-- Focused Android 15/API 35 saw/audio checks: **PASS**, **185 checks and 11 captures per layout; 370 checks/22 captures total**. Corrected warning track/blade frames visually verified on both sizes. These focused checks supplement the full API 36 suites; they do not repeat every unrelated full-suite flow.
-- All four current native runs: **PASS, 1968 logged checks/146 captures** on the unchanged APK checksum above. Final curated evidence contains **40 PNGs** (18 API 36, 22 API 35), four run logs/check receipts and the physics/audio logs under `screenshots/v3.1/`. Original preferences/display settings were restored and test APKs removed. Controlled hazard/collision fixtures are not natural physical-phone sessions.
-- API 36 visual review confirms the five-row setup and active/impact saw frames. Curated evidence: 18 PNGs under `screenshots/v3.1/api36/{small,tall}`. Two original saw-warning captures showed a stale prior frame despite passing numerical warning-safe assertions; those PNGs are excluded from curated evidence and raw full-suite receipts are retained. The focused API 35 harness now advances frames and asserts the warning phase before capture. This is a test-only timing correction; no app change or rebuild.
-
-Independent source review found no actionable blocking code defect. The historical V3 results below remain separate from current proof; no automated result replaces real-phone listening, controls or performance acceptance.
-
-Review fixed a landing fairness defect: an attack warned above the spawn cutoff could remain active across a strict target lane. Fire, beam and saw pools now retire inside the final 650 world units. Jumping back above that band can permit another warning, which retires on reentry. Boundary hazards and strict missed-floor deaths remain active.
-
-SoundPool uses at most three one-shot voices. Sound off/background/restart stops playback and Activity destruction releases resources. Unloaded samples are dropped, not delayed; an early cue can be silent. Physical audio quality, volume/mix and interruption behavior still require phone testing.
-
-**Readiness: local testing; not a production advertising release.** No AdMob or consent SDK is integrated. See [Play Store readiness](docs/PLAY_STORE_READINESS.md). Next work is real-phone audio/performance acceptance, a validated release-signed AAB and privacy/content-rating work; add advertising and consent as a separate verified release task.
-
-## Historical V3.0 proof
-
-Verified portable source and native debug APK on 15 October 2026. Source revision: 3.0.0 / code 5, application ID com.perfgames.falley. Minimum API 24; compile/target API 36. APKs remain local.
-
-- Campaign physics: PASS, 20940137 checks including all six real course wins, drift/countersteering/release, swept hazards, forgiving/strict floor behavior and 100000 seeded steps.
-- Six campaign finishes: 10.12, 11.15, 12.20, 13.26, 14.29 and 15.35 seconds; bounded test controller times, not human playtest results.
-- Arcade physics: PASS, 20800408 checks including configuration/mode reset, known swept/cap geometry, three beam death reasons/near misses, warning/refuge/direction-lock scenarios for all four families at all difficulties, no idle campaign clears and 100000 survival stability steps.
-- Natural mixed Arcade attacks: test controller survives 25 seconds/wave 2 at Chill, Standard and Brutal, score 2920 each; no campaign floor/win.
-- Touch policy: PASS, 16 cases. Motion filtering: PASS, 17 cases.
-- Profile/preferences: PASS, 31 cases including blood, mask/difficulty sanitization, independent survival records and campaign isolation.
-- Complete portable suite log: screenshots/v3/physics-suite.log (raw local copy: build/physics-v3.log).
-- Final local APK: Falley-debug.apk (45600 bytes), version 3.0.0 / code 5; portable JDK 17/platform 36/build-tools 35.0.0 build and v2/v3 signature verification PASS.
-- SHA-256: 581143CC411FA44128683A525CA20E3F89D66EF9F947FAF642F2C7EEF3539CD4
-- Native V3 Android 15/API 35: PASS on 480x800 @ density 240 (650 checks, 51 captures) and 720x1600 @ density 320 (646 checks, 51 captures). Full-suite total: 1296 checks, 102 captures.
-- Native V3 Android 16/API 36: PASS on 480x800 @ density 240 and 720x1600 @ density 320 (652 checks, 53 captures each). Full-suite total: 1304 checks, 106 captures.
-- All four full native suites: PASS, 2600 logged checks and 208 captures, using the same APK checksum above. Coverage includes actual swipe/countersteering/release input, system Back and pause, settings/blood/preset persistence after recreation, campaign records and strict floor misses, Arcade setup/last-hazard guard/separate records, warning-safe/live hazards and grazing swept collisions.
-- Additional focused API 35 effects suites: PASS, 173 checks and 15 captures per layout (346 checks, 30 captures total), covering partial side beams, diagonal lightning and late fire/lightning ash. Raw local evidence: build/device/v3-effects/api35.
-- Full raw native evidence: build/device/v3/{api35,api36}/{small,tall}. Curated PNGs and four full-suite/two focused-suite logs are under screenshots/v3/{api35,api36}. Preferences and emulator display settings were restored; the test APK was removed.
-- Controlled target/hazard states and the 40-second Arcade fixture are staged proof, not natural phone play sessions. Focused effects suites supplement the full suites and do not repeat unrelated flows.
-
-Toolchain: JDK 17, SDK platform 36/build-tools 35.0.0 for app builds; platform 35 additionally supplies the native harness compilation jar. Ignored build/debug.keystore is preserved.
-
-At the historical V3.0 checkpoint, physical-phone feel/fun, broader hardware coverage, Gradle verification, production release AAB and Google Play submission remained unverified. See the current 3.2 status above for later tooling work.
+[Development](docs/DEVELOPMENT.md) · [Current beta notes](docs/BETA_4_2_1.md) · [Archived build history through 4.2](docs/history/BUILD_STATUS_THROUGH_4_2.md)

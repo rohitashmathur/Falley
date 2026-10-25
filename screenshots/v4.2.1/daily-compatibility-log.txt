@@ -1,0 +1,1 @@
+PASS: published 4.2 Daily bit-exact comparison, 11 seeds x both controls x 3 input/jump patterns (48471122 float checks)

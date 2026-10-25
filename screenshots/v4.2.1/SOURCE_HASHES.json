@@ -1,0 +1,306 @@
+{
+  "date": "2026-10-25",
+  "sourceState": "Current source snapshot; one comment-only compiled-input difference is explicit and proven bytecode-equivalent.",
+  "sourceCommit": "09108128247ec41bc9d0ef3cf8b09419778e0e59",
+  "canonicalFormat": "UTF-8 lines: repository-relative path, space, lower-case SHA-256; sorted by full path; LF separators; no terminal newline",
+  "aggregateSha256": "ba0917edb7494d1e92f4d255580980fcdaea98ed883af9fff194a6102c80c497",
+  "files": [
+    {
+      "file": "app/build.gradle",
+      "bytes": 1806,
+      "sha256": "f9c0ef695f975ddf7fd56279b6ac26c1322f1e08c1984a7c21919b1aae5dda4d"
+    },
+    {
+      "file": "app/proguard-rules.pro",
+      "bytes": 1773,
+      "sha256": "e2da56fd0c7c5e7cdaffcfd85bca518bac22bc2d631b3966fbe10fd7c7906ddd"
+    },
+    {
+      "file": "app/src/main/AndroidManifest.xml",
+      "bytes": 1171,
+      "sha256": "22ecc2ab9fdfe5448aa9af030e3973129a7b4d704e5915d02976c5925a0d7b12"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/ArcadeRules.java",
+      "bytes": 1056,
+      "sha256": "90bf7939bac52dfcd34f69d056f5930fa4a82ad3487161d99b581ba638d2a534"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/AvatarCatalog.java",
+      "bytes": 493,
+      "sha256": "5054a8bb2615fe9373e6fdfa73818d0b399ade4a5bf9e62ae5b30deec5672788"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/AvatarPose.java",
+      "bytes": 3158,
+      "sha256": "2a5f7b2fdbb38a2de229bcf304858836dae68857a0a42d4bd0d9c46e86863d15"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/AvatarRenderer.java",
+      "bytes": 7006,
+      "sha256": "fbfbe27658b86a0b5892f4d7f0095788922e1b49f7282e84f3da6a236498e111"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/AvatarRewards.java",
+      "bytes": 2843,
+      "sha256": "0090e37be463933092ce39c3b739fdda66a09e181a81dca1e6e0baeb8da30aca"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/ChapterStories.java",
+      "bytes": 1201,
+      "sha256": "85274af54262ba36950a5362470e9d813dae3dfe1bf863493e290d13aa0c1d2c"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/Cosmetics.java",
+      "bytes": 2443,
+      "sha256": "26e974e6e6ff422533e88e0b514683afb3c1a76cbdbb48bc92072c067ae7ab61"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/CountryDetector.java",
+      "bytes": 1475,
+      "sha256": "fcc2138d279132ea95116fa9f3e6d99da20586f4fd1d5b696bf035f2c8fa042d"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/CountryRules.java",
+      "bytes": 1260,
+      "sha256": "ad9a659e88811ae685ae6633d154ee4a5d92b0036068148d72f077b4f0ee84c0"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/DailyDrop.java",
+      "bytes": 2057,
+      "sha256": "d09572994f71ebe027646e43225528901362c941618609e348c37cec5222d846"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/DailyShare.java",
+      "bytes": 3470,
+      "sha256": "10fee2659b77c07a28215471426eb276b4e910d580025878a1dee85b635dd7ae"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/ExpansionStrings.java",
+      "bytes": 21286,
+      "sha256": "240ce2ec2e873d5ceb6b1b05c81f3e6c0b0cd845c43fcae1924cec5b4e177c43"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/FalleyAudio.java",
+      "bytes": 4736,
+      "sha256": "384af9ed26fd787fbe9db46735ef551a3ac317d373b810094b850f42929df554"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/FalleyMusic.java",
+      "bytes": 6624,
+      "sha256": "dd3d2c7480bad6a97fbb1dc2470b62c906b71dd2cca36b2cc08a9533aab41a49"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/FalleyProfile.java",
+      "bytes": 13255,
+      "sha256": "8338ee3854b8be2957dd917c54d662f60b5a3f4ee27dd0d8323db414fcd7941e"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/FalleyStrings.java",
+      "bytes": 40282,
+      "sha256": "889f89444c6d88b210362c1c126bfbfeaf6ca5526e8fa1eb9bd6df915486b90e"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/FalleyUi.java",
+      "bytes": 16899,
+      "sha256": "5a76a8655c67be32c5b73f379d2138b0783ef0d4283ac0440bdbd207ff3a1c8e"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/HazardAudioCue.java",
+      "bytes": 461,
+      "sha256": "be4baf6dc722bcccb08c3970576a74c733be6dd9b93301e14ff29cc16f1b4dae"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/MainActivity.java",
+      "bytes": 128830,
+      "sha256": "d00733ce67c98fbb1c25f512785092a877a6280bf18b8bb556ccab9e089ce367"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/MotionSteering.java",
+      "bytes": 6322,
+      "sha256": "6f9647a9ec2259b78561da5663ba5e5fe6908c328f72e1abbc4907ef45a46277"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/Physics.java",
+      "bytes": 42836,
+      "sha256": "6fb55539b8e5facc06d603b3d8d1ee34de074be626b5c3c1e0f691ba1d7d28ff"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/PrivacyPolicy.java",
+      "bytes": 4329,
+      "sha256": "174505c23f9f5b269fc58af11f1c8a2a17600d8ac49a1a04e6968006a2cc3c89"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/ProfileStorage.java",
+      "bytes": 6462,
+      "sha256": "144aedc1946e0237712194a0a168c8148624ea887c97e9c050b4f32e1cff262d"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/ReleaseStrings.java",
+      "bytes": 14803,
+      "sha256": "465c879edefc25804bd0491c4e40ef649e7ff7181aae5c74a9ffc2f4614071b1"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/RopeCatalog.java",
+      "bytes": 1027,
+      "sha256": "d43df3ed6393b89f0c496329386d6ed54b813d1ed547fec21b1fd522ab2bd9c2",
+      "compiledSourceSha256": "f840e105a3b41f44c7879609430cb65903a033556fd57a916096c94b892f69c9",
+      "note": "Class header comment corrected after compile; byte-identical generated class verified in COMMENT_PROOF.json."
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/ShareCardProvider.java",
+      "bytes": 2183,
+      "sha256": "5d599121e78aaf3b5e1b869f3ada6ffaf5e16f7f0d39345ddf863c96764a4b8b"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/StageCatalog.java",
+      "bytes": 6504,
+      "sha256": "37835ea62281589ff02daa9b643a5d40f9cdcebc359fa2635dd859de505b58d5"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/TouchSteering.java",
+      "bytes": 1377,
+      "sha256": "986269fdc3a708a1da11f21ffbc93494679bc046e1f32f187749a2de053b5e25"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/UxRules.java",
+      "bytes": 3861,
+      "sha256": "9b75ac73d019bcfef779c5834653038ef2ab5c217c3a0603fe1a44074f1d8170"
+    },
+    {
+      "file": "app/src/main/java/com/perfgames/ropelab/UxStrings.java",
+      "bytes": 13417,
+      "sha256": "d5f4a80bc1a759ba1b84f5c57bf978ee1ef22ee36d9a44c14659dd3fc58ea014"
+    },
+    {
+      "file": "app/src/main/res/drawable/ic_falley_foreground.xml",
+      "bytes": 6868,
+      "sha256": "9dfe347157902800e0b38d74e88d4177c2fe8d883bad0bb61641e4085acaead2"
+    },
+    {
+      "file": "app/src/main/res/drawable/ic_falley_monochrome.xml",
+      "bytes": 6868,
+      "sha256": "e9ee9799e947c3ac39af31796727834fff49aa4ee82a6ee2ab528a882b2af5f5"
+    },
+    {
+      "file": "app/src/main/res/drawable/icon.xml",
+      "bytes": 7143,
+      "sha256": "57c7caaed963a5d65df48b4f2f34f4ce79eb9d3506e41558e35243af1d458e23"
+    },
+    {
+      "file": "app/src/main/res/drawable/splash_icon.xml",
+      "bytes": 6887,
+      "sha256": "795569c9b6199e0a7590979cb840bc7640192735816db8402752bdde79d7acea"
+    },
+    {
+      "file": "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "bytes": 231,
+      "sha256": "a0594ef429739d0b3528a4c42d6ecda28b28a8af5f323451c6dfa3dbb2ac3576"
+    },
+    {
+      "file": "app/src/main/res/mipmap-anydpi-v33/ic_launcher.xml",
+      "bytes": 300,
+      "sha256": "db27c822c5ad99a19a670c474ef218fee34d9f21728b4b9869c1836cd88a5dc9"
+    },
+    {
+      "file": "app/src/main/res/mipmap-anydpi/ic_launcher.xml",
+      "bytes": 7143,
+      "sha256": "57c7caaed963a5d65df48b4f2f34f4ce79eb9d3506e41558e35243af1d458e23"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_fire_burn.wav",
+      "bytes": 50444,
+      "sha256": "625ae328c85c1706ca52a362dc4e2fd695ea6d80ed6c0e90bd3c773bb336bccc"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_fire_launch.wav",
+      "bytes": 40844,
+      "sha256": "2719c15fb3d31bd6528bb3cf8e7ed0f470a80dda01d5fb03428d8ecf27623c78"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_jump.wav",
+      "bytes": 7244,
+      "sha256": "a3c71405dd895e625fc098e78808f51d1375efa7069f6948c62c3e150f0fd535"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_laser_zap.wav",
+      "bytes": 17324,
+      "sha256": "9f73283f63342a222154e8055eeac1fe9cd579740284daa9c680b241c9e9e95e"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_lightning_crack.wav",
+      "bytes": 34604,
+      "sha256": "15d1809135a10f0b4b8613c06f4c96c6583ab45d5913f6d14d94514c44462890"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_loss.wav",
+      "bytes": 10124,
+      "sha256": "2028b2c6dbfee4fe16e952157dc2bce9aa0b9bd8f98c6c018ae8c93d604770af"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_retro_loop.wav",
+      "bytes": 705644,
+      "sha256": "a9c3c82f7eeebb9b0fe2f33811d8840294e5e466eb4b82edcceea40ae0df18f3"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_rope.wav",
+      "bytes": 4364,
+      "sha256": "b8f6740717e103c2be6bacad2bd46c293202243615dd23014436437900bf04fd"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_saw_impact.wav",
+      "bytes": 26444,
+      "sha256": "be4c0a5a72e06aed7959c97065bac592ea908f09007a2fe8313b5e61be820fdb"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_saw_motor.wav",
+      "bytes": 48044,
+      "sha256": "d928dc5b8f670ac7af59778bcaec4e730a4d2e84ee67f4593e26fe38546a3974"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_ui.wav",
+      "bytes": 2204,
+      "sha256": "14ede3499fe5f64d273c4efae66edf62f49315c97c8f813399228a669a6ec56b"
+    },
+    {
+      "file": "app/src/main/res/raw/falley_win.wav",
+      "bytes": 17324,
+      "sha256": "3ca237ed94ddff791730f9b07bd38b8bf2ecdd8617a907f86f46d389972b3b7d"
+    },
+    {
+      "file": "app/src/main/res/values-v31/styles.xml",
+      "bytes": 743,
+      "sha256": "efb4c28a04f66a058d4ca2605409ea06f7e777553f675b00bbdad8639f73bbfd"
+    },
+    {
+      "file": "app/src/main/res/values-v33/styles.xml",
+      "bytes": 907,
+      "sha256": "e7f1e319a4383e201a6cdc544a9fa864f99745e4f1043cfd27f71cac8c3145eb"
+    },
+    {
+      "file": "app/src/main/res/values/icon_colors.xml",
+      "bytes": 85,
+      "sha256": "0e51f42c84cc3b8ca0876bd113af44d376a3bbc56e562a71ef56259a7163eb99"
+    },
+    {
+      "file": "app/src/main/res/values/styles.xml",
+      "bytes": 423,
+      "sha256": "1963b9ca403be438cb7f8dd71668c8b7f507a0b50c67e1b4e14e98f9ed14414e"
+    },
+    {
+      "file": "app/src/main/res/xml/backup_rules.xml",
+      "bytes": 487,
+      "sha256": "865cae97840e81b9950d70457a05c5c1125a68364b0a83f44cd3daa030bc7e96"
+    },
+    {
+      "file": "app/src/main/res/xml/data_extraction_rules.xml",
+      "bytes": 1050,
+      "sha256": "cb029b35db0e976c087100424e16e14a6256b46962398887520e51508c3b5842"
+    },
+    {
+      "file": "scripts/build-android.ps1",
+      "bytes": 3676,
+      "sha256": "b5b387cd88f2cfd999063755d3d44b08ccac302b35e475cdcea559c68c9ea0a8"
+    }
+  ]
+}

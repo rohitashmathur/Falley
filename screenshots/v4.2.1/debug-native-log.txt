@@ -1,0 +1,16 @@
+warning: [options] bootstrap class path not set in conjunction with -source 8
+Note: C:\path\to\falley\android-tests\com\perfgames\falley\tests\NativeFalleyTest.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+1 warning
+INSTRUMENTATION_RESULT: stream=PASS: native Falley ux; checks=11065; captures=92; viewport=small; debug EN/HI/ID first-run confirmed language and local country fallback, two-tab avatar/rope guide Collection, durable avatar celebration and mixed individual rope abilities/mode isolation, independent music lifecycle, compact results and Chapter spotlight navigation; controlled fixtures, audio audibility not assessed; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1
+/sdcard/Android/data/com.perfgames.falley.motiontest/files/falley-native-ux/small/: 93 files pulled, 0 skipped. 14.9 MB/s (4491099 bytes in 0.288s)
+INSTRUMENTATION_RESULT: stream=PASS: native Falley ux; checks=11086; captures=92; viewport=tall; debug EN/HI/ID first-run confirmed language and local country fallback, two-tab avatar/rope guide Collection, durable avatar celebration and mixed individual rope abilities/mode isolation, independent music lifecycle, compact results and Chapter spotlight navigation; controlled fixtures, audio audibility not assessed; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1
+/sdcard/Android/data/com.perfgames.falley.motiontest/files/falley-native-ux/tall/: 93 files pulled, 0 skipped. 26.8 MB/s (7387382 bytes in 0.263s)
+INSTRUMENTATION_RESULT: stream=PASS: native Falley restore; checks=0; captures=0; viewport=recovery; preference recovery only; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1
+PASS: focused Falley 4.2.1 debug first-run language/country hints, durable Use/Keep avatar celebrations, guide-only Collection ropes, mixed individual rope abilities, Arcade cards/controls, independent music lifecycle, campaign continuation, compact results and EN/HI/ID layout. Controlled fixtures; phone feel and audio audibility remain owner checks. Artifacts: build/device/v4.2.1-debug

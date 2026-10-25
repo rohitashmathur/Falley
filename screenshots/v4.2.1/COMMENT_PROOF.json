@@ -1,0 +1,6 @@
+{
+  "note": "RopeCatalog header comment corrected after final APK compile; recompilation produces a byte-identical class to the exact APK compilation stage. No APK rebuild or functional change.",
+  "classSha256": "8e9cb0a77361d29d3840ce4842466bf2cf2235e780ef6875e313cd7814739de7",
+  "apkDexSha256": "26a755d508fc8c4f51821cdc31f64ea3d84e0cea9c10df74b20e9663cf63d4ce",
+  "identical": true
+}
