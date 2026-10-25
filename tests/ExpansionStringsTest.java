@@ -20,8 +20,8 @@ public final class ExpansionStringsTest {
             }
         }
         for(int language=1;language<3;language++)for(int i=0;i<6;i++){
-            check(!ExpansionStrings.text(language,ChapterStories.intro(i)).equals(ChapterStories.intro(i)),"chapter intro localized");
-            check(!ExpansionStrings.text(language,ChapterStories.outro(i)).equals(ChapterStories.outro(i)),"chapter ending localized");
+            check(!ReleaseStrings.text(language,ChapterStories.intro(i)).equals(ChapterStories.intro(i)),"chapter intro localized");
+            check(!ReleaseStrings.text(language,ChapterStories.outro(i)).equals(ChapterStories.outro(i)),"chapter ending localized");
         }
         System.out.println("PASS: expansion EN/HI/ID catalog, format integrity and chapter stories ("+checks+" checks)");
     }

@@ -1,0 +1,284 @@
+{
+  "version": "4.3.0-beta-test",
+  "versionCode": 16,
+  "applicationId": "com.perfgames.falley.motiontest",
+  "apkBytes": 1132474,
+  "apkSha256": "a08391a972b64729b7ec474a19a11819c32646a49a3459eb1f8716f63d9db377",
+  "signerSha256": "33deea530f0958abad41605f7055b4a5df780496f7b2db3f9a75ffdab2816cd2",
+  "build": "Local debug only; no release APK/AAB, R8/lint release validation, Play upload or Vercel deployment.",
+  "nativeResults": [
+    {
+      "label": "API35-small-v43",
+      "checks": 4031,
+      "captures": 45,
+      "publicLog": "API35-small-v43.txt",
+      "rawLogSha256": "0062e0f29a3a897ef6104c6096ca00393adb17aa8c3f93354fb566ed9abdd2c0"
+    },
+    {
+      "label": "API35-tall-v43",
+      "checks": 4031,
+      "captures": 45,
+      "publicLog": "API35-tall-v43.txt",
+      "rawLogSha256": "00b11bc208e9c29909b3f6911fea25c88e4abf797ab0a7a59603f27b0d69d7be"
+    },
+    {
+      "label": "API35-small-ux",
+      "checks": 12083,
+      "captures": 92,
+      "publicLog": "API35-small-ux.txt",
+      "rawLogSha256": "6494106dbb172dce9878f776e11747a4435de0fe6c2bc35d3919d2e24d51fefb"
+    },
+    {
+      "label": "API35-tall-ux",
+      "checks": 12083,
+      "captures": 92,
+      "publicLog": "API35-tall-ux.txt",
+      "rawLogSha256": "bd258ffeceffd981654c15e69b5528fed4d5391c71d79b7ab5837fe1e2850625"
+    },
+    {
+      "label": "API25-small-v43",
+      "checks": 3940,
+      "captures": 45,
+      "publicLog": "API25-small-v43.txt",
+      "rawLogSha256": "df794cdf3d12eb5e2b502efbc03ceab562e42e6efab9c4bf97e6b4c7015f0b7b"
+    },
+    {
+      "label": "API36-tablet-v43",
+      "checks": 4635,
+      "captures": 52,
+      "publicLog": "API36-tablet-v43.txt",
+      "rawLogSha256": "0163ae522edfea5e257c5225b68149e2961570cc7db8d461f3ff61f5f68643a3"
+    }
+  ],
+  "otherLogs": [
+    {
+      "publicLog": "portable-log.txt",
+      "rawLogSha256": "40b2682eb3fb085a854c35cc502887e0a8cb66b3c7bcc5c1e3669fcfba18cb72"
+    },
+    {
+      "publicLog": "reward-storage-log.txt",
+      "rawLogSha256": "cacdeb52e61510d05ae06ae4dbdc30f1213632e89a577f31b6d4ab3064d4ee91"
+    },
+    {
+      "publicLog": "media-log.txt",
+      "rawLogSha256": "09ece51cf8fdf413606ea8169556e7f230b5d506792be13e6a2e84c1061bc4a6"
+    },
+    {
+      "publicLog": "daily-compatibility-log.txt",
+      "rawLogSha256": "df315ea48b5cee3c968730312a32a172e7cf8687255d1159ed25ae817b5f81ce"
+    },
+    {
+      "publicLog": "apk-badging.txt",
+      "rawLogSha256": "b76f06dd2410d217f1eaba46c9bf5952dbb04713135d17375324d889965b87f2"
+    },
+    {
+      "publicLog": "apk-permissions.txt",
+      "rawLogSha256": "9bec5bff31025d6ad52b26946ec986a624a54c766288a3dafbef51c3a54007fb"
+    },
+    {
+      "publicLog": "apk-signature.txt",
+      "rawLogSha256": "75b385d561a6809dc46fa258196cbc719a786dd10e24dca09cd273726e5e5c24"
+    }
+  ],
+  "images": [
+    {
+      "file": "phone-home.png",
+      "description": "API35 720x1600 earned-progress Home fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "6f8e03f2b75fbf17f73c22d208fd94f1d82c1e2e037390ca3d05bde94e799979",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-home-earned-controlled.png"
+    },
+    {
+      "file": "phone-campaign.png",
+      "description": "API35 720x1600 Campaign selection/briefing",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "4bceee2dcabb95f4905d7df8c3e404fa376f8df75a5c6773d8c6927131ca60cd",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-brief-0.png"
+    },
+    {
+      "file": "phone-arcade.png",
+      "description": "API35 720x1600 Arcade cards",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "c77fd06ae23abc387655ab1bd6db0482ce479ecabc195fba5e6a23ee46f4f070",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-arcade-0.png"
+    },
+    {
+      "file": "phone-robot.png",
+      "description": "API35 720x1600 earned Robot Collection fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "9c63ee2fb2baa479178f6f3a73f326a807b434f0634e61a228a2326d29a1d0ee",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-avatar-5.png"
+    },
+    {
+      "file": "phone-shadow.png",
+      "description": "API35 720x1600 earned Shadow Collection fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "fd68c686137fc390900f07b73ece41a6c80ce82577896fe083031beaef71aa44",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-avatar-6.png"
+    },
+    {
+      "file": "small-campaign.png",
+      "description": "API35 480x800 Campaign selection/briefing",
+      "pixels": [
+        480,
+        800
+      ],
+      "sha256": "a9831ef81752363e4f1e9e34bddafbf1be287cadd89ceb861a54f71e9776a991",
+      "localRelativeSource": "accepted-api35-v43/small/v43-brief-0.png"
+    },
+    {
+      "file": "legacy-home.png",
+      "description": "API25 480x800 Home",
+      "pixels": [
+        480,
+        800
+      ],
+      "sha256": "ee4ec304d8c37e11491cd4f2a021a14546036461665588591509ae88b4ebce86",
+      "localRelativeSource": "accepted-api25/small/v43-home-0.png"
+    },
+    {
+      "file": "tablet-landscape-home.png",
+      "description": "API36 native2560x1600 full landscape window",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "de1d8182cbab604e748544b1cad95b2ebb544f37a91109b829728fede8d87b72",
+      "localRelativeSource": "accepted-api36-rotation/native/v43-home-0.png"
+    },
+    {
+      "file": "tablet-landscape-campaign-hi.png",
+      "description": "API36 native2560x1600 Hindi Campaign",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "9d5158ca9ee444f10b933616a9a4dae6a8379146a4d76ad359dca883a52ce3db",
+      "localRelativeSource": "accepted-api36-rotation/native/v43-brief-1.png"
+    },
+    {
+      "file": "tablet-portrait-home.png",
+      "description": "API36 actual display rotation1600x2560 Home",
+      "pixels": [
+        1600,
+        2560
+      ],
+      "sha256": "2a4c60e7e6350c5e827d75a98258764116e370b77d9593defc942462d22fcce3",
+      "localRelativeSource": "accepted-api36-rotation/native/v43-tablet-rotated-home.png"
+    },
+    {
+      "file": "tablet-portrait-campaign.png",
+      "description": "API36 actual display rotation1600x2560 Campaign",
+      "pixels": [
+        1600,
+        2560
+      ],
+      "sha256": "cc9577f4a6cf60c0ace3ff0b373ce3acc6f39e386efa887206ab59a0d643ce2f",
+      "localRelativeSource": "accepted-api36-rotation/native/v43-tablet-rotated-campaign.png"
+    },
+    {
+      "file": "tablet-portrait-play.png",
+      "description": "API36 actual display rotation1600x2560 resumed same-run gameplay",
+      "pixels": [
+        1600,
+        2560
+      ],
+      "sha256": "bdffd7c2c7f499d6ba4fe78fa646ca8e3d056abca4aaa72bbd87dc8c500e75e8",
+      "localRelativeSource": "accepted-api36-rotation/native/v43-tablet-rotated-play.png"
+    },
+    {
+      "file": "boss-1-warning.png",
+      "description": "API35 chapter1 boss warning controlled fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "455020e6a6a197ab73732100b11f2df25f51ded53340cb8f4fb141b17487c349",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-boss-1-warning-controlled.png"
+    },
+    {
+      "file": "boss-2-warning.png",
+      "description": "API35 chapter2 boss warning controlled fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "bb40f96aa79333903acf6f4360a75de08d8e41eccbe5b6a176f8cfe37a440d5b",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-boss-2-warning-controlled.png"
+    },
+    {
+      "file": "boss-3-warning.png",
+      "description": "API35 chapter3 boss warning controlled fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "8db985260fff88bf0c201febebe4375a6efc0be69883d24634ac065ddaec4ed5",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-boss-3-warning-controlled.png"
+    },
+    {
+      "file": "boss-4-warning.png",
+      "description": "API35 chapter4 boss warning controlled fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "4b11f6ab3c12995b61399c65a613c56a7e044cae3e7f5a0708644c0d3432efde",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-boss-4-warning-controlled.png"
+    },
+    {
+      "file": "boss-5-warning.png",
+      "description": "API35 chapter5 boss warning controlled fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "a67e9c67ac81390961c9c734db9e74a9f218de46a6d33a80afbd46d68f7c7c9e",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-boss-5-warning-controlled.png"
+    },
+    {
+      "file": "boss-6-warning.png",
+      "description": "API35 chapter6 boss warning controlled fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "7e6cd1be62da1422ba3d3f4da674387b0759b24bd452f559e95f37c1f84b6bd3",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-boss-6-warning-controlled.png"
+    },
+    {
+      "file": "boss-6-live.png",
+      "description": "API35 chapter6 boss live attack controlled fixture",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "32ff1ccaf296c65f9c5fd30636c3c0023d13b336ef3115ab672a9b94ec71981f",
+      "localRelativeSource": "accepted-api35-v43/tall/v43-boss-6-live-controlled.png"
+    }
+  ],
+  "limits": [
+    "Controlled emulator fixtures, not natural phone playtests.",
+    "Physical sensors, audio audibility, sustained performance, TalkBack and fluent-speaker acceptance remain pending.",
+    "API24,26-34 and physical tablets/multi-window were not validated by these native runs.",
+    "Daily uses standard Human stats and Classic ropes; appearance remains selected.",
+    "Firebase Crashlytics/Analytics are deferred to4.4."
+  ],
+  "sourceProvenance": "SOURCE_HASHES.json records every application input, including raw and LF-canonical digests. These digests bind the final APK to application source while later harness/docs updates do not affect the APK.",
+  "publicLogTransform": "UTF-8 text, personal workspace paths replaced, LF line endings and trailing whitespace normalized. rawLogSha256 identifies the original local log."
+}

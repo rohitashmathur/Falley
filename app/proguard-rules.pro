@@ -15,6 +15,12 @@
     static void unregister(android.app.Activity, java.lang.Object);
 }
 
+# Preserve the API 30 window/inset boundary for Android 7-10 as well.
+-keep,allowshrinking,allowobfuscation class com.perfgames.ropelab.MainActivity$Api30Insets {
+    static boolean largeDisplay(android.app.Activity);
+    static int[] safe(android.view.WindowInsets);
+}
+
 # Likewise retain the API 26 audio-focus boundary for the API 24/25 path.
 # Object fields/signatures in FalleyMusic must not acquire newer platform types
 # through helper inlining or class merging; helper names remain obfuscatable.

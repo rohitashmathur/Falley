@@ -17,16 +17,17 @@ public final class Physics {
     public final Rope[] ropes = new Rope[8];
     public StageCatalog.Stage stage = StageCatalog.get(0);
     public static final class FireHazard {
-        public float x, y, warningTime, radius = 12;
+        public float x, y, warningTime, radius = 12, velocityX, screenY = 155;
         public boolean active;
         private float speed;
+        public float verticalSpeed(){return speed;}
         private boolean activated;
     }
     public final FireHazard[] fireHazards = new FireHazard[4];
     public static final class BeamHazard {
         public float x1, y1, x2, y2, warningTime, liveTime = .4f, width = 10;
         public int kind;
-        public boolean active, followCamera;
+        public boolean active, followCamera, bossLane;
         private float screenY1, screenY2;
         private boolean activated;
     }
@@ -34,7 +35,8 @@ public final class Physics {
     public static final class SawHazard {
         public float x, y, previousX, previousY, pathX1, pathX2, radius = 16,
                 warningTime, liveTime, velocityX;
-        public boolean active, followCamera;
+        public boolean active, followCamera, bossRail;
+        public float railTop, railBottom;
         private float screenY;
         private boolean activated;
     }
@@ -52,6 +54,16 @@ public final class Physics {
     public int bossPhase;
     public float bossWarning, bossLive, bossSafeX, bossY;
     public boolean bossActive;
+    /** Mouth/nozzle world point. Rig follows the camera; its advertised X lane never homes. */
+    public float bossSourceX,bossSourceY;
+    public int bossSourceSide=-1,bossSourceKind;
+    private float bossSourceScreenY=270;
+    private int configuredAvatar=AvatarCatalog.HUMAN,activeAvatar=AvatarCatalog.HUMAN;
+    public float immunityPulse;
+    public int immunityKind;
+    public void configureAvatar(int avatar){configuredAvatar=AvatarAbilities.normalize(avatar);}
+    public int avatar(){return daily?AvatarCatalog.HUMAN:activeAvatar;}
+
     public int arcadeDifficulty = 1, arcadeHazards = ArcadeRules.ALL, wave = 1;
     public float x, y, vx, vy, gx, cameraY, elapsed, flash, blast;
     public int score, brokenCount;
@@ -118,7 +130,10 @@ public final class Physics {
         reset();
     }
     public void reset() {
-        x = 240; y = 310; vx = vy = gx = cameraY = elapsed = flash = blast = 0;
+        activeAvatar=daily?AvatarCatalog.HUMAN:configuredAvatar;
+        float extraHeight=Math.max(0,AvatarAbilities.jumpHeight(activeAvatar)*450*450/(2*GRAVITY*gravityScale())-450*450/(2*GRAVITY));
+        x = 240; y = 310+extraHeight; vx = vy = gx = cameraY = elapsed = flash = blast = 0;
+        immunityPulse=0;immunityKind=0;
         score = brokenCount = 0; lost = won = false; deathReason = ""; jumpCooldown = 0;
         jumpsLeft = maxBurstJumps();
         manualJumps = 0; burstStartY = burstPeakY = y; lastJumpTime = -BURST_RECOVERY_TIME;
@@ -131,18 +146,19 @@ public final class Physics {
         landingX = landingTargetCenter = landingTargetWidth = Float.NaN;
         bossPhase = 0; bossWarning = bossLive = 0; bossCountdown = .6f;
         bossActive = false; bossSafeX = 240; bossY = groundY() - 1550;
+        bossSourceSide=-1;bossSourceKind=0;bossSourceScreenY=270;bossSourceX=leftWall()+hazardInset();bossSourceY=270;
         attackCountdown = 2.0f;
         attackCount = 0;
         wave = 1;
         soundSequence = 0; soundEvent = 0;
-        for (FireHazard fire : fireHazards) { fire.active = fire.activated = false; fire.warningTime = 0; }
+        for (FireHazard fire : fireHazards) { fire.active = fire.activated = false; fire.warningTime = 0; fire.velocityX=0;fire.screenY=155; }
         for (BeamHazard beam : beamHazards) {
-            beam.active = beam.followCamera = beam.activated = false; beam.warningTime = 0; beam.liveTime = .4f;
+            beam.active = beam.followCamera = beam.activated = beam.bossLane = false; beam.warningTime = 0; beam.liveTime = .4f;
         }
         for (SawHazard saw : sawHazards) {
-            saw.active = saw.followCamera = saw.activated = false;
+            saw.active = saw.followCamera = saw.activated = saw.bossRail = false;
             saw.x = saw.y = saw.previousX = saw.previousY = saw.pathX1 = saw.pathX2 = 0;
-            saw.warningTime = saw.liveTime = saw.velocityX = 0; saw.radius = 16;
+            saw.warningTime = saw.liveTime = saw.velocityX = saw.railTop = saw.railBottom = 0; saw.radius = 16;
         }
         for (int i = 0; i < ropes.length; i++) resetRope(ropes[i], FIRST_ROPE_Y + i * ROPE_SPACING, leftWall(), rightWall());
         resetMechanisms();
@@ -166,7 +182,7 @@ public final class Physics {
     private int courseSalt() { return arcade ? arcadeDifficulty*2 : stage.index; }
     /** A gentle alternating deviation, shared by touch and tilt; never a fixed pull. */
     public float nudgeVelocity() {
-        return 12*steeringChallenge()*(float)Math.sin(elapsed*.9f + courseSalt()*.8f)
+        return (touchControl||daily?12:18)*steeringChallenge()*(float)Math.sin(elapsed*.9f + courseSalt()*.8f)
                 *(!touchControl&&!daily?motionLandingFade():1);
     }
     /** Intentional environmental motion challenge, separate from calibrated sensor output.
@@ -175,7 +191,7 @@ public final class Physics {
     public float motionGustVelocity() {
         if(touchControl||daily||lost||won)return 0;
         float opening=smooth(clamp((elapsed-2.5f)/2.5f,0,1));
-        return 6*opening*(1-steeringChallenge())*(float)Math.sin(elapsed*.9f+courseSalt()*.8f)*motionLandingFade();
+        return 10*opening*(1-steeringChallenge())*(float)Math.sin(elapsed*.9f+courseSalt()*.8f)*motionLandingFade();
     }
     private float motionLandingFade(){return arcade?1:smooth(clamp((groundY()-y-350)/650,0,1));}
     private static float smooth(float value){return value*value*(3-2*value);}
@@ -216,8 +232,9 @@ public final class Physics {
         float phase = courseSalt() * 1.13f + (arcade ? .6f : 0);
         return .35f*(72 * (float)Math.sin(elapsed * .63f + phase) + 28 * (float)Math.sin(elapsed * 1.17f + .8f + phase));
     }
-    public float mass() { return Math.min(6, (1 + score * .012f) * (!arcade && stage.hasModifier(StageCatalog.HEAVY_LOAD) ? 1.3f : 1)); }
-    public float radius() { return R + (mass() - 1) * 1.1f; }
+    public float baseMass() { return Math.min(6, (1 + score * .012f) * (!arcade && stage.hasModifier(StageCatalog.HEAVY_LOAD) ? 1.3f : 1)); }
+    public float mass() { return baseMass()*AvatarAbilities.massScale(avatar()); }
+    public float radius() { return R + (baseMass() - 1) * 1.1f; }
     public float leftWall() {
         if (arcade) return Math.min(145, 28 + Math.min(1, deepestY / 18000f) * 65 + elapsed * .35f + score * .008f);
         float progress = clamp((Math.max(y, deepestY) - 310) / (groundY() - 310), 0, 1);
@@ -247,7 +264,7 @@ public final class Physics {
         if (jumpsLeft == maxBurstJumps()) burstStartY = burstPeakY = y;
         // One fresh jump fits beneath the ceiling; a second near it is a deliberate risk.
         float jumpScale=staticJumpReady?.8f:1;
-        vy = -Math.max(350, 450 / (float) Math.sqrt(mass()))*jumpScale;
+        vy = -Math.max(350, 450 / (float) Math.sqrt(baseMass()))*(float)Math.sqrt(AvatarAbilities.jumpHeight(avatar()))*jumpScale;
         staticJumpReady=false;
         jumpsLeft--;
         manualJumps++;
@@ -330,6 +347,7 @@ public final class Physics {
         if (lost) { blast = Math.max(0, blast - dt * .7f); return; }
         dt = DT * worldTimeScale();
         slowTimeRemaining = Math.max(0,slowTimeRemaining-DT);
+        immunityPulse=Math.max(0,immunityPulse-dt);
         ropeAbilityTime=Math.max(0,ropeAbilityTime-dt);
         staticCurrentTime=Math.max(0,staticCurrentTime-dt);
         landingPulse = Math.max(0, landingPulse - dt);
@@ -547,6 +565,12 @@ public final class Physics {
         boolean inBoss = !arcade && stage.bossKind!=StageCatalog.BOSS_NONE
                 && deepestY>=Math.max(1400,groundY()-4200);
         bossActive=inBoss;
+        if(inBoss){
+            bossSourceY=cameraY+bossSourceScreenY;
+            // Narrowing walls can invalidate an old refuge marker. Move the marker
+            // inward with the walls only; attack geometry remains frozen.
+            bossSafeX=clamp(bossSafeX,leftWall()+hazardInset()+radius()+14,rightWall()-hazardInset()-radius()-14);
+        }
         bossWarning=bossLive=0;
         if (inBoss) {
             for (FireHazard fire:fireHazards) if(fire.active) {
@@ -591,17 +615,19 @@ public final class Physics {
         }
         for (FireHazard fire : fireHazards) if (fire.active) {
             if (fire.warningTime > 0) {
-                fire.y = cameraY + 155;
+                fire.y = cameraY + fire.screenY;
                 fire.warningTime = Math.max(0, fire.warningTime - dt);
                 continue;
             }
             if (!fire.activated) { fire.activated = true; emitSound(SFX_FIRE_LAUNCH); }
-            float oldY = fire.y;
+            float oldX = fire.x, oldY = fire.y;
             fire.speed = Math.min(1400, fire.speed + 100 * dt);
+            fire.x += fire.velocityX * dt;
             fire.y += fire.speed * dt;
             // Relative swept motion covers the whole step, not only its end positions.
             float reach = radius() + fire.radius;
-            if (pointSegmentDistanceSquared(0, 0, previousX - fire.x, previousY - oldY, x - fire.x, y - fire.y) <= reach * reach) {
+            if (pointSegmentDistanceSquared(0, 0, previousX - oldX, previousY - oldY, x - fire.x, y - fire.y) <= reach * reach) {
+                if(AvatarAbilities.fireballImmune(avatar())){fire.active=false;absorb(ArcadeRules.FIREBALLS);continue;}
                 die("FALLING FIRE"); return;
             }
             if (fire.y > cameraY + H + 140 || !arcade && fire.y > groundY()) fire.active = false;
@@ -616,7 +642,11 @@ public final class Physics {
             if (!beam.activated) { beam.activated = true; emitSound(beam.kind == ArcadeRules.LIGHTNING ? SFX_LIGHTNING : SFX_LASER); }
             float shift = beam.y1 - oldY1;
             float reach = radius() + beam.width / 2;
-            if (segmentDistanceSquared(previousX, previousY + shift, x, y, beam.x1, beam.y1, beam.x2, beam.y2) <= reach * reach) {
+            boolean contact=beam.bossLane
+                    ? sweptCircleRect(previousX,previousY+shift,x,y,beam.x1-beam.width/2,Math.min(beam.y1,beam.y2),beam.x1+beam.width/2,Math.max(beam.y1,beam.y2),radius())
+                    : segmentDistanceSquared(previousX,previousY+shift,x,y,beam.x1,beam.y1,beam.x2,beam.y2)<=reach*reach;
+            if (contact) {
+                if(AvatarAbilities.beamImmune(avatar(),beam.kind)){beam.active=false;absorb(beam.kind);continue;}
                 die(beam.kind == ArcadeRules.LIGHTNING ? "LIGHTNING" : beam.kind == ArcadeRules.SIDE_LASERS ? "SIDE LASER" : "TOP LASER"); return;
             }
             beam.liveTime -= DT;
@@ -625,6 +655,7 @@ public final class Physics {
         for (SawHazard saw : sawHazards) if (saw.active) {
             saw.previousX = saw.x; saw.previousY = saw.y;
             if (saw.followCamera) saw.y = cameraY + saw.screenY;
+            if(saw.bossRail){saw.railTop=cameraY+ARENA_TOP;saw.railBottom=cameraY+730;}
             if (saw.warningTime > 0) {
                 saw.warningTime = Math.max(0, saw.warningTime - dt);
                 continue;
@@ -636,8 +667,10 @@ public final class Physics {
                 saw.x = saw.velocityX > 0 ? Math.min(saw.pathX2, saw.x + travel) : Math.max(saw.pathX2, saw.x + travel);
             } else saw.x += travel;
             float reach = radius() + saw.radius;
-            if (pointSegmentDistanceSquared(0, 0, previousX - saw.previousX, previousY - saw.previousY,
-                    x - saw.x, y - saw.y) <= reach * reach) {
+            boolean contact=saw.bossRail
+                    ? sweptCircleRect(previousX+saw.x-saw.previousX,previousY+saw.y-saw.previousY,x,y,saw.x-saw.radius,saw.railTop,saw.x+saw.radius,saw.railBottom,radius())
+                    : pointSegmentDistanceSquared(0, 0, previousX - saw.previousX, previousY - saw.previousY,x - saw.x, y - saw.y)<=reach*reach;
+            if (contact) {
                 die("BUZZSAW"); return;
             }
             saw.liveTime -= DT;
@@ -653,37 +686,56 @@ public final class Physics {
             case StageCatalog.BOSS_STORM: kind=ArcadeRules.LIGHTNING; break;
             case StageCatalog.BOSS_FORGE: kind=bossPhase%2==0?ArcadeRules.BUZZSAWS:ArcadeRules.SIDE_LASERS; break;
             default:
-                int[] sequence={ArcadeRules.TOP_LASERS,ArcadeRules.FIREBALLS,ArcadeRules.LIGHTNING,ArcadeRules.BUZZSAWS};
+                int[] sequence={ArcadeRules.SIDE_LASERS,ArcadeRules.FIREBALLS,ArcadeRules.LIGHTNING,ArcadeRules.BUZZSAWS};
                 kind=sequence[bossPhase%sequence.length];
         }
         spawnAttack(kind,0);
         float left=leftWall()+hazardInset(), right=rightWall()-hazardInset();
         boolean fromLeft=bossPhase%2==0;
-        bossSafeX=240+(fromLeft?1:-1)*Math.min(42,(right-left)/5);
+        bossSafeX=clamp(240+(fromLeft?1:-1)*Math.min(58,(right-left)/4),left+radius()+14,right-radius()-14);
+        bossSourceSide=fromLeft?-1:1;bossSourceKind=kind;bossSourceScreenY=270;
+        bossSourceX=fromLeft?left:right;bossSourceY=cameraY+bossSourceScreenY;
         for(FireHazard fire:fireHazards)if(fire.active) {
-            fire.warningTime=1.55f; fire.x=240+(fromLeft?-1:1)*Math.min(40,(right-left)/5);
-            fire.radius=14; fire.speed=1100;
+            fire.warningTime=1.55f;fire.x=bossSourceX;fire.screenY=bossSourceScreenY;fire.y=cameraY+fire.screenY;
+            fire.radius=14;fire.speed=1100;
+            // Aim once at the advertised opposite/central lane. Never retarget after cue.
+            float aim=240+(fromLeft?-1:1)*Math.min(24,(right-left)/8);
+            fire.velocityX=(aim-fire.x)/.60f;
         }
         for(BeamHazard beam:beamHazards)if(beam.active) {
             beam.warningTime=1.55f; beam.liveTime=.34f;
-            if(kind==ArcadeRules.TOP_LASERS)beam.x1=beam.x2=240+(fromLeft?-1:1)*Math.min(42,(right-left)/5);
+            if(stage.bossKind==StageCatalog.BOSS_LASER){
+                // An advertised half-width grid leaves one full-body refuge and
+                // covers every jump height; a centered hands-off descent is unsafe.
+                beam.bossLane=true;beam.width=(right-left)/2+4;
+                beam.x1=beam.x2=fromLeft?left+beam.width/2:right-beam.width/2;
+                beam.screenY1=ARENA_TOP;beam.screenY2=730;
+                beam.y1=cameraY+beam.screenY1;beam.y2=cameraY+beam.screenY2;
+            }else if(kind==ArcadeRules.TOP_LASERS)beam.x1=beam.x2=240+(fromLeft?-1:1)*Math.min(42,(right-left)/5);
             else if(kind==ArcadeRules.SIDE_LASERS) {
-                float length=Math.max(20,(right-left)*.45f);
+                // A 1.55s warning permits substantial downward wall closure. Reserve
+                // more of the opposite side than ordinary short-warning attacks.
+                float length=Math.max(20,(right-left)*.30f);
                 beam.x1=fromLeft?left:right; beam.x2=fromLeft?left+length:right-length;
+                bossSourceScreenY=beam.screenY1;bossSourceY=cameraY+bossSourceScreenY;
             } else {
                 // A diagonal bolt occupies one half, leaving a full avatar-wide refuge.
                 beam.x1=fromLeft?left:right; beam.x2=240;
-                beam.screenY1=190; beam.screenY2=710;
+                beam.screenY1=bossSourceScreenY; beam.screenY2=710;
                 beam.y1=cameraY+beam.screenY1;beam.y2=cameraY+beam.screenY2;
             }
         }
         for(SawHazard saw:sawHazards)if(saw.active) {
             saw.warningTime=1.55f;
+            saw.bossRail=stage.bossKind==StageCatalog.BOSS_SAW;
+            saw.railTop=cameraY+ARENA_TOP;saw.railBottom=cameraY+730;
             saw.pathX1=fromLeft?left-saw.radius-8:right+saw.radius+8;
             saw.pathX2=fromLeft?240-12:240+12;
-            saw.x=saw.previousX=saw.pathX1;
+            saw.x=saw.previousX=saw.pathX1;bossSourceX=saw.pathX1;
             saw.velocityX=fromLeft?420:-420;
             saw.liveTime=Math.abs(saw.pathX2-saw.pathX1)/420+dt;
+            if(saw.bossRail){saw.screenY=bossSourceScreenY;saw.y=saw.previousY=cameraY+saw.screenY;}
+            else{bossSourceScreenY=saw.screenY;bossSourceY=cameraY+bossSourceScreenY;}
         }
         bossWarning=1.55f;
     }
@@ -693,13 +745,13 @@ public final class Physics {
         if (kind == ArcadeRules.FIREBALLS) {
             for (FireHazard fire : fireHazards) if (!fire.active) {
                 fire.x = left + 26 + random.nextFloat() * Math.max(1, right - left - 52);
-                fire.y = cameraY + 155; fire.radius = 10 + random.nextFloat() * 4;
+                fire.velocityX=0;fire.screenY=155;fire.y = cameraY + fire.screenY; fire.radius = 10 + random.nextFloat() * 4;
                 fire.warningTime = warning; fire.speed = 1050 + difficulty * 75; fire.active = true; fire.activated = false;
                 return;
             }
         } else if (kind == ArcadeRules.BUZZSAWS) {
             for (SawHazard saw : sawHazards) if (!saw.active) {
-                saw.radius = 16;
+                saw.radius = 16;saw.bossRail=false;
                 boolean fromLeft = random.nextBoolean();
                 float length = Math.max(10, Math.min((right - left) * .52f,
                         right - left - (radius() * 2 + saw.radius * 2 + 28)));
@@ -715,7 +767,7 @@ public final class Physics {
                 return;
             }
         } else for (BeamHazard beam : beamHazards) if (!beam.active) {
-            beam.kind = kind; beam.width = kind == ArcadeRules.LIGHTNING ? 14 : 10;
+            beam.bossLane=false;beam.kind = kind; beam.width = kind == ArcadeRules.LIGHTNING ? 14 : 10;
             beam.warningTime = warning; beam.liveTime = ArcadeRules.beamLife(difficulty);
             beam.followCamera = true; beam.active = true; beam.activated = false;
             if (kind == ArcadeRules.TOP_LASERS) {
@@ -737,6 +789,14 @@ public final class Physics {
             return;
         }
     }
+    /** Exact moving-circle contact with a drawn, axis-aligned rectangle. Edge segment
+     * distances include circular avatar corners without inventing large beam endcaps. */
+    public static boolean sweptCircleRect(float ax,float ay,float bx,float by,float left,float top,float right,float bottom,float radius){
+        if(ax>=left&&ax<=right&&ay>=top&&ay<=bottom||bx>=left&&bx<=right&&by>=top&&by<=bottom)return true;
+        float distance=Math.min(Math.min(segmentDistanceSquared(ax,ay,bx,by,left,top,right,top),segmentDistanceSquared(ax,ay,bx,by,right,top,right,bottom)),
+                Math.min(segmentDistanceSquared(ax,ay,bx,by,right,bottom,left,bottom),segmentDistanceSquared(ax,ay,bx,by,left,bottom,left,top)));
+        return distance<=radius*radius;
+    }
     public static float pointSegmentDistanceSquared(float px, float py, float ax, float ay, float bx, float by) {
         float dx = bx - ax, dy = by - ay, denominator = dx * dx + dy * dy;
         float t = denominator < .000001f ? 0 : clamp(((px - ax) * dx + (py - ay) * dy) / denominator, 0, 1);
@@ -754,6 +814,7 @@ public final class Physics {
         return Math.min(Math.min(pointSegmentDistanceSquared(ax, ay, cx, cy, dx, dy), pointSegmentDistanceSquared(bx, by, cx, cy, dx, dy)),
                 Math.min(pointSegmentDistanceSquared(cx, cy, ax, ay, bx, by), pointSegmentDistanceSquared(dx, dy, ax, ay, bx, by)));
     }
+    private void absorb(int kind){immunityPulse=.45f;immunityKind=kind;flash=Math.max(flash,.35f);}
     private void emitSound(int event) { soundEvent = event; soundSequence++; }
     private void die(String reason) {
         lost = true; deathReason = reason; blast = 1; gx = 0;

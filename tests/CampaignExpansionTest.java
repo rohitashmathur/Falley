@@ -23,7 +23,7 @@ public final class CampaignExpansionTest {
         float low=p.leftWall()+p.hazardInset()+p.radius()+8;
         float high=p.rightWall()-p.hazardInset()-p.radius()-8;
         if(p.y>p.groundY()-350){low=Math.max(low,p.targetLeft()+p.radius()+3);high=Math.min(high,p.targetRight()-p.radius()-3);}
-        float center=Physics.clamp(p.targetCenter(),low,high),best=center,bestClear=-10000;
+        float center=Physics.clamp(p.bossActive?p.bossSafeX:p.targetCenter(),low,high),best=center,bestClear=-10000;
         for(float candidate:new float[]{low,center,high}) {
             float clear=clearance(p,candidate);
             if(clear>bestClear||clear==bestClear&&candidate==center){bestClear=clear;best=candidate;}

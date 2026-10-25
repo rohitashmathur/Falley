@@ -1,0 +1,321 @@
+{
+  "version": "4.3.0-beta-test",
+  "versionCode": 16,
+  "applicationId": "com.perfgames.falley.motiontest",
+  "sourceParent": "5e3c74dde20d77b9cc382ca0ffd683886967fdd2",
+  "description": "Final 4.3 application inputs: raw bytes and LF-canonical hashes. ProGuard rules are recorded for source provenance but are not applied by this debug build. Native tests and documentation do not alter the APK.",
+  "apkSha256": "a08391a972b64729b7ec474a19a11819c32646a49a3459eb1f8716f63d9db377",
+  "apkBytes": 1132474,
+  "inputs": [
+    {
+      "path": "app/build.gradle",
+      "sha256": "6002e6e72755d040b8e688f4ec0772a931415698def92479d895bce44a76a5e9",
+      "canonicalLfSha256": "050098ed9f6505aad8a691db68c1c4cab79e0e7090a4042bbaa0cd1cecc6a3ab"
+    },
+    {
+      "path": "app/proguard-rules.pro",
+      "sha256": "f4b9cdab55ae86417ac02dc618f193b6e5b334dd7dc18fa463c8e9c993abf202",
+      "canonicalLfSha256": "dd36e4daedcab942d71d1bd8172033090d03eab182f0c2609a4965fa0d7a08c9"
+    },
+    {
+      "path": "app/src/main/AndroidManifest.xml",
+      "sha256": "f57f869f1f85671178c16045a9c3659037c3da9151fff9289a1c4b1eb32188da",
+      "canonicalLfSha256": "555eef375c6570fe1b45b029a1e7ba9e76c8b9e1a8b38b4b74e683e81edd75ea"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ArcadeRules.java",
+      "sha256": "90bf7939bac52dfcd34f69d056f5930fa4a82ad3487161d99b581ba638d2a534",
+      "canonicalLfSha256": "90bf7939bac52dfcd34f69d056f5930fa4a82ad3487161d99b581ba638d2a534"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarAbilities.java",
+      "sha256": "15223e61e8596307ba4ff57d450f97494b69638d0feba5aba934ee4230343714",
+      "canonicalLfSha256": "f2385d860303ea4c9db02473010af4721680884ceeee8af376dda72ea7169bf6"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarCatalog.java",
+      "sha256": "d3e842d426d2c5d9384c57f1843a40e80d81bc680bbe8401ac4c11c987ce6bfe",
+      "canonicalLfSha256": "8e8543707964b3a72aececcc7de8bd3e865103a141bcdd0368285f01e6628dd8"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarPose.java",
+      "sha256": "2a5f7b2fdbb38a2de229bcf304858836dae68857a0a42d4bd0d9c46e86863d15",
+      "canonicalLfSha256": "45ef6b49be572938be4e8b6c64a59b0aee3772ff722cd4c404340b03e03abfaa"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarRenderer.java",
+      "sha256": "fbfbe27658b86a0b5892f4d7f0095788922e1b49f7282e84f3da6a236498e111",
+      "canonicalLfSha256": "20e53b30a5ea2b6db9d6bf1eeeabc8c220e399e44d081e6b4be1c14d89353c40"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarRewards.java",
+      "sha256": "0090e37be463933092ce39c3b739fdda66a09e181a81dca1e6e0baeb8da30aca",
+      "canonicalLfSha256": "0090e37be463933092ce39c3b739fdda66a09e181a81dca1e6e0baeb8da30aca"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/BossRenderer.java",
+      "sha256": "62c790bdb1ec6673c6fce6d39aa2614ed52c46b4f7601c55a67ccd55a3da48cc",
+      "canonicalLfSha256": "a15be73ea38ab0c5ba73b66129fb208aaedab668aa9900160c6a49712876635a"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ChapterStories.java",
+      "sha256": "8f130edd4c82b33d2a92da9f5c32ccc2f5b75067e59ddb4d1278faed878c61f8",
+      "canonicalLfSha256": "7842e4c66412b3b893da334e2ec36e9d562f89fb85ead333dcf8253233967a2c"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/Cosmetics.java",
+      "sha256": "39a3565f62f449529a3d33ee731b7ab29f1aac972e320805fedbf26fa3593ea4",
+      "canonicalLfSha256": "06dbfe72af2fb9fb8a4f6034cd8397eb80af97d60f3e1c337e0bb128f445e6e2"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/CountryDetector.java",
+      "sha256": "fcc2138d279132ea95116fa9f3e6d99da20586f4fd1d5b696bf035f2c8fa042d",
+      "canonicalLfSha256": "13c21aa4545540faf9bcbd75b0c318c4c3cf465e244af86ac77af584d8ff6f2a"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/CountryRules.java",
+      "sha256": "ad9a659e88811ae685ae6633d154ee4a5d92b0036068148d72f077b4f0ee84c0",
+      "canonicalLfSha256": "a0d6aa9714087c72919c8943cfd6568dd7e718e953e6043f3e36e51cac86fc8a"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/DailyDrop.java",
+      "sha256": "d09572994f71ebe027646e43225528901362c941618609e348c37cec5222d846",
+      "canonicalLfSha256": "d09572994f71ebe027646e43225528901362c941618609e348c37cec5222d846"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/DailyShare.java",
+      "sha256": "10fee2659b77c07a28215471426eb276b4e910d580025878a1dee85b635dd7ae",
+      "canonicalLfSha256": "10fee2659b77c07a28215471426eb276b4e910d580025878a1dee85b635dd7ae"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ExpansionStrings.java",
+      "sha256": "240ce2ec2e873d5ceb6b1b05c81f3e6c0b0cd845c43fcae1924cec5b4e177c43",
+      "canonicalLfSha256": "dc5dc6a288ded5c773ea18f4fc5b77501ef3308b7a89bf5481bcecc88dbc2abd"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyAudio.java",
+      "sha256": "384af9ed26fd787fbe9db46735ef551a3ac317d373b810094b850f42929df554",
+      "canonicalLfSha256": "da22e17cfaa7c15c36a4f0b998d0657a8a1b87ad4c5643b41d3a00dc6a3c095a"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyMusic.java",
+      "sha256": "dd3d2c7480bad6a97fbb1dc2470b62c906b71dd2cca36b2cc08a9533aab41a49",
+      "canonicalLfSha256": "7a882dc1a36e988c9c4063e5bf1f69333f216cf1ee81378d9e9afb55460cb886"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyProfile.java",
+      "sha256": "8338ee3854b8be2957dd917c54d662f60b5a3f4ee27dd0d8323db414fcd7941e",
+      "canonicalLfSha256": "5601febe0cf5bfa73b927221eb8c34c0c52323811fbc8160cf68ceea1e97ef7c"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyStrings.java",
+      "sha256": "889f89444c6d88b210362c1c126bfbfeaf6ca5526e8fa1eb9bd6df915486b90e",
+      "canonicalLfSha256": "889f89444c6d88b210362c1c126bfbfeaf6ca5526e8fa1eb9bd6df915486b90e"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyUi.java",
+      "sha256": "5a76a8655c67be32c5b73f379d2138b0783ef0d4283ac0440bdbd207ff3a1c8e",
+      "canonicalLfSha256": "16895c72a1166312b35a5340d90dd47de7fa8f35ebf9bd2395401df41fb68825"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/HazardAudioCue.java",
+      "sha256": "be4baf6dc722bcccb08c3970576a74c733be6dd9b93301e14ff29cc16f1b4dae",
+      "canonicalLfSha256": "be4baf6dc722bcccb08c3970576a74c733be6dd9b93301e14ff29cc16f1b4dae"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/MainActivity.java",
+      "sha256": "85d1ba6eda158a19137298298a72ce4a49312f8c8e39ffae3c4114f74a176a40",
+      "canonicalLfSha256": "4b3538a46064fc97d06f7f9196e51a8113495f89b1543571cc5a4d29f99a36b0"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/MotionSteering.java",
+      "sha256": "6f9647a9ec2259b78561da5663ba5e5fe6908c328f72e1abbc4907ef45a46277",
+      "canonicalLfSha256": "6f9647a9ec2259b78561da5663ba5e5fe6908c328f72e1abbc4907ef45a46277"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/Physics.java",
+      "sha256": "94e329a6e45cc19f8119f4fee7fe1f8661230f15d879450f75d7975e70d21ef8",
+      "canonicalLfSha256": "990615ca3c48ca649425c0ba8e360dc113e8988623adf5dfcb7be7c0c98cacdc"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/PrivacyPolicy.java",
+      "sha256": "174505c23f9f5b269fc58af11f1c8a2a17600d8ac49a1a04e6968006a2cc3c89",
+      "canonicalLfSha256": "04175f138f622382dd4be393e7729e9cea55e2dbf128c4044adef02113bc6b89"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ProfileStorage.java",
+      "sha256": "144aedc1946e0237712194a0a168c8148624ea887c97e9c050b4f32e1cff262d",
+      "canonicalLfSha256": "d5259e60485168d632d14a614691829fd0d20731e4f09a18c1bb4bbe13f7df55"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ReleaseStrings.java",
+      "sha256": "b3d0c9eb41e89af5292c17fd2dc4cb9816ddc35c024f7205b91c825eb5ed55aa",
+      "canonicalLfSha256": "027a3cf1ae074fd908c445cad3ef20f22cae7b0c5c9735ea327e58b79f9e19fe"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/RopeCatalog.java",
+      "sha256": "d43df3ed6393b89f0c496329386d6ed54b813d1ed547fec21b1fd522ab2bd9c2",
+      "canonicalLfSha256": "d43df3ed6393b89f0c496329386d6ed54b813d1ed547fec21b1fd522ab2bd9c2"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ShareCardProvider.java",
+      "sha256": "5d599121e78aaf3b5e1b869f3ada6ffaf5e16f7f0d39345ddf863c96764a4b8b",
+      "canonicalLfSha256": "5d599121e78aaf3b5e1b869f3ada6ffaf5e16f7f0d39345ddf863c96764a4b8b"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/StageCatalog.java",
+      "sha256": "37835ea62281589ff02daa9b643a5d40f9cdcebc359fa2635dd859de505b58d5",
+      "canonicalLfSha256": "815658242a3299a084f92b3c45a899dd3f6887271c23f5da688f43631c80f19c"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/TouchSteering.java",
+      "sha256": "986269fdc3a708a1da11f21ffbc93494679bc046e1f32f187749a2de053b5e25",
+      "canonicalLfSha256": "986269fdc3a708a1da11f21ffbc93494679bc046e1f32f187749a2de053b5e25"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/UxRules.java",
+      "sha256": "9b75ac73d019bcfef779c5834653038ef2ab5c217c3a0603fe1a44074f1d8170",
+      "canonicalLfSha256": "ba5370b6dac53cb47e715bc1d78d40314177e650cee06d5ef4da6f382f46348c"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/UxStrings.java",
+      "sha256": "d5f4a80bc1a759ba1b84f5c57bf978ee1ef22ee36d9a44c14659dd3fc58ea014",
+      "canonicalLfSha256": "d5f4a80bc1a759ba1b84f5c57bf978ee1ef22ee36d9a44c14659dd3fc58ea014"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ViewportLayout.java",
+      "sha256": "7890f0da64c7001e317184236edb1013bd20e43aa451ec16d58fea878ba8ee66",
+      "canonicalLfSha256": "7890f0da64c7001e317184236edb1013bd20e43aa451ec16d58fea878ba8ee66"
+    },
+    {
+      "path": "app/src/main/res/drawable/ic_falley_foreground.xml",
+      "sha256": "9dfe347157902800e0b38d74e88d4177c2fe8d883bad0bb61641e4085acaead2",
+      "canonicalLfSha256": "5ed214b5372de781a23037da473b03fd46a668c2825fee3a42074ddea344b8dc"
+    },
+    {
+      "path": "app/src/main/res/drawable/ic_falley_monochrome.xml",
+      "sha256": "e9ee9799e947c3ac39af31796727834fff49aa4ee82a6ee2ab528a882b2af5f5",
+      "canonicalLfSha256": "216427614ee61184c78ea54671bc8a4f00775cd9a85ca13be7ee9cd902981501"
+    },
+    {
+      "path": "app/src/main/res/drawable/icon.xml",
+      "sha256": "57c7caaed963a5d65df48b4f2f34f4ce79eb9d3506e41558e35243af1d458e23",
+      "canonicalLfSha256": "f563bc6ee8e05fdf3432cd8bbadbda84c1ff540074cb25bf84feec950959844a"
+    },
+    {
+      "path": "app/src/main/res/drawable/splash_icon.xml",
+      "sha256": "795569c9b6199e0a7590979cb840bc7640192735816db8402752bdde79d7acea",
+      "canonicalLfSha256": "ab4e206d75a3ce75e7cb83edd4a5edc74f9ca1a906e05a1491624cf68ba7a75d"
+    },
+    {
+      "path": "app/src/main/res/mipmap-anydpi/ic_launcher.xml",
+      "sha256": "57c7caaed963a5d65df48b4f2f34f4ce79eb9d3506e41558e35243af1d458e23",
+      "canonicalLfSha256": "f563bc6ee8e05fdf3432cd8bbadbda84c1ff540074cb25bf84feec950959844a"
+    },
+    {
+      "path": "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "sha256": "a0594ef429739d0b3528a4c42d6ecda28b28a8af5f323451c6dfa3dbb2ac3576",
+      "canonicalLfSha256": "7cdee087c9fc0d19e785b458935d803be84adcc192fa1427add35a705edc9f87"
+    },
+    {
+      "path": "app/src/main/res/mipmap-anydpi-v33/ic_launcher.xml",
+      "sha256": "db27c822c5ad99a19a670c474ef218fee34d9f21728b4b9869c1836cd88a5dc9",
+      "canonicalLfSha256": "a0278b44a74aa7b4ff5cf66ac62b49356686cb0961c1788941b2c48d7256ec57"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_fire_burn.wav",
+      "sha256": "625ae328c85c1706ca52a362dc4e2fd695ea6d80ed6c0e90bd3c773bb336bccc",
+      "canonicalLfSha256": "9f86131037872b8fb2902bdcd1f17879cc25c5cedeef6be70002d9a2874e86df"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_fire_launch.wav",
+      "sha256": "2719c15fb3d31bd6528bb3cf8e7ed0f470a80dda01d5fb03428d8ecf27623c78",
+      "canonicalLfSha256": "7be32ddc5b5e94220964032c7ea72978a2fc4daa6a58b9ce39e0193133ab08b1"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_jump.wav",
+      "sha256": "a3c71405dd895e625fc098e78808f51d1375efa7069f6948c62c3e150f0fd535",
+      "canonicalLfSha256": "a3c71405dd895e625fc098e78808f51d1375efa7069f6948c62c3e150f0fd535"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_laser_zap.wav",
+      "sha256": "9f73283f63342a222154e8055eeac1fe9cd579740284daa9c680b241c9e9e95e",
+      "canonicalLfSha256": "8991a3958517d82b8215f0f1383f139a4e6aa562292043757237d616e01acc0c"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_lightning_crack.wav",
+      "sha256": "15d1809135a10f0b4b8613c06f4c96c6583ab45d5913f6d14d94514c44462890",
+      "canonicalLfSha256": "91e3da4ad97a8d3aba304c76075813750cc39afd18ebb02a5f3e22d9f96f9bd9"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_loss.wav",
+      "sha256": "2028b2c6dbfee4fe16e952157dc2bce9aa0b9bd8f98c6c018ae8c93d604770af",
+      "canonicalLfSha256": "3b50d235d193880292e897d137667762cfc4bedb758d4a7511d6d695975973f4"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_retro_loop.wav",
+      "sha256": "a9c3c82f7eeebb9b0fe2f33811d8840294e5e466eb4b82edcceea40ae0df18f3",
+      "canonicalLfSha256": "b5ec86384803b1ad970a27740ad08bf389e86320dab0b3f4d774353b66dd69c1"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_rope.wav",
+      "sha256": "b8f6740717e103c2be6bacad2bd46c293202243615dd23014436437900bf04fd",
+      "canonicalLfSha256": "b8f6740717e103c2be6bacad2bd46c293202243615dd23014436437900bf04fd"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_saw_impact.wav",
+      "sha256": "be4c0a5a72e06aed7959c97065bac592ea908f09007a2fe8313b5e61be820fdb",
+      "canonicalLfSha256": "0b761b56dba82791309538fd48f19787b5e6551b43e37a026b716c9bd629ae65"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_saw_motor.wav",
+      "sha256": "d928dc5b8f670ac7af59778bcaec4e730a4d2e84ee67f4593e26fe38546a3974",
+      "canonicalLfSha256": "662b5d0b753bbd1bd17a058b599331081fe504c0e848a3abe8933e9aa8542b68"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_ui.wav",
+      "sha256": "14ede3499fe5f64d273c4efae66edf62f49315c97c8f813399228a669a6ec56b",
+      "canonicalLfSha256": "14ede3499fe5f64d273c4efae66edf62f49315c97c8f813399228a669a6ec56b"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_win.wav",
+      "sha256": "3ca237ed94ddff791730f9b07bd38b8bf2ecdd8617a907f86f46d389972b3b7d",
+      "canonicalLfSha256": "83e626accd0bc0854cef0284412d397611670a2e16211518728bb73a9101b82c"
+    },
+    {
+      "path": "app/src/main/res/values/icon_colors.xml",
+      "sha256": "0e51f42c84cc3b8ca0876bd113af44d376a3bbc56e562a71ef56259a7163eb99",
+      "canonicalLfSha256": "8eab49fa92678d06711d6fa8d219713db4cc22594d6eb5e4e1c64fc9970fff0c"
+    },
+    {
+      "path": "app/src/main/res/values/styles.xml",
+      "sha256": "1963b9ca403be438cb7f8dd71668c8b7f507a0b50c67e1b4e14e98f9ed14414e",
+      "canonicalLfSha256": "1963b9ca403be438cb7f8dd71668c8b7f507a0b50c67e1b4e14e98f9ed14414e"
+    },
+    {
+      "path": "app/src/main/res/values-v31/styles.xml",
+      "sha256": "efb4c28a04f66a058d4ca2605409ea06f7e777553f675b00bbdad8639f73bbfd",
+      "canonicalLfSha256": "efb4c28a04f66a058d4ca2605409ea06f7e777553f675b00bbdad8639f73bbfd"
+    },
+    {
+      "path": "app/src/main/res/values-v33/styles.xml",
+      "sha256": "e7f1e319a4383e201a6cdc544a9fa864f99745e4f1043cfd27f71cac8c3145eb",
+      "canonicalLfSha256": "e7f1e319a4383e201a6cdc544a9fa864f99745e4f1043cfd27f71cac8c3145eb"
+    },
+    {
+      "path": "app/src/main/res/xml/backup_rules.xml",
+      "sha256": "865cae97840e81b9950d70457a05c5c1125a68364b0a83f44cd3daa030bc7e96",
+      "canonicalLfSha256": "865cae97840e81b9950d70457a05c5c1125a68364b0a83f44cd3daa030bc7e96"
+    },
+    {
+      "path": "app/src/main/res/xml/data_extraction_rules.xml",
+      "sha256": "cb029b35db0e976c087100424e16e14a6256b46962398887520e51508c3b5842",
+      "canonicalLfSha256": "cb029b35db0e976c087100424e16e14a6256b46962398887520e51508c3b5842"
+    },
+    {
+      "path": "scripts/build-android.ps1",
+      "sha256": "2f08c13921db5fd85c8fad84faaa42f4242f286dfa4c503d86566ba497fb3119",
+      "canonicalLfSha256": "539279b2023f4bcfac17f5fea8fe0961f232027254070716386f6a2bc0e54711"
+    }
+  ]
+}

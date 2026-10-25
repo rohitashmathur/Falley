@@ -60,7 +60,7 @@ public final class NativeFalleyTest extends Instrumentation {
         super.onCreate(arguments);
         Bundle args = arguments == null ? new Bundle() : arguments;
         mode=args.getString("mode","suite"); shot=args.getString("shot","small");
-        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("release") && !mode.equals("privacy") && !mode.equals("store") && !mode.equals("motion") && !mode.equals("progression") && !mode.equals("features") && !mode.equals("splash") && !mode.equals("revision") && !mode.equals("revision_smoke") && !mode.equals("expansion") && !mode.equals("ux") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
+        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("release") && !mode.equals("privacy") && !mode.equals("store") && !mode.equals("motion") && !mode.equals("progression") && !mode.equals("features") && !mode.equals("splash") && !mode.equals("revision") && !mode.equals("revision_smoke") && !mode.equals("expansion") && !mode.equals("ux") && !mode.equals("v43") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
             throw new IllegalArgumentException("Falley test harness arguments");
         start();
     }
@@ -81,7 +81,9 @@ public final class NativeFalleyTest extends Instrumentation {
                 if (!mode.equals("features")) fixture.putInt("preset",1);
                 require(fixture.commit(),"deterministic emulator settings installed");
                 launch();
-                if (mode.equals("ux")) {
+                if (mode.equals("v43")) {
+                    waitScreen(HOME,4000); v43Regression();
+                } else if (mode.equals("ux")) {
                     waitScreen(LANGUAGE,4000); uxFirstRun(); uxRegression();
                 } else if (mode.equals("expansion")) {
                     waitScreen(HOME,4000); expansionRegression();
@@ -126,6 +128,7 @@ public final class NativeFalleyTest extends Instrumentation {
         } catch (Throwable error) {
             failure=error;
             if (activity!=null && arena!=null && output!=null) {
+                if(mode.equals("v43"))try{v43WindowDump();v43Viewport("failure");}catch(Throwable diagnostic){failure.addSuppressed(diagnostic);}
                 try { capture("failure-screen-"+screen()); } catch (Throwable diagnostic) { failure.addSuppressed(diagnostic); }
             }
         }
@@ -137,6 +140,7 @@ public final class NativeFalleyTest extends Instrumentation {
                 : mode.equals("v31") ? "focused V3.1 mask migration, five hazards, saw physics and native SoundPool counters/lifecycle; audibility not assessed"
                 : mode.equals("release") ? "V3.2 focused privacy, virtual accessibility actions, active-play screen awake, five hazards and audio lifecycle"
                 : mode.equals("privacy") ? "focused EN/HI/ID offline policy, contact/URL visibility and accessibility, long-token glyph fit, real-touch browser/mail intent handoff interception, Back and no requested app permissions"
+                : mode.equals("v43") ? "debug 4.3 phone/tablet responsive layout, inline Campaign locks/selection, actual avatar ability routing and Daily standardization, six emitted boss warning/live captures; controlled fixtures"
                 : mode.equals("ux") ? "debug EN/HI/ID first-run confirmed language and local country fallback, two-tab avatar/rope guide Collection, durable avatar celebration and mixed individual rope abilities/mode isolation, independent music lifecycle, compact results and Chapter spotlight navigation; controlled fixtures, audio audibility not assessed"
                 : mode.equals("expansion") ? "debug EN/HI/ID six chapter pages, local Daily Drop retry/share intent and PNG provider, cumulative mastery stars and chapter wardrobe rewards, actual native finale/mechanic render fixtures and twelve-to-twenty-four-stage preference migration"
                 : mode.equals("store") ? "V3.2 high-resolution actual native Canvas store captures and measured crop metadata"
@@ -231,8 +235,8 @@ public final class NativeFalleyTest extends Instrumentation {
         ui(() -> {for(Object rope:(Object[])read(physics,"ropes"))require(((Number)read(rope,"type")).intValue()==expected,context);});
     }
     private void uxRopeAbilities() throws Exception {
-        uxHome();expansionStart(2,false);uxRopeSupportFixture(2);require(physicsFloat("lastSupportRope")==2&&physicsBool("staticJumpReady")&&physicsFloat("ropeAbilityTime")>0,"individual Static contact arms its visible next-jump charge");
-        renderedFit("Static ability HUD",false);capture("ux-static-support-controlled");float jump=-Math.max(350,450/(float)Math.sqrt(physicsCallFloat("mass")))*.8f;click("jump");require(!physicsBool("staticJumpReady")&&Math.abs(physicsFloat("vy")-jump)<.1f,"actual jump consumes Static charge at eighty-percent manual impulse");uxHome();
+        uxHome();uxNav("wardrobe",WARDROBE);click("closet_tab_0");click("avatar_0");uxNav("home",HOME);expansionStart(2,false);uxRopeSupportFixture(2);require(physicsFloat("lastSupportRope")==2&&physicsBool("staticJumpReady")&&physicsFloat("ropeAbilityTime")>0,"individual Static contact arms its visible next-jump charge");
+        renderedFit("Static ability HUD",false);capture("ux-static-support-controlled");Class<?> abilities=Class.forName("com.perfgames.ropelab.AvatarAbilities",true,getTargetContext().getClassLoader());float avatarHeight=((Number)abilities.getMethod("jumpHeight",int.class).invoke(null,(int)physicsCallFloat("avatar"))).floatValue();float jump=-Math.max(350,450/(float)Math.sqrt(physicsCallFloat("baseMass")))*(float)Math.sqrt(avatarHeight)*.8f;click("jump");require(!physicsBool("staticJumpReady")&&Math.abs(physicsFloat("vy")-jump)<.1f,"actual jump consumes Static charge at eighty-percent manual impulse");uxHome();
         expansionStart(0,false);ui(() -> {boolean spring=false;for(Object rope:(Object[])read(physics,"ropes")){int index=((Number)read(rope,"courseIndex")).intValue(),type=((Number)read(rope,"type")).intValue();if(index<3)require(type==0,"first three campaign ropes teach Classic safely");require(type!=2,"opening stage does not introduce Static");spring|=type==1;}require(spring,"opening campaign introduces an individual Spring among Classic ropes");});
         uxRopeSupportFixture(1);float ordinary=Math.max(235,325/(float)Math.sqrt(physicsCallFloat("mass")));require(physicsFloat("lastSupportRope")==1&&-physicsFloat("vy")>ordinary*1.3f&&physicsFloat("ropeAbilityTime")>0,"actual individual Spring support adds its bounded stronger rebound");renderedFit("Spring ability HUD",false);capture("ux-spring-support-controlled");uxHome();
         expansionStart(0,false);uxRopeSupportFixture(0);require(physicsFloat("lastSupportRope")==0&&!physicsBool("staticJumpReady"),"Classic support does not grant a Static jump charge");uxHome();
@@ -242,26 +246,41 @@ public final class NativeFalleyTest extends Instrumentation {
         require(audioFlag(audio,"isMusicPlaying")==expected,context);
     }
     private void uxBackgroundHome() throws Exception {
-        final Activity current=activity;final CountDownLatch paused=new CountDownLatch(1);Application application=current.getApplication();
+        final Activity current=activity;final Object currentArena=arena,currentPhysics=physics;
+        final CountDownLatch paused=new CountDownLatch(1);final Throwable[] pauseFailure={null};Application application=current.getApplication();
         Application.ActivityLifecycleCallbacks callback=new Application.ActivityLifecycleCallbacks(){
             @Override public void onActivityCreated(Activity a,Bundle state){}
             @Override public void onActivityStarted(Activity a){}
             @Override public void onActivityResumed(Activity a){}
-            @Override public void onActivityPaused(Activity a){if(a==current)paused.countDown();}
+            @Override public void onActivityPaused(Activity a){if(a==current){
+                try{
+                    require(((Number)read(currentArena,"screen")).intValue()==PAUSE,"actual Android onPause immediately leaves the live audio fixture in Pause");
+                    require(!(Boolean)read(currentPhysics,"lost")&&!(Boolean)read(currentPhysics,"won"),"audio lifecycle fixture remains alive at actual Android onPause");
+                }catch(Throwable error){pauseFailure[0]=error;}finally{paused.countDown();}
+            }}
             @Override public void onActivityStopped(Activity a){}
             @Override public void onActivitySaveInstanceState(Activity a,Bundle state){}
             @Override public void onActivityDestroyed(Activity a){}
         };
-        ui(() -> application.registerActivityLifecycleCallbacks(callback));
+        ui(() -> {
+            require(((Number)read(currentArena,"screen")).intValue()==PLAY&&!(Boolean)read(currentPhysics,"lost")&&!(Boolean)read(currentPhysics,"won"),
+                    "audio fixture is live immediately before real system Home navigation");
+            application.registerActivityLifecycleCallbacks(callback);
+        });
         try{
             sendKeyDownUpSync(KeyEvent.KEYCODE_HOME);
             if(!paused.await(1500,TimeUnit.MILLISECONDS)){
                 // Older instrumented Android can consume an injected Home key.
                 // Launch the actual system Home task; never call app lifecycle methods.
                 log.append("KEYCODE_HOME did not pause the Activity; requesting the real Android HOME task\n");
-                ui(() -> getTargetContext().startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
+                ui(() -> {
+                    require(((Number)read(currentArena,"screen")).intValue()==PLAY&&!(Boolean)read(currentPhysics,"lost")&&!(Boolean)read(currentPhysics,"won"),
+                            "audio fixture remains live before the real system Home fallback");
+                    getTargetContext().startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                });
             }
             require(paused.await(5000,TimeUnit.MILLISECONDS),"actual system Home navigation dispatches Activity.onPause");
+            if(pauseFailure[0]!=null)throw new Exception("Real Android onPause state for audio fixture",pauseFailure[0]);
             long deadline=SystemClock.uptimeMillis()+4000;while(current.hasWindowFocus()&&SystemClock.uptimeMillis()<deadline)SystemClock.sleep(20);
             ui(() -> require(!(Boolean)read(current,"resumed")&&!current.hasWindowFocus(),"backgrounded Activity is paused and has lost window focus"));
         }finally{ui(() -> application.unregisterActivityLifecycleCallbacks(callback));}
@@ -274,7 +293,17 @@ public final class NativeFalleyTest extends Instrumentation {
         int starts=audioCount(audio,"musicStartCount");ui(() -> {for(int i=0;i<4;i++)call(activity,"updateMusic");});require(audioCount(audio,"musicStartCount")==starts,"repeated eligible frames do not restart the music loop");
         click("sound");require(audioFlag(audio,"isEnabled")&&audioFlag(audio,"isMusicPlaying"),"effects enablement preserves independent music playback");click("music");uxAwaitMusic(audio,false,"music off stops playback while effects remain enabled");require(audioFlag(audio,"isEnabled"),"music toggle does not mute effects");
         click("music");uxAwaitMusic(audio,true,"music can resume after explicit reenablement");require(storage.getBoolean("music",false)&&storage.getBoolean("sound",false),"independent audio choices persist");animation(false);uxAwaitMusic(audio,false,"inactive render fixture correctly suppresses music");
-        uxHome();expansionStart(0,false);animation(true);uxAwaitMusic(audio,true,"foreground campaign permits music");click("pause");uxAwaitMusic(audio,false,"pause suspends music");click("settings");requireScreen(SETTINGS,"pause opens its own Settings");uxAwaitMusic(audio,false,"Settings reached from Pause keeps music suspended");back();requireScreen(PAUSE,"Settings returns to Pause");click("resume");uxAwaitMusic(audio,true,"Resume restarts the permitted loop");
+        uxHome();expansionStart(0,false);
+        ui(() -> {
+            require(((Number)read(arena,"screen")).intValue()==PLAY&&!(Boolean)read(physics,"lost")&&!(Boolean)read(physics,"won"),"audio lifecycle begins in a healthy live campaign");
+            for(String name:new String[]{"fireHazards","beamHazards","sawHazards"})for(Object hazard:(Object[])read(physics,name))
+                require(!(Boolean)read(hazard,"active"),"fresh audio lifecycle fixture has no active unrelated hazard");
+            // Music/OS lifecycle checks intentionally do not test dodging. Idle/input
+            // synchronization can exceed the stage's 3.6s opening-laser deadline.
+            write(physics,"attackCountdown",100000f);
+            log.append("FIXTURE audio lifecycle delays unrelated stage attacks; real gameplay frames, system Home/onPause/resume and audio callbacks remain enabled\n");
+        });
+        animation(true);uxAwaitMusic(audio,true,"foreground campaign permits music");click("pause");uxAwaitMusic(audio,false,"pause suspends music");click("settings");requireScreen(SETTINGS,"pause opens its own Settings");uxAwaitMusic(audio,false,"Settings reached from Pause keeps music suspended");back();requireScreen(PAUSE,"Settings returns to Pause");click("resume");uxAwaitMusic(audio,true,"Resume restarts the permitted loop");
         uxBackgroundHome();long deadline=SystemClock.uptimeMillis()+4000;while(audioFlag(audio,"isForeground")&&SystemClock.uptimeMillis()<deadline)SystemClock.sleep(20);
         require(!audioFlag(audio,"isForeground"),"actual Android background clears audio foreground ownership");uxAwaitMusic(audio,false,"background suspends native music");
         ui(() -> getTargetContext().startActivity(new Intent().setClassName(APP,ACTIVITY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
@@ -289,11 +318,11 @@ public final class NativeFalleyTest extends Instrumentation {
         if(screen()==PLAY)click("pause");
         if(screen()==PAUSE||screen()==RESULT)click("home");
         for(int i=0;i<5&&screen()!=HOME;i++)back();
-        requireScreen(HOME,"UX owner navigation returns Home");
+        requireScreen(HOME,"UX owner navigation returns Home");uxNav("home",HOME);
     }
     private void uxNav(String id,int expected) throws Exception {
         final float[] point={0,0};ui(() -> {
-            Object last=null;for(Object hit:(List<?>)read(arena,"buttons"))if(id.equals(read(hit,"id"))&&((Number)read(hit,"top")).floatValue()>=734)last=hit;
+            Object last=null;for(Object hit:(List<?>)read(arena,"buttons"))if(id.equals(read(hit,"id"))&&((Number)read(hit,"top")).floatValue()>=logicalHeight()-87)last=hit;
             require(last!=null,"bottom navigation exposes "+id);
             point[0]=(((Number)read(last,"left")).floatValue()+((Number)read(last,"right")).floatValue())/2;
             point[1]=(((Number)read(last,"top")).floatValue()+((Number)read(last,"bottom")).floatValue())/2;
@@ -301,6 +330,10 @@ public final class NativeFalleyTest extends Instrumentation {
     }
     private String uxText(String english) throws Exception {
         final String[] value={null};ui(() -> value[0]=(String)call(arena,"t",english,new Object[0]));return value[0];
+    }
+    private float logicalHeight() throws Exception {try{return ((Number)read(read(arena,"layout"),"height")).floatValue();}catch(NoSuchFieldException legacy){return 820;}}
+    private void uxChapter(int chapter) throws Exception {
+        requireScreen(BRIEF,"chapter selection remains in the combined campaign briefing");int page=(int)numeric(arena,"chapterPage");while(page<chapter){click("next_chapters");page++;}while(page>chapter){click("prev_chapters");page--;}
     }
     private void uxFit(String context) throws Exception {
         renderedFit(context,false);
@@ -315,7 +348,7 @@ public final class NativeFalleyTest extends Instrumentation {
                 }
                 for(Object hit:(List<?>)read(arena,"buttons")) {
                     float l=((Number)read(hit,"left")).floatValue(),r=((Number)read(hit,"right")).floatValue(),t=((Number)read(hit,"top")).floatValue(),b=((Number)read(hit,"bottom")).floatValue();
-                    require(l>=20&&r<=460&&t>=0&&b<=820,context+" rendered control stays visible: "+read(hit,"id"));
+                    require(l>=20&&r<=460&&t>=0&&b<=logicalHeight()+.5f,context+" rendered control stays visible: "+read(hit,"id"));
                     require(r-l>=44&&b-t>=44,context+" rendered control has a practical touch target: "+read(hit,"id"));
                 }
             }finally{bitmap.recycle();}
@@ -339,13 +372,13 @@ public final class NativeFalleyTest extends Instrumentation {
             uxFit("Home "+language);localizedNodes(language,"Home "+language);capture("ux-home-"+language);
             ui(() -> {Object primary=button("play"),daily=button("daily");require(((Number)read(primary,"top")).floatValue()<((Number)read(daily,"top")).floatValue(),"Campaign precedes optional modes");});
             click("play");requireScreen(BRIEF,"primary campaign action opens briefing");uxFit("brief "+language);capture("ux-brief-"+language);back();requireScreen(HOME,"Home-origin brief returns Home");
-            click("chapters");for(int chapter=0;chapter<6;chapter++) {
+            requireButtonsAbsent("chapters");click("play");uxChapter(0);for(int chapter=0;chapter<6;chapter++) {
                 require(numeric(arena,"chapterPage")==chapter,"chapter art has correct page "+chapter);
                 for(int slot=0;slot<4;slot++)require(buttonEnabled("stage_"+(chapter*4+slot))==(chapter==0&&slot==0),"fresh campaign retains sequential locks");
                 uxFit("chapter "+chapter+" language "+language);localizedNodes(language,"chapter art");capture("ux-chapter-"+chapter+"-"+language);
                 if(chapter<5)click("next_chapters");
             }
-            back();click("chapters");click("stage_0");back();requireScreen(CHAPTERS,"chapter-origin brief returns chapter list");back();
+            uxChapter(0);click("stage_0");requireScreen(BRIEF,"stage chip selects within the same campaign briefing");back();requireScreen(HOME,"briefing returns directly to Home");
             click("daily");uxFit("Daily menu "+language);localizedNodes(language,"Daily menu");capture("ux-daily-"+language);back();
             click("arcade");uxArcadeCards(language);back();
             uxNav("wardrobe",WARDROBE);requireButtonsAbsent("closet_tab_2","closet_tab_3","look_0","look_3");
@@ -389,13 +422,13 @@ public final class NativeFalleyTest extends Instrumentation {
         click("restart");expansionLanding(par+1,0);uxStarState(3,5,4,7,"gold-new-par-saved");
         for(int language=1;language<3;language++){uxHome();featureLanguage(language);back();expansionStart(0,false);expansionLanding(par+1,0);uxStarState(7,5,0,7,"earned-saved-language-"+language);localizedNodes(language,"mastery result");}
         uxHome();featureLanguage(0);back();click("play");require(stageIndex()==1,"Continue selects first unfinished stage after replaying stage zero");back();
-        click("chapters");click("stage_0");require(stageIndex()==0,"chapter browser can explicitly replay a completed stage");back();requireScreen(CHAPTERS,"replay briefing preserves chapter owner");back();click("play");require(stageIndex()==1,"replay selection does not displace Continue");back();
+        click("play");uxChapter(0);click("stage_0");require(stageIndex()==0,"inline campaign picker can explicitly replay a completed stage");back();requireScreen(HOME,"replay briefing returns to its selected Home stage");uxNav("home",HOME);click("play");require(stageIndex()==1,"replay selection does not displace Continue");back();
         int wins=storage.getInt("wins",0),stars=storage.getInt("stage_stars_0",0);expansionStart(0,true);expansionLanding(0,0);
         require(storage.getInt("wins",0)==wins&&storage.getInt("stage_stars_0",0)==stars&&numeric(arena,"resultStarsThisRun")==0&&numeric(arena,"resultStarsNew")==0,"mirror practice cannot award star progress");requireButtonsAbsent("next_stage");uxFit("mirror result");capture("ux-mirror-result-controlled");uxHome();
         ui(() -> {Object p=read(arena,"profile");int[] stageWins=(int[])read(p,"stageWins"),masks=(int[])read(p,"stars");for(int i=0;i<24;i++){stageWins[i]=1;masks[i]=7;}masks[7]=1;write(p,"selectedStage",20);call(arena,"saveProfile");arena.invalidate();log.append("FIXTURE all campaign completions with stage7 mastery gap for Continue and Collection checks\n");});
-        click("play");require(stageIndex()==7,"completed campaign Continue finds the first missing mastery stars");back();
+        uxNav("home",HOME);click("play");require(stageIndex()==7,"completed campaign Continue finds the first missing mastery stars");back();
         ui(() -> {Object p=read(arena,"profile");((int[])read(p,"stars"))[7]=7;write(p,"selectedStage",20);call(arena,"saveProfile");arena.invalidate();});
-        click("play");require(stageIndex()==20,"fully mastered campaign retains the player's selected replay stage");back();
+        uxNav("home",HOME);click("play");require(stageIndex()==20,"fully mastered campaign retains the player's selected replay stage");back();
         uxNav("wardrobe",WARDROBE);for(int i=0;i<7;i++)require(buttonEnabled("avatar_"+i),"all earned chapter rewards remain selectable");click("avatar_6");
         click("closet_tab_1");requireButtonsAbsent("rope_0","rope_1","rope_2");int retainedRope=storage.getInt("rope_type",0);
         uxNav("home",HOME);recreate();requireScreen(HOME,"Activity recreation returns to Home");ui(() -> {Object p=read(arena,"profile");require(((Number)read(p,"selectedAvatar")).intValue()==6&&((Number)read(p,"selectedRope")).intValue()==retainedRope&&((Number)call(p,"totalStars")).intValue()==72,"earned avatar, retained legacy preference and mastery persist after Activity recreation");});capture("ux-home-mastered-controlled");
@@ -418,9 +451,8 @@ public final class NativeFalleyTest extends Instrumentation {
         requireScreen(HOME,"expanded flow returns safely to Home");
     }
     private void expansionStart(int stage,boolean mirror) throws Exception {
-        expansionHome();click("chapters");int page=(int)numeric(arena,"chapterPage");
-        while(page<stage/4){click("next_chapters");page++;}while(page>stage/4){click("prev_chapters");page--;}
-        require(buttonEnabled("stage_"+stage),"expanded stage is earned and playable");click("stage_"+stage);
+        expansionHome();click("play");uxChapter(stage/4);
+        require(buttonEnabled("stage_"+stage),"expanded stage is earned and playable");click("stage_"+stage);requireScreen(BRIEF,"stage selection stays in the combined campaign briefing");
         requireScreen(BRIEF,"stage opens a pre-drop briefing");if(mirror){click("practice_options");require(buttonEnabled("mirror_run"),"Mirror Practice is revealed by its explicit disclosure");click("mirror_run");}click("begin_campaign");requireScreen(PLAY,"briefing starts gameplay");
         require(stageIndex()==stage,"selected expanded stage is active");
     }
@@ -728,19 +760,23 @@ public final class NativeFalleyTest extends Instrumentation {
     private static final class HudCanvas extends Canvas {
         final List<Glyph> glyphs=new ArrayList<>();
         RectF progress,arena; float jumpFillRight=Float.NaN;
+        float rootScale=1,rootX,rootY;boolean rootScaled;
+        @Override public void translate(float x,float y){if(!rootScaled){rootX+=x;rootY+=y;}super.translate(x,y);}
+        @Override public void scale(float x,float y){if(!rootScaled){rootScale=x;rootScaled=true;}super.scale(x,y);}
+        private RectF logical(RectF value){android.graphics.Matrix matrix=new android.graphics.Matrix();getMatrix(matrix);matrix.mapRect(value);value.offset(-rootX,-rootY);value.left/=rootScale;value.top/=rootScale;value.right/=rootScale;value.bottom/=rootScale;return value;}
         final boolean visibleOnly;
         HudCanvas(Bitmap bitmap) { this(bitmap,false); }
         HudCanvas(Bitmap bitmap,boolean visibleOnly) { super(bitmap); this.visibleOnly=visibleOnly; }
         @Override public void drawText(String text,float x,float y,Paint paint) {
             Rect ink=new Rect(); paint.getTextBounds(text,0,text.length(),ink);
             float offset=paint.getTextAlign()==Paint.Align.CENTER?paint.measureText(text)/2:paint.getTextAlign()==Paint.Align.RIGHT?paint.measureText(text):0;
-            glyphs.add(new Glyph(text,new RectF(x-offset+ink.left,y+ink.top,x-offset+ink.right,y+ink.bottom)));
+            glyphs.add(new Glyph(text,logical(new RectF(x-offset+ink.left,y+ink.top,x-offset+ink.right,y+ink.bottom))));
             super.drawText(text,x,y,paint);
         }
         @Override public void drawRoundRect(float l,float t,float r,float b,float rx,float ry,Paint paint) {
-            if (visibleOnly&&l==0&&t==0&&r==480&&b==820) glyphs.clear();
+            if (visibleOnly&&l==0&&t==0&&r==480&&b>=820) glyphs.clear();
             if (l==24&&r==456&&t>=94&&b<160&&b-t<=10) progress=new RectF(l,t,r,b);
-            if (l==20&&r==460&&b-t>400) arena=new RectF(l,t,r,b);
+            if (l==20&&r==460&&b-t>400) arena=logical(new RectF(l,t,r,b));
             if (l==52&&t==802&&b==806) jumpFillRight=r;
             super.drawRoundRect(l,t,r,b,rx,ry,paint);
         }
@@ -828,7 +864,7 @@ public final class NativeFalleyTest extends Instrumentation {
                 HudCanvas canvas=new HudCanvas(bitmap); arena.draw(canvas); int rows=0;
                 for (Glyph glyph:canvas.glyphs) if (!glyph.text.trim().isEmpty()) {
                     require(glyph.ink.left>=19&&glyph.ink.right<=461,context+" text fits horizontal app bounds: "+glyph.text);
-                    if (!document) require(glyph.ink.top>=0&&glyph.ink.bottom<=820,context+" text fits vertical app bounds: "+glyph.text);
+                    if (!document) require(glyph.ink.top>=0&&glyph.ink.bottom<=logicalHeight()+.5f,context+" text fits vertical app bounds: "+glyph.text);
                     for (Object hit:(List<?>)read(arena,"buttons")) if (glyph.text.equals(read(hit,"label")) && glyph.ink.centerY()>=((Number)read(hit,"top")).floatValue() && glyph.ink.centerY()<=((Number)read(hit,"bottom")).floatValue()) {
                         require(glyph.ink.left>=((Number)read(hit,"left")).floatValue()+1&&glyph.ink.right<=((Number)read(hit,"right")).floatValue()-1,context+" button label fits its control: "+glyph.text);
                         require(glyph.ink.top>=((Number)read(hit,"top")).floatValue()&&glyph.ink.bottom<=((Number)read(hit,"bottom")).floatValue(),context+" button label fits its control vertically: "+glyph.text);
@@ -1857,11 +1893,11 @@ public final class NativeFalleyTest extends Instrumentation {
         finally { ui(() -> app.unregisterActivityLifecycleCallbacks(callback)); }
         if (earlyFailure[0]!=null) throw new Exception("initial intro clock fixture",earlyFailure[0]);
         bind(); if (!prepareArtifacts) return;
-        output=new File(activity.getExternalFilesDir(null),(mode.equals("ux")?"falley-native-ux/":mode.equals("expansion")?"falley-native-expansion/":mode.equals("privacy")?"falley-native-privacy/":mode.startsWith("revision")?"falley-native-revision/":mode.equals("splash")?"falley-native-splash/":mode.equals("features")?"falley-native-features/":mode.equals("motion")?"falley-native-motion/":mode.equals("progression")?"falley-native-progression/":"falley-native-v32/")+shot);
+        output=new File(activity.getExternalFilesDir(null),(mode.equals("v43")?"falley-native-v43/":mode.equals("ux")?"falley-native-ux/":mode.equals("expansion")?"falley-native-expansion/":mode.equals("privacy")?"falley-native-privacy/":mode.startsWith("revision")?"falley-native-revision/":mode.equals("splash")?"falley-native-splash/":mode.equals("features")?"falley-native-features/":mode.equals("motion")?"falley-native-motion/":mode.equals("progression")?"falley-native-progression/":"falley-native-v32/")+shot);
         require(output.isDirectory()||output.mkdirs(),"artifact directory ready");
         // This test-owned directory must describe only this run, not retain an old failure PNG.
         File[] prior=output.listFiles();
-        if (prior!=null) for (File file:prior) if (file.isFile() && (file.getName().endsWith(".png") || file.getName().equals("checks.txt")))
+        if (prior!=null) for (File file:prior) if (file.isFile() && (file.getName().endsWith(".png") || file.getName().equals("checks.txt") || file.getName().endsWith("-dump.txt")))
             require(file.delete(),"prior test artifact cleared "+file.getName());
         if (startingShot[0]!=null) {
             try (FileOutputStream stream=new FileOutputStream(new File(output,"system-splash.png"))) {
@@ -1929,7 +1965,7 @@ public final class NativeFalleyTest extends Instrumentation {
         require(edit.commit(),"preferences committed");
     }
     private void capture(String name) throws Exception {
-        if(mode.equals("ux")) {
+        if(mode.equals("ux")||mode.equals("v43")) {
             // Frozen fixture state still needs a real window frame before a compositor shot.
             // Manual Canvas fit checks do not submit a Surface frame and are never screenshots.
             final CountDownLatch committed=new CountDownLatch(1);
@@ -1993,7 +2029,9 @@ public final class NativeFalleyTest extends Instrumentation {
             int[] location=new int[2]; arena.getLocationOnScreen(location); float scale=((Number)read(arena,"scale")).floatValue();
             physical[0]=location[0]+((Number)read(arena,"ox")).floatValue()+x*scale;
             physical[1]=location[1]+((Number)read(arena,"oy")).floatValue()+y*scale;
-            require(physical[0]>=0&&physical[0]<activity.getWindow().getDecorView().getWidth(),"tap x inside display");
+            View decor=activity.getWindow().getDecorView();int[] decorLocation=new int[2];decor.getLocationOnScreen(decorLocation);
+            require(physical[0]>=decorLocation[0]&&physical[0]<decorLocation[0]+decor.getWidth(),"tap x inside absolute Decor bounds");
+            require(physical[1]>=decorLocation[1]&&physical[1]<decorLocation[1]+decor.getHeight(),"tap y inside absolute Decor bounds");
         }); return physical;
     }
     private long touchDown;
@@ -2012,6 +2050,197 @@ public final class NativeFalleyTest extends Instrumentation {
         Throwable[] failure={null}; runOnMainSync(() -> { try { step.run(); } catch (Throwable error) { failure[0]=error; } });
         if (failure[0]!=null) throw new Exception("Native Falley UI check",failure[0]);
     }
+
+    /** 4.3 device evidence: public pointer flow plus explicitly seeded availability fixtures. */
+    private void v43WindowDump() throws Exception {
+        String[] commands={"dumpsys window windows","dumpsys input"},names={"window-dump.txt","input-dump.txt"};
+        for(int i=0;i<commands.length;i++)try(java.io.InputStream input=new android.os.ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand(commands[i]));FileOutputStream destination=new FileOutputStream(new File(output,names[i]))){byte[] data=new byte[16384];int count;while((count=input.read(data))>=0)destination.write(data,0,count);}
+        log.append("Live window and input bounds dumped before fixture recovery\n");
+    }
+    private void v43LargeDisplayPolicy() throws Exception {
+        final boolean[] large={false},fullWidth={false};final int[] width={0},height={0},orientation={0};final float[] shortestDp={0};
+        long deadline=SystemClock.uptimeMillis()+5000;
+        do{
+            ui(() -> {
+                float density=arena.getResources().getDisplayMetrics().density;
+                if(android.os.Build.VERSION.SDK_INT>=30){Rect maximum=activity.getWindowManager().getMaximumWindowMetrics().getBounds();width[0]=maximum.width();height[0]=maximum.height();}
+                else{android.util.DisplayMetrics metrics=new android.util.DisplayMetrics();activity.getWindowManager().getDefaultDisplay().getRealMetrics(metrics);width[0]=metrics.widthPixels;height[0]=metrics.heightPixels;density=metrics.density;}
+                shortestDp[0]=Math.min(width[0],height[0])/density;large[0]=shortestDp[0]>=600;
+                orientation[0]=activity.getRequestedOrientation();fullWidth[0]=arena.getWidth()>=width[0]-2;
+            });
+            if(!large[0]||fullWidth[0])break;settle(40);
+        }while(SystemClock.uptimeMillis()<deadline);
+        log.append("UNRESTRICTED DISPLAY ").append(width[0]).append('x').append(height[0]).append(" shortestDp=").append(shortestDp[0]).append(" appWidth=").append(arena.getWidth()).append(" requestedOrientation=").append(orientation[0]).append('\n');
+        if(large[0]){
+            require(orientation[0]==android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER,"unrestricted large display enables user-selected orientation even when initially letterboxed");
+            require(fullWidth[0],"large-display app spans the actual unrestricted display width without portrait letterboxing");
+        }
+    }
+    private void v43Viewport(String context) throws Exception {
+        ui(() -> {
+            Object layout=read(arena,"layout");
+            int[] location=new int[2];arena.getLocationOnScreen(location);Rect visible=new Rect(),global=new Rect();arena.getWindowVisibleDisplayFrame(visible);boolean globallyVisible=arena.getGlobalVisibleRect(global);
+            log.append("WINDOW DIAGNOSTICS ").append(context).append(" location=").append(location[0]).append(',').append(location[1]).append(" visibleFrame=").append(visible).append(" globalVisible=").append(globallyVisible).append(':').append(global).append(" safeLTRB=").append(read(arena,"safeLeft")).append(',').append(read(arena,"safeTop")).append(',').append(read(arena,"safeRight")).append(',').append(read(arena,"safeBottom")).append("\n");
+            android.view.WindowInsets insets=arena.getRootWindowInsets();
+            if(android.os.Build.VERSION.SDK_INT>=30&&insets!=null){
+                int[] types={android.view.WindowInsets.Type.statusBars(),android.view.WindowInsets.Type.navigationBars(),android.view.WindowInsets.Type.displayCutout(),android.view.WindowInsets.Type.tappableElement(),android.view.WindowInsets.Type.mandatorySystemGestures(),android.view.WindowInsets.Type.systemGestures()};String[] names={"statusBars","navigationBars","displayCutout","tappableElement","mandatorySystemGestures","systemGestures"};
+                for(int i=0;i<types.length;i++)log.append("INSETS ").append(names[i]).append(" visible=").append(insets.isVisible(types[i])).append(" current=").append(insets.getInsets(types[i])).append(" stable=").append(insets.getInsetsIgnoringVisibility(types[i])).append("\n");
+            }
+            float scale=((Number)read(layout,"scale")).floatValue(),height=((Number)read(layout,"height")).floatValue();
+            float left=((Number)read(layout,"left")).floatValue(),top=((Number)read(layout,"top")).floatValue();
+            require(scale>0&&Float.isFinite(scale)&&height>=820,context+" responsive dimensions are finite");
+            require(left>=0&&top>=0&&left+480*scale<=arena.getWidth()+1&&top+height*scale<=arena.getHeight()+1,context+" complete layout fits the actual app window");
+            log.append("WINDOW ").append(context).append(" pixels=").append(arena.getWidth()).append('x').append(arena.getHeight())
+                    .append(" density=").append(arena.getResources().getDisplayMetrics().density)
+                    .append(" scale=").append(scale).append(" origin=").append(left).append(',').append(top)
+                    .append(" logicalHeight=").append(height).append("\n");
+        });
+    }
+    private void v43Language(int language) throws Exception {
+        final int lang=language;ui(() -> {Object p=read(arena,"profile");write(p,"language",lang);call(arena,"saveProfile");arena.invalidate();});settle(55);
+    }
+    private void v43EarnedFixture() throws Exception {
+        uxHome();ui(() -> {
+            Object p=read(arena,"profile");int[] wins=(int[])read(p,"stageWins"),stars=(int[])read(p,"stars");
+            for(int i=0;i<24;i++){wins[i]=1;stars[i]=7;}
+            write(p,"avatarRewardsSeenMask",127);write(p,"avatarRewardsPendingMask",0);write(p,"selectedStage",0);write(p,"selectedAvatar",0);
+            write(arena,"homeStage",0);write(arena,"chapterPage",0);call(arena,"saveProfile");arena.invalidate();
+            log.append("FIXTURE all chapter completions/mastery granted only to expose earned avatar and boss visuals; this is not natural playthrough proof\n");
+        });settle(60);
+    }
+    private void v43Picker() throws Exception {
+        requireScreen(HOME,"4.3 starts on uncluttered Home");requireButtonsAbsent("chapters","stage_0","next_chapters");
+        ui(() -> require(((List<?>)read(arena,"buttons")).size()==6,"Home has only Campaign/Daily/Arcade and its three existing tabs"));
+        click("play");requireScreen(BRIEF,"one Home campaign action opens combined selection and briefing");
+        require(buttonEnabled("stage_0")&&!buttonEnabled("stage_1"),"fresh picker shows the first stage and next-stage lock");
+        click("stage_1");requireScreen(BRIEF,"locked stage pointer remains safely in Campaign");
+        require(storage.getInt("selectedStage",0)==0,"locked stage cannot change saved selection");
+        click("next_chapters");requireScreen(BRIEF,"chapter arrow browses in the same Campaign screen");
+        require((int)numeric(arena,"chapterPage")==1&&!buttonEnabled("stage_4"),"next chapter stays locked until prior completion");
+        requireButtonsAbsent("begin_campaign");
+        ui(() -> {
+            AccessibilityNodeProvider provider=arena.getAccessibilityNodeProvider();AccessibilityNodeInfo host=provider.createAccessibilityNodeInfo(-1),content=provider.createAccessibilityNodeInfo(10000);
+            try{require(host.getContentDescription().toString().contains("Chapter locked")&&content.getText().toString().contains("Chapter locked"),"locked Campaign accessibility describes the viewed lock rather than a previous playable stage");}finally{host.recycle();content.recycle();}
+        });
+        uxFit("4.3 locked chapter");capture("v43-locked-chapter");
+        click("prev_chapters");click("stage_0");requireScreen(BRIEF,"selecting a stage stays beside its briefing and Start action");
+        back();requireScreen(HOME,"Back returns directly Home without a Chapters detour");
+        require((int)numeric(arena,"homeStage")==0,"Back preserves the selected stage");
+        click("play");click("begin_campaign");ceilingFixture();runFrames(500);requireScreen(RESULT,"controlled loss exposes campaign navigation");
+        click("chapters");requireScreen(BRIEF,"result Chapters opens Campaign selection directly rather than duplicating Home");
+        require(buttonEnabled("stage_0")&&!buttonEnabled("stage_1"),"result Campaign entry retains the correct stage locks");
+        require(!physicsBool("lost")&&!physicsBool("won")&&stageIndex()==(int)numeric(arena,"homeStage"),"result Campaign entry resets the selected stage before Start");
+        click("begin_campaign");requireScreen(PLAY,"Campaign Start after a result begins fresh gameplay without another stage selection");
+        require(!physicsBool("lost")&&!physicsBool("won")&&physicsFloat("elapsed")==0,"Campaign result handoff cannot replay an old terminal run");uxHome();
+    }
+    private void v43Menus() throws Exception {
+        for(int language=0;language<3;language++){
+            v43Language(language);uxFit("4.3 Home "+language);v43Viewport("Home "+language);localizedNodes(language,"4.3 Home");capture("v43-home-"+language);
+            click("play");requireScreen(BRIEF,"Home primary action opens briefing");uxFit("4.3 briefing "+language);capture("v43-brief-"+language);back();
+            uxNav("wardrobe",WARDROBE);uxFit("4.3 collection "+language);capture("v43-collection-"+language);
+            click("closet_tab_1");uxFit("4.3 rope guide "+language);capture("v43-ropes-"+language);uxNav("home",HOME);
+            click("arcade");uxFit("4.3 Arcade cards "+language);capture("v43-arcade-"+language);back();
+            click("daily");uxFit("4.3 Daily fixed stats "+language);capture("v43-daily-"+language);back();
+            uxNav("settings",SETTINGS);uxFit("4.3 settings "+language);capture("v43-settings-"+language);
+            click("help");uxFit("4.3 help "+language);capture("v43-help-"+language);back();uxNav("home",HOME);
+        }
+    }
+    private void v43AvatarRouting() throws Exception {
+        v43Language(0);
+        for(int avatar=0;avatar<7;avatar++){
+            final int id=avatar;uxNav("wardrobe",WARDROBE);click("closet_tab_0");click("avatar_"+id);
+            require(storage.getInt("avatar",-1)==id,"earned avatar selection is durable "+id);uxFit("avatar traits "+id);capture("v43-avatar-"+id);
+            uxNav("home",HOME);click("play");click("begin_campaign");
+            require((int)physicsCallFloat("avatar")==id,"Campaign receives selected avatar abilities "+id);
+            click("jump");require(physicsFloat("vy")<0,"selected avatar responds to actual jump tap "+id);
+            click("restart");require((int)physicsCallFloat("avatar")==id&&physicsFloat("elapsed")==0,"Campaign Retry retains abilities "+id);uxHome();
+            click("arcade");click("start_arcade");require((int)physicsCallFloat("avatar")==id,"Arcade receives selected avatar abilities "+id);
+            click("restart");require((int)physicsCallFloat("avatar")==id,"Arcade Retry retains avatar abilities "+id);uxHome();
+        }
+        require(storage.getInt("avatar",-1)==6,"Shadow remains equipped before Daily check");click("daily");click("start_daily");
+        require((int)physicsCallFloat("avatar")==0,"Daily fixes effective physics to standard Human despite Shadow appearance");
+        require(storage.getInt("avatar",-1)==6,"Daily standardization never overwrites the equipped avatar");
+        click("restart");require((int)physicsCallFloat("avatar")==0,"Daily Retry retains standard stats");uxHome();
+        uxNav("wardrobe",WARDROBE);click("avatar_0");uxNav("home",HOME);
+    }
+    private void v43Bosses() throws Exception {
+        for(int chapter=0;chapter<6;chapter++){
+            expansionStart(chapter*4+3,false);
+            ui(() -> {
+                float ground=((Number)call(physics,"groundY")).floatValue(),height=Math.max(1600,ground-3500);
+                write(physics,"x",240f);write(physics,"y",height);write(physics,"deepestY",height);write(physics,"cameraY",height-430);write(physics,"vy",0f);
+                for(String name:new String[]{"fireHazards","beamHazards","sawHazards"})for(Object h:(Object[])read(physics,name))write(h,"active",false);
+                write(physics,"attackCountdown",100000f);write(physics,"bossCountdown",0f);
+                call(arena,"advance",((Number)read(physics.getClass(),"DT")).floatValue(),SystemClock.uptimeMillis());
+                require((Boolean)read(physics,"bossActive")&&((Number)read(physics,"bossWarning")).floatValue()>1,"actual boss begins with a readable harmless warning");
+                require(((Number)read(physics,"bossPhase")).intValue()==1,"boss visual is driven by a real first attack");
+                log.append("FIXTURE boss-zone position and neutral ordinary-attack timer; actual boss scheduler produced warning/hazard\n");arena.invalidate();
+            });
+            if(chapter>=2)require(physicsFloat("bossSourceSide")!=0,"later boss emits from a side-only actor");
+            renderedFit("boss warning "+chapter,false);capture("v43-boss-"+(chapter+1)+"-warning-controlled");
+            ui(() -> {
+                write(physics,"x",read(physics,"bossSafeX"));
+                for(int i=0;i<390;i++){
+                    float target=((Number)read(physics,"bossSafeX")).floatValue(),position=((Number)read(physics,"x")).floatValue();
+                    float drift=((Number)call(physics,"driftVelocity")).floatValue()+((Number)call(physics,"nudgeVelocity")).floatValue()+((Number)call(physics,"windVelocity")).floatValue();
+                    float scale=((Number)call(physics,"steeringScale")).floatValue()*((Number)call(physics,"ropeSteeringScale")).floatValue();
+                    call(physics,"steerTouch",Math.max(-180,Math.min(180,((target-position)*6-drift)/scale)));call(physics,"step");
+                    if((Boolean)read(physics,"lost"))break;
+                }
+                log.append("FIXTURE bounded countersteering holds advertised refuge while actual Physics advances warning into live state\n");arena.invalidate();
+            });
+            require(!physicsBool("lost"),"advertised boss safe gap remains usable through activation; cause="+read(physics,"deathReason"));
+            require(physicsFloat("bossLive")>0,"warned attack becomes live and drives its firing pose");
+            capture("v43-boss-"+(chapter+1)+"-live-controlled");uxHome();
+        }
+    }
+    private String v43SystemCommand(String command) throws Exception {
+        try(java.io.InputStream input=new android.os.ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand(command));java.io.ByteArrayOutputStream bytes=new java.io.ByteArrayOutputStream()){
+            byte[] buffer=new byte[4096];int count;while((count=input.read(buffer))>=0)bytes.write(buffer,0,count);
+            String result=new String(bytes.toByteArray(),java.nio.charset.StandardCharsets.UTF_8).trim();log.append("SYSTEM ").append(command).append(" => ").append(result).append('\n');return result;
+        }
+    }
+    private boolean v43AwaitRotation(int rotation,int width,int height,long timeout) throws Exception {
+        long deadline=SystemClock.uptimeMillis()+timeout;final boolean[] ready={false};
+        do{settle(40);ui(() -> ready[0]=activity.getWindowManager().getDefaultDisplay().getRotation()==rotation&&arena.getWidth()==width&&arena.getHeight()==height);if(ready[0])return true;}while(SystemClock.uptimeMillis()<deadline);
+        return false;
+    }
+    private void v43Resize() throws Exception {
+        if(arena.getResources().getConfiguration().smallestScreenWidthDp<600){log.append("SCOPE physical window below 600dp retains portrait phone presentation\n");return;}
+        final Activity before=activity;final Object savedPhysics=physics;
+        final int orientation=activity.getRequestedOrientation(),originalRotation=activity.getWindowManager().getDefaultDisplay().getRotation();
+        final int originalWidth=arena.getWidth(),originalHeight=arena.getHeight();
+        final int autoRotation=android.provider.Settings.System.getInt(activity.getContentResolver(),android.provider.Settings.System.ACCELEROMETER_ROTATION,1);
+        final int storedRotation=android.provider.Settings.System.getInt(activity.getContentResolver(),android.provider.Settings.System.USER_ROTATION,originalRotation);
+        require(orientation==android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER,"large-screen app supports user-selected orientations");
+        log.append("ROTATION SNAPSHOT physical=").append(originalRotation).append(" user=").append(storedRotation).append(" auto=").append(autoRotation).append(" window=").append(originalWidth).append('x').append(originalHeight).append('\n');
+        uxHome();click("play");click("begin_campaign");final float y=physicsFloat("y");final int avatar=(int)physicsCallFloat("avatar");
+        try{
+            int rotated=(originalRotation+1)%4;
+            v43SystemCommand("wm user-rotation lock "+rotated);
+            require(v43AwaitRotation(rotated,originalHeight,originalWidth,5000),"real system rotation swaps actual tablet display/app dimensions without portrait letterboxing");
+            requireScreen(PAUSE,"actual tablet display rotation pauses the live run");
+            require(activity.getRequestedOrientation()==orientation,"system rotation keeps the app FULL_USER policy");
+            require(activity==before&&read(activity,"arena")==arena&&read(arena,"physics")==savedPhysics,"resize preserves the existing Activity, Canvas and Physics instance");
+            require(physicsFloat("y")==y&&(int)physicsCallFloat("avatar")==avatar,"resize preserves run position and selected abilities");
+            v43Viewport("rotated tablet Pause");uxFit("rotated tablet Pause");capture("v43-tablet-rotated-pause");
+            click("resume");requireScreen(PLAY,"rotated tablet resumes the existing run");v43Viewport("rotated tablet gameplay");renderedFit("rotated tablet gameplay",false);capture("v43-tablet-rotated-play");uxHome();
+            uxFit("rotated tablet Home");capture("v43-tablet-rotated-home");click("play");uxFit("rotated tablet Campaign");capture("v43-tablet-rotated-campaign");back();
+            uxNav("wardrobe",WARDROBE);uxFit("rotated tablet Collection");capture("v43-tablet-rotated-collection");uxNav("home",HOME);
+            click("arcade");uxFit("rotated tablet Arcade");capture("v43-tablet-rotated-arcade");back();uxNav("settings",SETTINGS);uxFit("rotated tablet Settings");capture("v43-tablet-rotated-settings");uxNav("home",HOME);
+        }finally{
+            try{v43SystemCommand("wm user-rotation lock "+originalRotation);require(v43AwaitRotation(originalRotation,originalWidth,originalHeight,5000),"actual display returns to its original physical rotation and dimensions");}
+            finally{v43SystemCommand("wm user-rotation lock "+storedRotation);if(autoRotation!=0)v43SystemCommand("wm user-rotation free");settle(250);}
+            require(android.provider.Settings.System.getInt(activity.getContentResolver(),android.provider.Settings.System.ACCELEROMETER_ROTATION,-1)==autoRotation&&android.provider.Settings.System.getInt(activity.getContentResolver(),android.provider.Settings.System.USER_ROTATION,-1)==storedRotation,"original Android rotation preferences restored");
+        }
+    }
+    private void v43Regression() throws Exception {
+        require(APP.equals("com.perfgames.falley.motiontest"),"4.3 fixture targets the isolated debug app");
+        require(getTargetContext().getPackageManager().getPackageInfo(APP,0).versionName.equals("4.3.0-beta-test"),"4.3 evidence comes from the installed current debug version");
+        v43LargeDisplayPolicy();v43Viewport("initial");v43Picker();v43Menus();v43EarnedFixture();v43AvatarRouting();v43Resize();v43Bosses();uxHome();
+        v43Language(0);uxFit("4.3 final earned Home");capture("v43-home-earned-controlled");
+    }
+
     private void require(boolean condition,String message) {
         if (!condition) throw new AssertionError(message); checks++; log.append("PASS ").append(message).append('\n');
     }

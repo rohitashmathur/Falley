@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: native Falley v43; checks=4031; captures=45; viewport=small; debug 4.3 phone/tablet responsive layout, inline Campaign locks/selection, actual avatar ability routing and Daily standardization, six emitted boss warning/live captures; controlled fixtures; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1

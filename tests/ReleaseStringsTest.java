@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Actual 4.2 lookup, formatting, current rope/policy sources and legacy fallback coverage. */
+/** Actual release lookup, current avatar/chapter copy, formatting and legacy fallback coverage. */
 public final class ReleaseStringsTest {
     private static int checks;
     private static void check(boolean value,String message){checks++;if(!value)throw new AssertionError(message);}
@@ -53,7 +53,7 @@ public final class ReleaseStringsTest {
                 check(expected!=null&&!expected.trim().isEmpty(),"nonempty catalog entry");unicode(expected);
                 check(language==0||!expected.equals(english),"new copy is genuinely translated, not an English fallback");
                 check(signature(expected).equals(spec),"ordered argument types preserved");
-                check(ReleaseStrings.text(language,english,values).equals(String.format(Locale.US,expected,values)),"actual release lookup formats expected language");
+                check(ReleaseStrings.text(language,english,values).equals(values.length==0?expected:String.format(Locale.US,expected,values)),"actual release lookup formats arguments and preserves literal percentage copy");
             }
         }
         for(int rope=0;rope<RopeCatalog.COUNT;rope++){
@@ -63,6 +63,32 @@ public final class ReleaseStringsTest {
                 check(!ReleaseStrings.text(language,RopeCatalog.name(rope)).equals(RopeCatalog.name(rope)),"all rope names translated");
                 check(!ReleaseStrings.text(language,RopeCatalog.description(rope)).equals(RopeCatalog.description(rope)),"all rope descriptions translated");
             }
+        }
+        for(int avatar=0;avatar<AvatarCatalog.COUNT;avatar++){
+            for(String copy:new String[]{AvatarCatalog.trait(avatar),AvatarCatalog.detail(avatar),AvatarCatalog.story(avatar)}){
+                check(catalog.containsKey(copy),"current avatar trait/detail/story is directly translated");
+                for(int language=1;language<3;language++)check(!ReleaseStrings.text(language,copy).equals(copy),"current avatar disclosure does not fall back to English");
+            }
+            check(AvatarCatalog.story(avatar).length()<=80,"avatar story stays concise for a two-line card");
+            String disclosure=AvatarCatalog.trait(avatar)+" "+AvatarCatalog.detail(avatar);
+            int height=Math.round((AvatarAbilities.jumpHeight(avatar)-1)*100),load=Math.round((AvatarAbilities.massScale(avatar)-1)*100);
+            if(height!=0)check(disclosure.contains((height<0?"−":"+")+Math.abs(height)+"%"),"visible jump-height disclosure matches actual ability factor");
+            if(load!=0)check(disclosure.contains((load<0?"−":"+")+Math.abs(load)+"%"),"visible rope-load disclosure matches actual ability factor");
+            check(!AvatarAbilities.fireballImmune(avatar)||AvatarCatalog.trait(avatar).equals("Fireball immunity"),"fireball immunity is explicitly disclosed");
+            check(!AvatarAbilities.beamImmune(avatar,ArcadeRules.LIGHTNING)||AvatarCatalog.trait(avatar).equals("Laser and lightning immunity"),"beam and lightning immunity is explicitly disclosed");
+        }
+        for(int chapter=0;chapter<StageCatalog.CHAPTER_COUNT;chapter++){
+            for(String copy:new String[]{ChapterStories.intro(chapter),ChapterStories.outro(chapter)}){
+                check(catalog.containsKey(copy),"current chapter threat and earned-reward framing is translated");
+                for(int language=1;language<3;language++)check(!ReleaseStrings.text(language,copy).equals(copy),"current chapter framing does not fall back to English");
+            }
+        }
+        for(String copy:new String[]{"CHAPTER %d / %d","Finish the previous stage","Recommended","Choose a stage","Start stage %d","Continue stage %d","Chapter locked","Standard Daily physics","Jump %s · Weight %s","Attack protection only. Walls and spikes still kill.","Every avatar uses the same hitbox.","Same hitbox. Daily uses Human abilities.","Finale: watch the caster charge, then move clear of its shot.","GEAR RIG","FURNACE DEMON","STORM ROBOT","FORGE ROBOT","CORE DEMON"})check(catalog.containsKey(copy),"current navigation, fairness and boss label is directly covered");
+        for(int language=0;language<3;language++){
+            check(ReleaseStrings.text(language,AvatarCatalog.trait(AvatarCatalog.DEMON)).contains("20%"),"jump-height percentage stays literal, not a formatting directive");
+            check(ReleaseStrings.text(language,AvatarCatalog.detail(AvatarCatalog.SHADOW)).contains("15%"),"rope-load percentage stays literal");
+            String stats=ReleaseStrings.text(language,"Jump %s · Weight %s","1.20×","0.85×");
+            check(stats.contains("1.20×")&&stats.contains("0.85×"),"actual height/load values remain visible and correctly ordered");
         }
         check(catalog.containsKey(PrivacyPolicy.UPDATED_DATE),"current policy update date translated");
         for(String[] section:PrivacyPolicy.SECTIONS)

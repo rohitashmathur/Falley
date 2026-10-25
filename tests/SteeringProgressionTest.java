@@ -40,7 +40,7 @@ public final class SteeringProgressionTest {
             p.brokenCount=p.totalRopes();boolean positive=false,negative=false;
             for(int i=0;i<80;i++) {
                 p.elapsed=i*.25f;float nudge=p.nudgeVelocity();
-                check(Float.isFinite(nudge) && Math.abs(nudge)<=12.00001f,"progression nudge remains bounded to12pixels/sec");
+                check(Float.isFinite(nudge) && Math.abs(nudge)<=18.00001f,"progression nudge remains bounded to18pixels/sec");
                 positive|=nudge>1;negative|=nudge<-1;
             }
             check(positive && negative,"late chapter nudge alternates direction instead of becoming a permanent left/right pull");
@@ -109,7 +109,7 @@ public final class SteeringProgressionTest {
     private static void steerCourse(Physics p) {
         float low=p.leftWall()+p.hazardInset()+p.radius()+8,high=p.rightWall()-p.hazardInset()-p.radius()-8;
         if(p.y>p.groundY()-350){low=Math.max(low,p.targetLeft()+p.radius()+3);high=Math.min(high,p.targetRight()-p.radius()-3);}
-        float center=Physics.clamp((p.targetLeft()+p.targetRight())/2,low,high),best=center,bestClear=-1;
+        float center=Physics.clamp(p.bossActive?p.bossSafeX:(p.targetLeft()+p.targetRight())/2,low,high),best=center,bestClear=-1;
         for(float candidate:new float[]{low,center,high}) {
             float clear=clearance(p,candidate);
             if(clear>bestClear || clear==bestClear && candidate==center){bestClear=clear;best=candidate;}
@@ -167,8 +167,20 @@ public final class SteeringProgressionTest {
             for(int i=0;i<96;i++)levelStep(p);
             near(p.vx,direction*500/950f*Physics.MAX_MOTION_SPEED*p.steeringScale()+p.nudgeVelocity()+p.motionGustVelocity(),4,
                     "Arcade signed motion response follows the same gentle time ramp");
-            float x=p.x;p.gx=0;for(int i=0;i<120;i++)levelStep(p);
-            check(!p.lost && Math.abs(p.vx-p.nudgeVelocity()-p.motionGustVelocity())<1.5f && Math.abs(p.x-x)<15,"Arcade neutral braking is not weakened by later waves");
+            // Compare with the same live environmental forces from an already-neutral
+            // body. Raw travel now intentionally includes the stronger 4.3 breeze;
+            // only old steering momentum should disappear within half a second.
+            Physics environment=new Physics();environment.resetArcade(0,ArcadeRules.FIREBALLS);
+            environment.elapsed=p.elapsed;environment.wave=p.wave;environment.score=p.score;
+            environment.brokenCount=p.brokenCount;environment.touchControlled(false);isolatedArena(environment);environment.x=p.x;
+            float releaseSpeed=p.vx;p.gx=0;
+            for(int i=0;i<120;i++){levelStep(p);levelStep(environment);}
+            check(!p.lost && !environment.lost && Math.abs(p.vx-environment.vx)<1 && Math.abs(p.x-environment.x)<12,
+                    "Arcade neutral braking removes old turn momentum within half a second while preserving the same intentional breeze");
+            near(p.vx-environment.vx,releaseSpeed*(float)Math.exp(-14*120*Physics.DT),.002f,
+                    "neutral servo retains its original braking response independently of stronger environmental drift");
+            check(Math.abs(p.vx-p.nudgeVelocity()-p.motionGustVelocity())<1.5f,
+                    "the neutral body follows the current breeze without persistent steering momentum");
         }
     }
     private static void resetAndModes() {

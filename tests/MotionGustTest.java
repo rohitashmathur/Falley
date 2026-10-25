@@ -12,7 +12,7 @@ public final class MotionGustTest {
             float prior=0;boolean left=false,right=false;
             for(int i=0;i<=240;i++){
                 p.elapsed=2.5f+i*.05f;float gust=p.motionGustVelocity();
-                check(Float.isFinite(gust)&&Math.abs(gust)<=6.00001f&&Math.abs(gust-prior)<.4f,"opening gust eases in, is finite and bounded");
+                check(Float.isFinite(gust)&&Math.abs(gust)<=10.00001f&&Math.abs(gust-prior)<.6f,"opening gust eases in, is finite and bounded");
                 left|=gust<-1;right|=gust>1;prior=gust;
             }
             check(left&&right,"each course has both gust directions, never a fixed pull");
@@ -33,11 +33,11 @@ public final class MotionGustTest {
             double sum=0,position=0,min=0,max=0;float peak=0;int count=72000;
             for(int i=0;i<count;i++){
                 p.elapsed=(float)(10+i*(period*100/count));float velocity=p.nudgeVelocity()+p.motionGustVelocity();
-                check(Math.abs(velocity)<=12.0001f,"opening gust gives way to late nudge rather than stacking beyond its cap");
+                check(Math.abs(velocity)<=18.0001f,"opening gust gives way to late nudge rather than stacking beyond its cap");
                 sum+=velocity;position+=velocity*(period*100/count);min=Math.min(min,position);max=Math.max(max,position);peak=Math.max(peak,Math.abs(velocity));
             }
             check(Math.abs(sum/count)<.001&&Math.abs(position)<.05,"100 complete gust cycles retain no directional bias");
-            check(max-min<=27&&peak>5,"neutral environmental excursion stays bounded over a long run");
+            check(max-min<=41&&peak>9,"neutral environmental excursion stays bounded over a long run");
         }
     }
     private static void sensorResponseIndependent(){

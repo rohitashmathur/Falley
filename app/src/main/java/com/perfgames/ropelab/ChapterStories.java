@@ -1,22 +1,22 @@
 package com.perfgames.ropelab;
 
-/** Short original chapter framing; no text interrupts an active descent. */
+/** Original chapter framing, with a visible threat and the earned companion it leaves behind. */
 final class ChapterStories {
     static final String[] INTRO={
-        "The lights have trapped the city. Find a path through their rhythm.",
-        "The canyon keeps what falls. Trust the bounce, then let go.",
-        "The furnace is awake. Borrow a breath of slow time.",
-        "The storm has no master. Read the wind before it turns.",
-        "The foundry is still running. Break its rhythm, not your nerve.",
-        "Every fall led here. Bring the last machine to silence."
+        "The city hangs in light. Read the prism rig's charge and find a way down.",
+        "The canyon keeps what falls. A spinning rig guards the last bounce.",
+        "Below the canyon, a furnace demon wakes. Read its hands before the fire flies.",
+        "A storm robot drinks the sky. Its coils glow before every bolt.",
+        "The foundry's iron guardian is still running. Its cannon spits saws and light.",
+        "The core demon waits at the end. Read each charge; take the gap it leaves."
     };
     static final String[] OUTRO={
-        "A line of light goes dark. A new way down opens.",
-        "The canyon lets you pass. Something burns below.",
-        "The furnace quiets. The sky answers with thunder.",
-        "The storm clears. The foundry waits beneath it.",
-        "The blades rest. One final descent remains.",
-        "The machines are quiet. Tomorrow brings a new drop."
+        "The prism rig sleeps. A winged stranger joins your descent.",
+        "The saw rig falls silent. A sky watcher offers another way down.",
+        "The furnace demon fades. A rescue veteran answers the falling sparks.",
+        "The storm robot powers down. An explorer arrives from the quiet sky.",
+        "The iron guardian stops. A foundry worker chooses the way down.",
+        "The core demon dissolves. A shadow steps out of the broken light."
     };
     static String intro(int chapter){return INTRO[Math.max(0,Math.min(5,chapter))];}
     static String outro(int chapter){return OUTRO[Math.max(0,Math.min(5,chapter))];}

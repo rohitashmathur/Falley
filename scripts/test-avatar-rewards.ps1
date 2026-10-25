@@ -5,7 +5,7 @@ $root=Split-Path -Parent $PSScriptRoot
 $classes=Join-Path $root ('build\avatar-reward-storage-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Force -Path $classes | Out-Null
 $androidJar=Join-Path $SdkRoot 'platforms\android-35\android.jar'
-$names=@('AvatarRewards','AvatarCatalog','Cosmetics','FalleyProfile','FalleyStrings','MotionSteering','RopeCatalog','StageCatalog','ArcadeRules','DailyDrop','ProfileStorage')
+$names=@('AvatarRewards','AvatarCatalog','Cosmetics','FalleyProfile','FalleyStrings','MotionSteering','RopeCatalog','StageCatalog','ArcadeRules','DailyDrop','ProfileStorage','AvatarAbilities')
 $sources=@($names|ForEach-Object{Join-Path $root ('app\src\main\java\com\perfgames\ropelab\'+$_+'.java')})
 $tests=@('tests\AvatarRewardsTest.java','tests\storage\AvatarRewardsStorageTest.java')|ForEach-Object{Join-Path $root $_}
 & (Join-Path $JdkRoot 'bin\javac.exe') -encoding UTF-8 -classpath $androidJar -d $classes @sources @tests

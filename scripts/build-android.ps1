@@ -3,8 +3,8 @@ param(
     [string]$JdkRoot=$env:JAVA_HOME,
     [ValidatePattern('^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$')][string]$ApplicationId='com.perfgames.falley',
     [string]$AppLabel='Falley',
-    [string]$VersionName='4.2.1-beta-test',
-    [ValidateRange(1,2100000000)][int]$VersionCode=15,
+    [string]$VersionName='4.3.0-beta-test',
+    [ValidateRange(1,2100000000)][int]$VersionCode=16,
     [string]$OutputApk
 )
 $ErrorActionPreference='Stop'

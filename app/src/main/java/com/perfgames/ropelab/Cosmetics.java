@@ -1,6 +1,6 @@
 package com.perfgames.ropelab;
 
-/** Earned appearance choices never change collision size, physics, controls or stage access. */
+/** Earned styles and avatar access. Avatar abilities are defined separately in AvatarAbilities. */
 public final class Cosmetics {
     public static final int PALETTE_COUNT = 4, TRAIL_COUNT = 4, LANDING_COUNT = 4;
     private static final int[] PALETTE_STARS = {0, 6, 18, 36};
@@ -13,7 +13,7 @@ public final class Cosmetics {
     public static boolean isAvatarUnlocked(FalleyProfile profile, int avatar) {
         if (avatar < 0 || avatar >= AvatarCatalog.COUNT) return false;
         if (avatar == AvatarCatalog.HUMAN) return true;
-        // Starter Human plus one appearance after each of the six chapter finales.
+        // Starter Human plus one avatar after each of the six chapter finales.
         int chapter = avatar - 1;
         return chapter < StageCatalog.CHAPTER_COUNT && profile.isChapterComplete(chapter);
     }

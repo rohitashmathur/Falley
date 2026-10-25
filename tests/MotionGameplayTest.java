@@ -38,7 +38,7 @@ public final class MotionGameplayTest {
                 }
                 p.gx=m.acceleration(now);levelStep(p);levelStep(environment);peak=Math.max(peak,Math.abs(p.x-environment.x));
             }
-            check(!p.lost && peak<2 && Math.abs(p.vx-environment.vx)<1 && Math.abs(p.x-240)<16,"eight-second noisy neutral follows only the bounded intentional gust, without sensor runaway");
+            check(!p.lost && peak<2 && Math.abs(p.vx-environment.vx)<1 && Math.abs(p.x-240)<26,"eight-second noisy neutral follows only the bounded intentional gust, without sensor runaway");
         }
     }
     private static void mirrorBrakingAndReverse() {
@@ -120,7 +120,7 @@ public final class MotionGameplayTest {
                 if(i%4==0){m.acceptGyroscope(now,.001f,.001f,.003f);m.acceptAccelerometer(now,.025f*(float)Math.sin(i*.11),9.6f,2);}
                 p.gx=m.acceleration(now);levelStep(p);levelStep(environment);peak=Math.max(peak,Math.abs(p.x-environment.x));
             }
-            check(!p.lost && peak<2 && Math.abs(p.vx-environment.vx)<1 && Math.abs(p.x-240)<16,"upright Balanced/Tight sensor neutrality stays independent of the bounded deliberate gust");
+            check(!p.lost && peak<2 && Math.abs(p.vx-environment.vx)<1 && Math.abs(p.x-240)<26,"upright Balanced/Tight sensor neutrality stays independent of the bounded deliberate gust");
             float[] travel=new float[2];int index=0;
             for(int direction:new int[]{-1,1}) {
                 m=upright(preset);p=isolated();
