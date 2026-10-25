@@ -1,6 +1,6 @@
 # Falley — 4.2 beta
 
-Falley is an offline Android physics game by **Perf Games**. Fall through elastic ropes, steer with phone motion or swipes, avoid hazards and aim for a bouncy target. The current source version is **4.2.0 / version code 14**. See [build status](BUILD_STATUS.md) and [4.2 preparation and verification notes](docs/BETA_4_2.md) for the exact artifacts and completed checks; source metadata alone is not a Play submission or rollout.
+Falley is an offline Android physics game by **Perf Games**. Fall through elastic ropes, steer with phone motion or swipes, avoid hazards and aim for a bouncy target. The current source version is **4.2.0 / version code 14**; a signed R8 release bundle and local debug APK have been built and verified. See [build status](BUILD_STATUS.md) and [4.2 preparation and verification notes](docs/BETA_4_2.md) for the exact artifacts and completed checks; source metadata alone is not a Play submission or rollout.
 
 - **Production package:** `com.perfgames.falley`
 - **Local debug package:** `com.perfgames.falley.motiontest` — Falley Motion Test
@@ -54,6 +54,8 @@ Reuse the existing upload signing identity. See [release signing](docs/RELEASE_S
 The script retains **mapping.txt**, confirms that the AAB's `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map` has the same SHA-256, copies available R8 configuration/usage reports, and writes `release-verification.json` plus artifact hashes beside the local output. Keep that exact mapping with each version. The bundle-derived upload-signed APK is a local test artifact; a Play-installed APK may use Google's app-signing certificate. Play upload, beta enrollment, content declarations and rollout are separate owner actions.
 
 ## Verification and publishing
+
+Current acceptance: all 26 portable test groups pass; the final debug build passes native small/tall EN/HI/ID checks. The exact optimized production APK passes reflection-free smoke tests on Android 15 and 16 at both display sizes. Release lint has 0 errors / 10 nonfatal warnings; signing, mapping equality, bundle validation and ZIP alignment pass. See the linked receipts for exact identities and limits.
 
 Portable tests cover physics, stability, motion/touch response, progression, migration, daily isolation, stars, cosmetics, recommendation rules and three-language copy. Native debug fixtures inspect controls and measured rendering; a reflection-free release smoke checks the optimized production artifact without retaining private implementation names just for tests. [4.2 notes](docs/BETA_4_2.md) and [build status](BUILD_STATUS.md) distinguish completed results from pending checks. Historical evidence is version-specific: [4.1 UX](docs/UX_UPDATE_4_1.md), [4.0 expansion](docs/EXPANSION_DEBUG_4_0.md), and [3.3.1 privacy](docs/PRIVACY_UPDATE_3_3_1.md).
 

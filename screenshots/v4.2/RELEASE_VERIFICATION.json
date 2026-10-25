@@ -1,0 +1,149 @@
+{
+  "builtAtUtc": "2026-10-25T05:39:07.7264477Z",
+  "package": "com.perfgames.falley",
+  "versionName": "4.2.0",
+  "versionCode": 14,
+  "minSdk": 24,
+  "targetSdk": 36,
+  "debuggable": false,
+  "minified": true,
+  "resourcesShrunk": true,
+  "mapping": {
+    "file": "mapping.txt",
+    "sha256": "11d48e42b62050bb5e7d0b62c133690fc794739897915854145e06689a6e2cc8",
+    "embeddedEntry": "BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map",
+    "embeddedSha256": "11d48e42b62050bb5e7d0b62c133690fc794739897915854145e06689a6e2cc8",
+    "exactMatch": true
+  },
+  "r8Reports": [
+    {
+      "file": "r8/configuration.txt",
+      "bytes": 6249,
+      "sha256": "ccba388271c413c65bda213f4bce9986701aca3b531a57c5ae4d14a53c8ddc29"
+    },
+    {
+      "file": "r8/usage.txt",
+      "bytes": 14264,
+      "sha256": "dee7f67e589ea2d636300e414a2b674001cdc407192a0b887bd6fed32e94eddc"
+    },
+    {
+      "file": "r8/seeds.txt",
+      "bytes": 852,
+      "sha256": "369100dbbfe2c9b1c03a96bc504c43d11eb1c631dbbacbfb4312093d6ec24e15"
+    },
+    {
+      "file": "r8/resources.txt",
+      "bytes": 2760,
+      "sha256": "591223e7b6ec50fa55bc73d1e746846f859bece14bd110cbb1d2e2d4666b9cbb"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "Falley-4.2.0-beta.aab",
+      "bytes": 1037308,
+      "sha256": "f5b93a995065da8af8f7fdb7c3cb63c85addd163911e93e93c021777dde0341c"
+    },
+    {
+      "file": "Falley-4.2.0-beta-local.apk",
+      "bytes": 1082961,
+      "sha256": "5bcb2733d4a1fd821eea51a011c4d9e2070a865dbe5fe7f76b80262d35e324b0"
+    },
+    {
+      "file": "mapping.txt",
+      "bytes": 247096,
+      "sha256": "11d48e42b62050bb5e7d0b62c133690fc794739897915854145e06689a6e2cc8"
+    }
+  ],
+  "checks": [
+    "lintRelease and bundleRelease succeeded",
+    "bundletool validation",
+    "strict JAR verification",
+    "all payload certificates match preserved upload identity",
+    "APK signatures",
+    "16 KiB ZIP alignment",
+    "embedded mapping matches local mapping"
+  ],
+  "note": "Local build verification only. No Play upload, rollout, website deployment, or physical-device acceptance is implied.",
+  "sourceRevision": "2c309f1cbd12bfaa4755b6b98ad4d69d277a412d",
+  "vcsMetadataRevisionMatches": true,
+  "lint": {
+    "errors": 0,
+    "warnings": 10,
+    "note": "Nonfatal metadata/orientation/vector/annotation/custom-view recommendations; raw report retained locally."
+  },
+  "productionSmoke": {
+    "style": "framework-only reflection-free instrumentation on exact bundle-derived APK",
+    "fontScale": 1.3,
+    "layouts": [
+      "480x800 @240dpi",
+      "720x1600 @320dpi"
+    ],
+    "api35": {
+      "smallChecks": 222,
+      "tallChecks": 220,
+      "recoveryChecks": 1,
+      "captures": 24
+    },
+    "api36": {
+      "smallChecks": 201,
+      "tallChecks": 205,
+      "recoveryChecks": 1,
+      "captures": 24
+    },
+    "totalChecksIncludingRecovery": 850,
+    "captures": 48,
+    "preferencesRestored": true,
+    "displayAndFontRestored": true,
+    "harnessRemoved": true,
+    "ownedEmulatorsStopped": true,
+    "limitations": [
+      "Not physical-phone listening, motion comfort, performance or full TalkBack acceptance.",
+      "API24-34 not device-tested in this release; legacy audio focus has controller tests.",
+      "No Play-installed app-signing update test or Play upload."
+    ]
+  },
+  "debugArtifact": {
+    "file": "Falley-4.2.0-debug.apk",
+    "bytes": 1103387,
+    "sha256": "dc4f949497b41433bee0cb52f11710a58fc3fad49021e447ad56cc4b158442ec"
+  },
+  "selectedScreenshots": [
+    {
+      "file": "release-api35-small-fresh-language-english.png",
+      "source": "build/device/v4.2-release-api35/small/fresh-language-english.png",
+      "sha256": "b5b206d2c9da367bd051d9f667bd25db27d6714488f682cae0cecc0ab62da3b8"
+    },
+    {
+      "file": "release-api35-tall-collection-ropes.png",
+      "source": "build/device/v4.2-release-api35/tall/collection-ropes.png",
+      "sha256": "20804f71cb8ae91d0a858ea1bf623fdcde56e20b4ea894b2835d310640007998"
+    },
+    {
+      "file": "release-api35-small-settings.png",
+      "source": "build/device/v4.2-release-api35/small/settings.png",
+      "sha256": "43b04e7ffe61b64bf31b77617f31b3717f65d9e6fb52ac9bd40ba3010200ec67"
+    },
+    {
+      "file": "release-api36-tall-home.png",
+      "source": "build/device/v4.2-release-api36/tall/home.png",
+      "sha256": "92f863d2b40fb04ac3ef696fcba9de94b14838cd9a4066f7a59bf06dc7f6306a"
+    },
+    {
+      "file": "release-api36-small-gameplay-touch.png",
+      "source": "build/device/v4.2-release-api36/small/gameplay-touch.png",
+      "sha256": "d24d613e3a48adafcbd2385449d0caa66738725e2f65058137323027087de9c6"
+    },
+    {
+      "file": "release-api36-small-language-hindi.png",
+      "source": "build/device/v4.2-release-api36/small/language-hindi.png",
+      "sha256": "e751dc5272af807da6ad5e22c3f4afc6aa15f3990ee0c11e59e49ede635c38f7"
+    }
+  ],
+  "portableVerification": {
+    "testGroups": 26,
+    "allPassed": true,
+    "finalReleaseStringsChecks": 8397,
+    "musicControllerChecks": 56,
+    "note": "Broad suite precedes final singular copy correction; final focused copy suite and both APK device runs include that correction."
+  }
+}

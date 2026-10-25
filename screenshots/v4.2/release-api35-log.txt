@@ -1,0 +1,16 @@
+warning: [options] bootstrap class path not set in conjunction with -source 8
+Note: <repo>\android-tests\com\perfgames\falley\tests\ReleaseSmokeTest.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+1 warning
+INSTRUMENTATION_RESULT: stream=PASS: Falley release smoke; checks=222; captures=12; viewport=small; mode=smoke; reflection-free production launch/onboarding/navigation/resources, original preferences restored; no physical-phone audio or sensor comfort claim
+
+INSTRUMENTATION_CODE: -1
+/sdcard/Android/data/com.perfgames.falley/files/falley-release-smoke/small/: 13 files pulled, 0 skipped. 7.4 MB/s (492699 bytes in 0.064s)
+INSTRUMENTATION_RESULT: stream=PASS: Falley release smoke; checks=220; captures=12; viewport=tall; mode=smoke; reflection-free production launch/onboarding/navigation/resources, original preferences restored; no physical-phone audio or sensor comfort claim
+
+INSTRUMENTATION_CODE: -1
+/sdcard/Android/data/com.perfgames.falley/files/falley-release-smoke/tall/: 13 files pulled, 0 skipped. 15.5 MB/s (883745 bytes in 0.054s)
+INSTRUMENTATION_RESULT: stream=PASS: Falley release smoke; checks=1; captures=0; viewport=recovery; mode=restore; reflection-free production launch/onboarding/navigation/resources, original preferences restored; no physical-phone audio or sensor comfort claim
+
+INSTRUMENTATION_CODE: -1
+PASS: reflection-free Falley production smoke and verified preference/display recovery. Artifacts: build/device/v4.2-release-api35

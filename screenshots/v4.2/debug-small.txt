@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: native Falley ux; checks=10107; captures=83; viewport=small; debug EN/HI/ID first-run confirmed language and local country fallback, two-tab earned avatar/rope Collection, native rope support abilities and Classic mode isolation, independent music lifecycle, compact results and Chapter spotlight navigation; controlled fixtures, audio audibility not assessed; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1

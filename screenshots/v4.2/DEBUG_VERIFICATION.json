@@ -1,0 +1,161 @@
+{
+  "sourceCommit": "2c309f1cbd12bfaa4755b6b98ad4d69d277a412d",
+  "date": "2026-10-25",
+  "package": "com.perfgames.falley.motiontest",
+  "versionName": "4.2.0-beta-test",
+  "versionCode": 14,
+  "artifact": {
+    "file": "Falley-4.2.0-debug.apk",
+    "bytes": 1103387,
+    "sha256": "dc4f949497b41433bee0cb52f11710a58fc3fad49021e447ad56cc4b158442ec",
+    "includedInRepository": false
+  },
+  "environment": {
+    "android": "15 / API 35",
+    "fontScale": 1.3,
+    "languages": [
+      "English",
+      "Hindi",
+      "Bahasa Indonesia"
+    ]
+  },
+  "nativeResults": [
+    {
+      "layout": "small",
+      "resolution": "480x800",
+      "density": 240,
+      "checks": 10107,
+      "captures": 83,
+      "result": "PASS"
+    },
+    {
+      "layout": "tall",
+      "resolution": "720x1600",
+      "density": 320,
+      "checks": 10107,
+      "captures": 83,
+      "result": "PASS"
+    }
+  ],
+  "totalChecks": 20214,
+  "totalCaptures": 166,
+  "curatedCaptures": 18,
+  "recovery": "PASS; original app preferences, display and font settings restored; instrumentation removed",
+  "method": "Actual Android compositor captures after invalidation/frame commit/settle. Copied without image edits; per-file SHA-256 checked.",
+  "limitations": [
+    "Controlled unlock, landing and death fixtures are marked; no natural phone success-rate claim.",
+    "Music lifecycle checked, audibility and sensor comfort require phone tests.",
+    "Debug proof is not acceptance of an R8 release artifact.",
+    "No policy website deployment or Play upload is implied."
+  ],
+  "images": [
+    {
+      "file": "first-language-en-small.png",
+      "source": "build/device/v4.2-debug/small/ux-first-language-0.png",
+      "bytes": 31200,
+      "sha256": "bef8d9a5fd180693bbd523c5235be0be472d9e5cc5b52f7fbf90bcc21c5210cf"
+    },
+    {
+      "file": "first-language-hi-small.png",
+      "source": "build/device/v4.2-debug/small/ux-first-language-1.png",
+      "bytes": 30658,
+      "sha256": "edde294ffeddd79b82e8fec5576a9cc0df8f39ffdbcd252bae05ff1cab74fa67"
+    },
+    {
+      "file": "first-language-id-small.png",
+      "source": "build/device/v4.2-debug/small/ux-first-language-2.png",
+      "bytes": 30422,
+      "sha256": "a532f06e40f088dc9247f76a13bb9d8ca471513e03584771f36e6f6c54a9a463"
+    },
+    {
+      "file": "home-tall.png",
+      "source": "build/device/v4.2-debug/tall/ux-home-0.png",
+      "bytes": 90405,
+      "sha256": "6be3d3a2d79796c68a4acf7c316ffe228c36a2a47c454ccce2260aaed2630a19"
+    },
+    {
+      "file": "collection-avatars-tall.png",
+      "source": "build/device/v4.2-debug/tall/ux-collection-0-0.png",
+      "bytes": 82226,
+      "sha256": "33521ec0cca0b76497a678287c42a7ac7cac7a5bbaeec935d331f69efbc38b2a"
+    },
+    {
+      "file": "ropes-spring-six-stars-small-controlled.png",
+      "source": "build/device/v4.2-debug/small/ux-rope-six-stars-controlled.png",
+      "bytes": 42421,
+      "sha256": "24315068c685dc6193cd9068764cf76f632c68e6fa3c66e24c44ae6dc7434c56"
+    },
+    {
+      "file": "ropes-static-twelve-stars-tall-controlled.png",
+      "source": "build/device/v4.2-debug/tall/ux-rope-twelve-stars-controlled.png",
+      "bytes": 80844,
+      "sha256": "586d526a62192c2ce754aa2c420c7c5c7f3be32e038c028b13568792db4073cc"
+    },
+    {
+      "file": "briefing-en-tall.png",
+      "source": "build/device/v4.2-debug/tall/ux-brief-0.png",
+      "bytes": 79683,
+      "sha256": "3896083e4e7cfe2b9e74362c07ae07b4f4e6a83442f8f68d7ee843af895abe81"
+    },
+    {
+      "file": "briefing-hi-small.png",
+      "source": "build/device/v4.2-debug/small/ux-brief-1.png",
+      "bytes": 46322,
+      "sha256": "b87e86a18b22ed536076adfa8daf5df91c5222bd7d5dbd6aacdb2fa5e7ddbb8e"
+    },
+    {
+      "file": "settings-en-tall.png",
+      "source": "build/device/v4.2-debug/tall/ux-settings-0.png",
+      "bytes": 79468,
+      "sha256": "339643f979a548929072645a5f63523ac7516cf0db03f81f8d548dae29ee34f5"
+    },
+    {
+      "file": "settings-id-small.png",
+      "source": "build/device/v4.2-debug/small/ux-settings-2.png",
+      "bytes": 42826,
+      "sha256": "35e3809514a18da17350c88cff70b2535c874691422c59e2cabfdcbd0fea8b2f"
+    },
+    {
+      "file": "result-finish-new-tall-controlled.png",
+      "source": "build/device/v4.2-debug/tall/ux-stars-finish-new-controlled.png",
+      "bytes": 64981,
+      "sha256": "8637316bf2ed73a77c83fc6a2393ccc1ad91a8e66704849f068e30a4036a6d68"
+    },
+    {
+      "file": "result-gold-new-par-saved-small-controlled.png",
+      "source": "build/device/v4.2-debug/small/ux-stars-gold-new-par-saved-controlled.png",
+      "bytes": 36164,
+      "sha256": "94bea3f6b258972444096b0d368d2574becc92ec4b7b87d4a70a119deee79a08"
+    },
+    {
+      "file": "retry-tall-controlled.png",
+      "source": "build/device/v4.2-debug/tall/ux-quick-retry-0.png",
+      "bytes": 62699,
+      "sha256": "5dd464feed4a50157c6e5d35f7764b743f80432dc0ff43d169a9e92ef1026b09"
+    },
+    {
+      "file": "touch-cue-small.png",
+      "source": "build/device/v4.2-debug/small/ux-touch-cue-0.png",
+      "bytes": 34348,
+      "sha256": "ab9c5b7a59e1fdf757812226ee08a2653e5fbee2b3086c5a70ce7948bdd40cd1"
+    },
+    {
+      "file": "motion-cue-tall.png",
+      "source": "build/device/v4.2-debug/tall/ux-motion-cue-0.png",
+      "bytes": 57228,
+      "sha256": "2a11f104c3db30ee0d70e4ec4d86176a596bf9fccf7a6f41a4b9d477f5445e7a"
+    },
+    {
+      "file": "privacy-tall.png",
+      "source": "build/device/v4.2-debug/tall/ux-privacy-0.png",
+      "bytes": 109973,
+      "sha256": "41e24d8ce4d77863bdfb9fa62a0afca495dbd5703a6380093998566981dfe213"
+    },
+    {
+      "file": "arcade-small.png",
+      "source": "build/device/v4.2-debug/small/ux-arcade-0.png",
+      "bytes": 35052,
+      "sha256": "a656f056fae6e3ce08cef6761f3bd35ab9b223a4b71e83df51f59ad562dea883"
+    }
+  ]
+}

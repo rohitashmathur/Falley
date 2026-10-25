@@ -20,6 +20,21 @@ Support is **mathurrohitash16@gmail.com**. The public policy is **https://falley
 
 Outputs stay outside Git, under an owner-chosen local delivery directory or ignored `releases/4.2.0/`. The AAB is the Play submission artifact. The derived APK is useful for local verification, but Play App Signing may use a different distribution certificate. Preserve existing signing keys; never generate a replacement merely to get past an update mismatch.
 
+## Completed debug verification
+
+The final local debug APK is built from app source commit **`2c309f1cbd12bfaa4755b6b98ad4d69d277a412d`**, version **4.2.0-beta-test / code 14**, package **com.perfgames.falley.motiontest**. It is **1,103,387 bytes**, SHA-256 **`dc4f949497b41433bee0cb52f11710a58fc3fad49021e447ad56cc4b158442ec`**. The matching builder log reports successful APK v2/v3 verification.
+
+Native debug `-UxOnly` acceptance passes on Android 15/API 35 at **480×800/density 240** and **720×1600/density 320**, font scale **1.3**, across English, Hindi and Bahasa Indonesia. Final receipts record **10,107 checks / 83 captures per layout; 20,214 checks / 166 captures total**. Counts include 84 test-artifact cleanup assertions per layout. Preferences are restored exactly; display/font settings are recovered and instrumentation removed. [Curated 4.2 debug evidence](../screenshots/v4.2/README.md) includes 18 unedited screenshots, exact artifact identity, sanitized logs, per-layout receipts and image provenance.
+
+Coverage includes fresh explicit language choice and returning-language migration, temporary country hints, two-tab earned avatar/rope selection, native rope support effects and Classic mode isolation, independent music/effects preferences and music lifecycle, Home/navigation/briefing flows, localized control cues, fast cause-specific Retry, named independent star evidence and cumulative progress. Controlled native fixtures do not establish human success rates, sensor comfort, audio audibility or full accessibility conformance.
+
+## Completed production release verification
+
+The upload-signed **4.2.0/code 14** AAB is **1,037,308 bytes**, SHA-256 `f5b93a995065da8af8f7fdb7c3cb63c85addd163911e93e93c021777dde0341c`. Its embedded VCS revision is `2c309f1cbd12bfaa4755b6b98ad4d69d277a412d`; later evidence/harness fixes leave app inputs unchanged. R8/resource shrinking, release lint (0 errors / 10 nonfatal warnings), bundletool validation, strict signature/all 26 payload certificates, APK v2/v3 and 16 KiB ZIP alignment pass. The preserved upload certificate is unchanged. The local mapping and embedded bundle mapping match exactly: SHA-256 `11d48e42b62050bb5e7d0b62c133690fc794739897915854145e06689a6e2cc8`.
+
+The exact bundle-derived optimized production APK passes reflection-free smoke on **Android 15/API 35** (222 small + 220 tall + 1 recovery checks) and **Android 16/API 36** (201 small + 205 tall + 1 recovery checks), with **48 captures total** at font scale 1.3. Checks cover version/production/non-debuggable/no-permission identity, all 12 packaged WAV resources, first-launch language choice, public navigation/Collection/independent audio settings, Hindi/Indonesian, policy, real touch play and pause/restart/Back. Preferences/display/font are restored, both harnesses removed and both owned emulators stopped. The harness compiles without application classes or private reflection, so production optimization is not weakened to accommodate it.
+
+All 26 portable suites pass, including bounded opening-stage clears, all 24 Classic touch/motion courses, all 24 earned-rope touch courses, six Daily templates and profile migration. Earned-rope motion clearance covers the opening three stages; the full earned-rope campaign still needs phone balance feedback. Final focused translations pass 8,397 checks and original PCM/controller tests pass 56 cases. [Build Status](../BUILD_STATUS.md) and the [release receipt](../screenshots/v4.2/RELEASE_VERIFICATION.json) identify all outputs. No Play upload or policy website deployment was performed.
 ## R8, resources and mapping
 
 Release enables `minifyEnabled true`, `shrinkResources true` and `proguard-android-optimize.txt`. The app rules keep only manifest entry-point names/constructors and the SDK-guarded API 33 Back and API 26 audio-focus helpers' optimization boundaries. Other application code can shrink, optimize and be renamed. No blanket app-wide keep rule is added for instrumentation.
@@ -38,7 +53,7 @@ Use the full portable suite for physics, stars, migration, Daily isolation, reco
 
 Use a separate **reflection-free release smoke** against the exact bundle-derived optimized production APK. It should verify the production package/version/non-debuggable flag and permission list, a fresh language choice, Home, Collection, Settings, independent music/sound choices, Hindi/Indonesian selection, policy visibility and real Campaign touch play/pause/restart/Back navigation through exposed accessibility nodes or real pointer events. The fixture backs up/restores preferences and display/font settings, only targets a disposable emulator, captures submitted compositor frames and removes its instrumentation app after verified recovery.
 
-A successful automated smoke is distinct from physical-phone listening, sensor comfort, TalkBack navigation, performance and human language review. API 24-32 need particular attention to legacy Back behavior, the API 33 helper boundary and the API 24/25 legacy audio-focus path; a single API 35 emulator does not certify every supported Android version. A final Play-installed closed-test run should also cover app-signing updates and device-specific behavior.
+A successful automated smoke is distinct from physical-phone listening, sensor comfort, TalkBack navigation, performance and human language review. API 24-32 need particular attention to legacy Back behavior, the API 33 helper boundary and the API 24/25 legacy audio-focus path; API 35/36 emulators do not certify every supported Android version. A final Play-installed closed-test run should also cover app-signing updates and device-specific behavior.
 
 ## Reproduce locally
 
@@ -60,7 +75,7 @@ See [signing instructions](RELEASE_SIGNING.md) before the release command. Do no
 
 ## Before an owner beta rollout
 
-1. Record final artifact identities and exact-build test results in Build Status and local receipts. Keep the AAB, mapping and private signing backup together in controlled local storage.
+1. Keep the recorded AAB, exact mapping and private signing backup in controlled local storage. Artifact identities and exact-build results are recorded above and in Build Status.
 2. Review the final policy-site text and redeploy it if needed. Confirm the public policy URL and support email in Play Console.
 3. Align screenshots, description, release notes, target audience, content rating and Data safety with the actual offline game, hazards and optional blood effects. No ad or purchase disclosure should imply an SDK that has not been added.
 4. Run physical-phone acceptance and a Play-installed closed test. Collect reports on controls, first-run language choice, star comprehension, retries, audio balance and progression before widening the rollout.

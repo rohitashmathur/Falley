@@ -34,7 +34,9 @@ try {
     $classes=Join-Path $staging 'classes';$dex=Join-Path $staging 'dex'
     New-Item -ItemType Directory -Force -Path $classes,$dex | Out-Null
     $unsigned=Join-Path $staging 'unsigned.apk'
-    Checked (Join-Path $tools 'aapt.exe') @('package','-f','-M',(Join-Path $root 'android-tests\AndroidManifest-release-smoke.xml'),'-I',$androidJar,'-F',$unsigned)
+    $testManifest=Join-Path $staging 'AndroidManifest.xml'
+    Copy-Item -LiteralPath (Join-Path $root 'android-tests\AndroidManifest-release-smoke.xml') -Destination $testManifest
+    Checked (Join-Path $tools 'aapt.exe') @('package','-f','-M',$testManifest,'-I',$androidJar,'-F',$unsigned)
     # Framework-only harness: no app implementation on its classpath, no reflection keep rules.
     Checked (Join-Path $JdkRoot 'bin\javac.exe') @('-encoding','UTF-8','-source','8','-target','8','-classpath',$androidJar,'-d',$classes,(Join-Path $root 'android-tests\com\perfgames\falley\tests\ReleaseSmokeTest.java'))
     $jar=Join-Path $staging 'classes.jar'

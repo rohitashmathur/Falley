@@ -1,0 +1,16 @@
+{
+  "emulator-5580": {
+    "size": "Physical size: 320x640; Override size: 720x1280",
+    "density": "Physical density: 160; Override density: 320",
+    "font": "1.0",
+    "harnessPackages": [],
+    "stopped": true
+  },
+  "emulator-5582": {
+    "size": "Physical size: 1080x2340",
+    "density": "Physical density: 440",
+    "font": "1.0",
+    "harnessPackages": [],
+    "stopped": true
+  }
+}

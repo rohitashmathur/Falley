@@ -1,6 +1,25 @@
 # Falley build status
 
-## Current Chapter spotlight debug — 24 October 2026
+## Current 4.2 beta — 25 October 2026
+
+**4.2.0 / code 14**, production package `com.perfgames.falley`, is built and verified locally for owner beta submission. New players confirm English/Hindi/Bahasa Indonesia with English selected initially and a temporary permission-free country hint. The opening three stages require active dodging. Original retro music has an independent switch and lifecycle/audio-focus handling. Avatars have distinct cosmetic jump poses; Collection has only Avatars and Ropes. Earned Spring and Static ropes add campaign support effects; Daily and Arcade retain Classic. Documentation/contact/privacy status is current and personal Windows paths have been removed from tracked Markdown.
+
+App source is **`2c309f1cbd12bfaa4755b6b98ad4d69d277a412d`**, also embedded as the AAB's VCS revision. Subsequent verification/documentation commits leave application/build inputs unchanged. R8 optimization/obfuscation and resource shrinking are enabled. `lintRelease` **0 errors / 10 nonfatal warnings**, `bundleRelease`, bundletool validation, strict JAR verification plus all **26 payload certificates**, APK v2/v3 and 16 KiB ZIP alignment **PASS**. The existing upload certificate is preserved. The non-debuggable bundle requests no permissions and targets API 36/minimum 24, with backup disabled. The local `mapping.txt` SHA-256 exactly matches the AAB's embedded deobfuscation mapping.
+
+| Local artifact (portable example directory) | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `C:\local-delivery\2026-10-25\Falley-4.2.0\Falley-4.2.0-debug.apk` | 1,103,387 | `dc4f949497b41433bee0cb52f11710a58fc3fad49021e447ad56cc4b158442ec` |
+| `release/Falley-4.2.0-beta.aab` | 1,037,308 | `f5b93a995065da8af8f7fdb7c3cb63c85addd163911e93e93c021777dde0341c` |
+| `release/Falley-4.2.0-beta-local.apk` | 1,082,961 | `5bcb2733d4a1fd821eea51a011c4d9e2070a865dbe5fe7f76b80262d35e324b0` |
+| `release/mapping.txt` | 247,096 | `11d48e42b62050bb5e7d0b62c133690fc794739897915854145e06689a6e2cc8` |
+
+All **26 portable test groups PASS**; the final focused EN/HI/ID copy suite passes **8,397 checks**. Audio/PCM/controller checks pass **56 lifecycle cases**, including API 24 and modern audio-focus branches. Native debug acceptance on Android 15/API 35 passes **20,214 checks / 166 captures** across small/tall displays, font scale 1.3 and EN/HI/ID. Reflection-free tests of the exact R8 production APK pass on **Android 15/API 35 and Android 16/API 36**, both display sizes: **850 checks including two recovery checks / 48 captures**. These cover identity, fresh language choice, packaged audio readability, Collection, settings, localized language selection, policy and real pointer/navigation paths. They do not claim complete gameplay equivalence or phone listening quality.
+
+Native preference/display/font recovery is verified, test harnesses removed and both owned emulators stopped. [4.2 notes](docs/BETA_4_2.md), [curated evidence](screenshots/v4.2/README.md), and [release receipt](screenshots/v4.2/RELEASE_VERIFICATION.json) give exact scope and limits. Raw logs, full captures, R8 reports, binaries and signing material remain local. Jarsigner archive-order warnings are recorded; the independent verifier confirms every payload certificate. No Play upload or rollout has occurred.
+
+Before beta, redeploy the updated [policy-site source](policy-site/README.md), then confirm the support email and public policy URL in Play Console. Use [4.2 release notes](docs/PLAY_RELEASE_NOTES_4_2.md). Physical-phone motion, sound/music balance, performance, TalkBack and fluent-speaker review remain owner acceptance. No ads, purchases, revives or backend were added.
+
+## Historical Chapter spotlight debug — 24 October 2026
 
 **4.1.0-ux-test / code 13**, package `com.perfgames.falley.motiontest`, is ready for owner testing. Home spotlights the next Campaign stage with one primary action and smaller Daily/Arcade cards. Play / Collection / Settings navigation, six chapter illustrations, consistent cards/buttons, a labeled Language row, briefing controls, simpler HUD/jump charges, contextual first-stage guidance, named star objectives and quick Retry are implemented across the native screens. The previously local 24-stage expansion is included in this source update.
 

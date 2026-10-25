@@ -1,0 +1,2 @@
+.\app\src\main\res\raw\falley_retro_loop.wav: 16.0s, PCM16 mono 22050Hz, peak=0.4200, rms=0.1662, bytes=705644
+PASS: music/SFX independence, API24/35 focus lifecycle, errors and resource release (56 checks)
