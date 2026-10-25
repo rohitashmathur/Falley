@@ -102,7 +102,7 @@ public final class ArcadePhysicsTest {
         for(int k=0;k<240;k++){p.steerTouch(-p.driftVelocity());p.step();}
         check(!p.lost && Math.abs(p.x-240)<1,"the intentional current is controllable with opposite steering");
     }
-    private static void avoid(Physics p){
+    private static float destination(Physics p){
         float low=p.leftWall()+p.hazardInset()+p.radius()+5,high=p.rightWall()-p.hazardInset()-p.radius()-5;
         float center=Physics.clamp(240,low,high),best=center,bestClearance=-10000,centerClearance=10000;
         for(int k=0;k<=40;k++){
@@ -114,7 +114,13 @@ public final class ArcadePhysicsTest {
             if(clearance>bestClearance){bestClearance=clearance;best=candidate;}
         }
         if(centerClearance>p.radius()+9)best=center;
-        p.steerTouch(Physics.clamp(((best-p.x)*12-p.driftVelocity()-p.nudgeVelocity())/p.steeringScale(),-340,340));
+        return best;
+    }
+    static void avoid(Physics p){
+        p.steerTouch(Physics.clamp(((destination(p)-p.x)*12-p.driftVelocity()-p.nudgeVelocity())/p.steeringScale()/p.ropeSteeringScale(),-340,340));
+    }
+    static void avoidMotion(Physics p){
+        p.gx=Physics.clamp(((destination(p)-p.x)*8-p.vx*.65f-p.nudgeVelocity()-p.motionGustVelocity())/p.steeringScale()/p.ropeSteeringScale()*950/Physics.MAX_MOTION_SPEED,-950,950);
     }
     private static void naturalSurvivalAndStress(){
         for(int d=0;d<3;d++){

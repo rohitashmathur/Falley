@@ -27,6 +27,7 @@ public final class ReleaseStringsTest {
         }
     }
     private static final String[] LABELS={
+        "Build your survival run.","Longer warnings","A steady challenge","Faster attacks","CHOOSE HAZARDS","ROPE MIX","Special ropes from Wave 2","Tap cards to add or remove hazards.","Mint chevrons: Spring rebound 1.5×","Mint chevrons: Spring / Violet bolt: Static","Every course","Campaign Stage 1 onward / Arcade Wave 2","Campaign Stage 3 onward / Arcade Wave 2","Ropes change within each course. Read their colour and symbol. Daily uses Classic.","BREEZE","New avatar unlocked","A new way to fall.","Current avatar: %s","Same physics. A different jumping style.","Use %s","Keep %s","Could not save. Please try again.","MEET YOUR AVATAR","Complete chapters for avatars. Campaign and Arcade mix rope types; Daily uses Classic.",
         "Before the drop","Three star goals","Par ≤ %d","Finish to progress. Other stars are optional.",
         "Practice options","Hide practice options","Avatars and ropes. Make the fall yours.","PREVIEW JUMP",
         "Classic jump","Wings spread on takeoff","Graceful wing flare","Tucked knees","Floating jump pose",

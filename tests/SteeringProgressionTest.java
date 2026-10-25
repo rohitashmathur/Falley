@@ -82,7 +82,7 @@ public final class SteeringProgressionTest {
                 check(!p.lost && p.vx*direction>40 && Math.abs(p.vx)<=Physics.MAX_MOTION_SPEED,
                         "late progression keeps both signed motion commands useful and bounded");
                 float stopX=p.x;p.gx=0;for(int i=0;i<120;i++)levelStep(p);
-                check(Math.abs(p.vx-p.nudgeVelocity())<1.5f && Math.abs(p.x-stopX)<15,"neutral braking stays prompt after both early and penalized turns");
+                check(Math.abs(p.vx-p.nudgeVelocity()-p.motionGustVelocity())<1.5f && Math.abs(p.x-stopX)<15,"neutral braking stays prompt after both early and penalized turns");
                 index++;
             }
             near(touch[0]+touch[1],0,.0001f,"progression preserves mirrored touch steering");
@@ -165,10 +165,10 @@ public final class SteeringProgressionTest {
             p=new Physics();p.resetArcade(0,ArcadeRules.FIREBALLS);p.elapsed=time;p.wave=1+(int)(time/20);
             p.touchControlled(false);isolatedArena(p);p.gx=direction*500;
             for(int i=0;i<96;i++)levelStep(p);
-            near(p.vx,direction*500/950f*Physics.MAX_MOTION_SPEED*p.steeringScale()+p.nudgeVelocity(),4,
+            near(p.vx,direction*500/950f*Physics.MAX_MOTION_SPEED*p.steeringScale()+p.nudgeVelocity()+p.motionGustVelocity(),4,
                     "Arcade signed motion response follows the same gentle time ramp");
             float x=p.x;p.gx=0;for(int i=0;i<120;i++)levelStep(p);
-            check(!p.lost && Math.abs(p.vx-p.nudgeVelocity())<1.5f && Math.abs(p.x-x)<15,"Arcade neutral braking is not weakened by later waves");
+            check(!p.lost && Math.abs(p.vx-p.nudgeVelocity()-p.motionGustVelocity())<1.5f && Math.abs(p.x-x)<15,"Arcade neutral braking is not weakened by later waves");
         }
     }
     private static void resetAndModes() {

@@ -5,8 +5,9 @@ Requires Pillow. Run from any directory:
   python scripts/generate_store_assets.py --source-config build/store-captures/sources.json
   python scripts/generate_store_assets.py --check
 
-The optional JSON object is keyed campaign, landing, lightning, saw, arcade,
-settings. Each value has path (relative to the repository or absolute), app_crop
+The JSON keeps legacy keys campaign, landing, lightning, saw, arcade,
+settings; explicit role fields describe current gameplay/menu subjects. Without
+--source-config the checked-in current source-config.json is replayed. Each value has path (relative to the repository or absolute), app_crop
 ([left, top, right, bottom], excluding Android system bars and unused outer
 letterboxing), controlled
 (bool), and description. No game pixels are added, removed, or retouched.
@@ -14,6 +15,7 @@ letterboxing), controlled
 from __future__ import annotations
 
 import argparse
+import importlib.util
 from functools import lru_cache
 import hashlib
 import json
@@ -44,12 +46,12 @@ FALLBACK = {
 }
 
 SHOTS = [
-    ("campaign", "01-motion-and-touch.png", "Find your balance", "Tilt or swipe. Tap to jump.", "Falley gameplay with bouncy ropes, narrowing walls and a touch jump control."),
-    ("landing", "02-ropes-and-target.png", "Make the landing", "Bounce down to the target.", "The avatar lands on the glowing target at the end of a long campaign drop."),
-    ("lightning", "03-dodge-the-hazards.png", "Read the warning", "Dodge lasers and lightning.", "A diagonal lightning warning crosses Falley's rope arena while the avatar is alive."),
-    ("saw", "04-buzzsaw-survival.png", "Keep moving", "Spinning saws join the fall.", "A buzzsaw warning path appears near the living avatar and a bouncy rope in Arcade survival."),
-    ("arcade", "05-choose-your-skirmish.png", "Choose your skirmish", "Five hazards. Three difficulties.", "Arcade setup offers three difficulties and toggles for fireballs, two laser types, lightning and buzzsaws."),
-    ("settings", "06-motion-your-way.png", "Motion, your way", "Loose, balanced or tight.", "Falley settings include motion steering, three motion feels, sound, vibration and blood effect toggles."),
+    ("campaign", "01-motion-and-touch.png", "Read every rope", "Read the colour. Time your next jump.", "Actual Falley Arcade gameplay with the Shadow avatar, narrowing spike walls and mixed individual rope types."),
+    ("landing", "02-ropes-and-target.png", "Learn the ropes", "Classic, Spring and Static. Know the difference.", "The actual Collection rope guide explains Classic, Spring and Static effects and where special ropes appear."),
+    ("lightning", "03-dodge-the-hazards.png", "A new way to fall", "Unlock avatars. Choose your next look.", "The actual Demon unlock celebration offers Use Demon or Keep Human beside the animated winged avatar."),
+    ("saw", "04-buzzsaw-survival.png", "Plan your drop", "Finish first. Chase the extra stars.", "The actual campaign briefing explains stage-one story, rope cue and three star goals before starting."),
+    ("arcade", "05-choose-your-skirmish.png", "Build your survival", "Choose your difficulty and hazards.", "The actual Arcade setup offers Chill, Standard and Brutal cards, five hazard choices and touch or motion controls."),
+    ("settings", "06-motion-your-way.png", "Make it your game", "Tilt or swipe. Tune the feel.", "Actual Falley Settings show motion feel, language, independent retro music and sound, vibration and blood controls."),
 ]
 
 
@@ -105,33 +107,19 @@ def bezier(a, b, c, d, steps=100):
             for t in (i/steps for i in range(steps+1))]
 
 
+def brand_renderer():
+    source = ROOT / "store/brand/generate_brand.py"
+    spec = importlib.util.spec_from_file_location("falley_brand", source)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def render_icon():
-    # Exact viewport coordinates and colors from Android's vector icon.xml.
-    src = ROOT / "app/src/main/res/drawable/icon.xml"
-    tree = ET.parse(src).getroot()
-    assert float(tree.attrib[NS+"viewportWidth"]) == 108
-    assert len(tree) == 5, "Update the exporter if the launcher icon changes."
-    expected_paths = [
-        "M0,0h108v108h-108z", "M26,65L26,28L42,28M26,43L39,43",
-        "M66,35L64,52M65,41L55,36L49,43M65,41L75,45L81,40M64,52L56,63L57,70M64,52L73,63L75,70",
-        "M67,21a6,6 0,1 0,0 12a6,6 0,1 0,0 -12",
-        "M25,83a30,7 0,1 0,60 0a30,7 0,1 0,-60 0M43,83a12,3 0,1 0,24 0a12,3 0,1 0,-24 0",
-    ]
-    assert [p.attrib[NS+"pathData"] for p in tree] == expected_paths, "Icon paths changed; update the explicit vector export."
-    k = 2048/108
-    image = Image.new("RGBA", (2048, 2048), tree[0].attrib[NS+"fillColor"])
-    d = ImageDraw.Draw(image)
-    def ln(points, color, width):
-        round_line(d, [(x*k, y*k) for x, y in points], color, width*k)
-    ln([(26,65),(26,28),(42,28)], "#69e0d4", 6)
-    ln([(26,43),(39,43)], "#69e0d4", 6)
-    for pts in [[(66,35),(64,52)],[(65,41),(55,36),(49,43)],[(65,41),(75,45),(81,40)],[(64,52),(56,63),(57,70)],[(64,52),(73,63),(75,70)]]:
-        ln(pts, "#e8f3ff", 4)
-    d.ellipse((61*k,21*k,73*k,33*k), fill="#f5ce91")
-    for box in [(25,76,85,90),(43,80,67,86)]:
-        d.ellipse(tuple(v*k for v in box), outline="#69e0d4", width=round(2.5*k))
-    image.resize((512,512), RESAMPLE).save(LANG / "icon-512.png", optimize=True)
-    return src
+    renderer = brand_renderer()
+    source = renderer.write_android()
+    renderer.render_store_icon()
+    return source
 
 
 def human(draw, x, y, r):
@@ -171,53 +159,7 @@ def saw(draw,x,y,r):
 
 
 def feature(kind="default"):
-    k=2
-    image=background((1024*k,500*k))
-    d=ImageDraw.Draw(image)
-    def ln(points,color,w):
-        round_line(d,[(x*k,y*k) for x,y in points],color,w*k)
-    # Decorative grid and descent trail stay away from the text.
-    for x in range(530,981,45):
-        d.line((x*k,65*k,x*k,438*k),fill="#183b48",width=1*k)
-    for y in range(80,439,45):
-        d.line((520*k,y*k,966*k,y*k),fill="#183b48",width=k)
-    title = "Falley"
-    text_fit(d,(78*k,132*k),title,112*k,width=445*k,bold=True)
-    if kind=="motion":
-        caption, line2 = "Move with gravity.", "Tilt. Jump. Find your landing."
-    elif kind=="arcade":
-        caption, line2 = "A fall worth surviving.", "Choose your Arcade hazards."
-    else:
-        caption, line2 = "Fall. Bounce. Survive.", "Rope physics meet motion play."
-    text_fit(d,(84*k,274*k),caption,30*k,MINT,width=430*k)
-    text_fit(d,(84*k,323*k),line2,20*k,MUTED,width=430*k)
-    # Artwork repeats the existing avatar, rope and target primitives; it is not
-    # presented as a screenshot or a new level layout.
-    for y in range(64,144,22):
-        ln([(746,y),(746,y+8)],"#416c7a",2)
-    human(d,746*k,204*k,46*k)
-    rope=bezier((550*k,278*k),(630*k,334*k),(850*k,334*k),(936*k,278*k))
-    round_line(d,rope,"#174e4a",14*k)
-    round_line(d,rope,MINT,3*k)
-    for x in (550,936):
-        d.ellipse(((x-5)*k,273*k,(x+5)*k,283*k),fill=MINT)
-    if kind!="arcade":
-        for box in [(686,380,806,408),(720,388,772,400)]:
-            d.ellipse(tuple(v*k for v in box),outline=MINT,width=3*k)
-        ln([(746,340),(746,351)],"#416c7a",2)
-        ln([(746,359),(746,370)],"#416c7a",2)
-    if kind=="arcade":
-        saw(d,586*k,177*k,29*k)
-        ln([(877,104),(850,158),(871,158),(840,216)],"#8fd7ff",3)
-        d.ellipse((887*k,227*k,916*k,256*k),fill="#ff9c52")
-        ln([(906,227),(921,205),(917,237)],"#ffbd79",8)
-    elif kind=="motion":
-        ln([(602,199),(578,211),(602,223)],MINT,3)
-        ln([(879,199),(903,211),(879,223)],MINT,3)
-    dest=LANG / ("feature-graphic-1024x500.png" if kind=="default" else f"variants/feature-{kind}-1024x500.png")
-    dest.parent.mkdir(parents=True,exist_ok=True)
-    image.resize((1024,500),RESAMPLE).save(dest,optimize=True)
-    return dest
+    return brand_renderer().render_feature(kind)
 
 
 def read_sources(config):
@@ -275,6 +217,14 @@ def screenshot(key,name,title,subtitle,alt,spec):
             "source":relative,"source_sha256":sha(path),"native_size":list(source.size),
             "app_crop":list(rect),"controlled_fixture":spec["controlled"],
             "source_version":spec.get("source_version","release candidate"),
+            "source_version_code":spec.get("source_version_code","unspecified"),
+            "source_role":spec.get("role",key),
+            "source_package":spec.get("source_package","unspecified"),
+            "source_apk_sha256":spec.get("source_apk_sha256","unspecified"),
+            "capture_api":spec.get("capture_api","unspecified"),
+            "capture_viewport":spec.get("capture_viewport","unspecified"),
+            "capture_origin":spec.get("capture_origin",relative),
+            "crop_verification":spec.get("crop_verification","Measured native app viewport excluding system bars and unused outer letterboxing."),
             "provenance":spec["description"],"operations":"Android system bars and unused outer letterboxing cropped; the full rendered design viewport, including header, jump and settings controls, stays intact and is proportionally fitted within a navy card with truthful captions.",
             "source_copy":rawdest.relative_to(OUT).as_posix(),"app_crop_copy":appdest.relative_to(OUT).as_posix()}
 
@@ -283,13 +233,13 @@ def make_contact_sheet(shots):
     image=Image.new("RGB",(1080,1400),BG)
     d=ImageDraw.Draw(image)
     text_fit(d,(28,18),"Falley / Google Play phone assets",32,WHITE,bold=True)
-    for i,(_,name,*_) in enumerate(shots):
+    for i,(_,name,title,*_) in enumerate(shots):
         src=Image.open(LANG/"phone"/name)
         src.thumbnail((324,576),RESAMPLE)
         x=28+(i%3)*352
         y=80+(i//3)*650
         image.paste(src,(x,y))
-        text_fit(d,(x,y+590),name[:2]+" / "+name[3:-4].replace("-"," "),18,MUTED,width=330)
+        text_fit(d,(x,y+590),name[:2]+" / "+title,18,MUTED,width=330)
     image.save(OUT/"review-contact-sheet.png",optimize=True)
 
 
@@ -323,32 +273,39 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-config",type=Path)
     parser.add_argument("--check",action="store_true")
+    parser.add_argument("--brand-only",action="store_true",help="Refresh branding without changing native gameplay captures or their provenance.")
     args=parser.parse_args()
     if args.check:
         validate(json.loads((OUT/"manifest.json").read_text(encoding="utf-8")))
         return
     LANG.mkdir(parents=True,exist_ok=True)
-    src=render_icon()
-    assets=[{"path":"en-US/icon-512.png","kind":"icon","alt_text":"Falley icon: a mint F, a falling human figure and a glowing landing target.","source":src.relative_to(ROOT).as_posix(),"source_sha256":sha(src),"provenance":"Supersampled export of the original Android vector icon's coordinates and colors; no imposed corner mask or shadow."}]
+    render_icon()
     for kind in ("default","motion","arcade"):
-        dest=feature(kind)
-        alt={"default":"Falley's avatar falls toward a bouncy mint rope and a glowing target.","motion":"Falley's avatar above a bouncy rope with left and right motion arrows.","arcade":"Falley's avatar and rope with illustrated buzzsaw, fireball and lightning threats."}[kind]
-        assets.append({"path":dest.relative_to(OUT).as_posix(),"kind":"feature_graphic","alt_text":alt,"provenance":"Original promotional vector artwork matching MainActivity's avatar, ropes, target and hazard primitives; not a gameplay screenshot."})
-    sources=read_sources(args.source_config)
+        feature(kind)
+    renderer=brand_renderer()
+    if args.brand_only:
+        renderer.update_manifest()
+        renderer.contact_sheet(ROOT/"build/branding-4.2.1/brand-review.png")
+        validate(json.loads((OUT/"manifest.json").read_text(encoding="utf-8")))
+        print("Branding refreshed; native screenshot source versions and pixels unchanged.")
+        return
+    assets=renderer.manifest_entries()
+    source_config=args.source_config or ((OUT/"source-config.json") if (OUT/"source-config.json").exists() else None)
+    sources=read_sources(source_config)
     for key,name,title,subtitle,alt in SHOTS:
         assets.append(screenshot(key,name,title,subtitle,alt,sources[key]))
     # Preserve a repository-local replay configuration, so a fresh clone can
     # regenerate the exact source pack without ignored build/ captures.
-    replay={key:{**spec,"path":f"store/assets/raw-source/{key}.png"} for key,spec in sources.items()}
+    replay={key:{**spec,"path":spec["path"] if str(spec["path"]).startswith("store/assets/source/") else f"store/assets/raw-source/{key}.png"} for key,spec in sources.items()}
     (OUT/"source-config.json").write_text(json.dumps(replay,indent=2)+"\n",encoding="utf-8")
     for item in assets:
         path=OUT/item["path"]
         with Image.open(path) as image:
             item.update(dimensions=list(image.size),mode=image.mode,bytes=path.stat().st_size,sha256=sha(path))
     make_contact_sheet(SHOTS)
-    manifest={"product":"Falley","locale":"en-US","prepared_date":"2026-10-16","specification_source":"https://support.google.com/googleplay/android-developer/answer/9866151?hl=en",
+    manifest={"product":"Falley","locale":"en-US","prepared_date":"2026-10-25","brand_version":renderer.VERSION,"specification_source":"https://support.google.com/googleplay/android-developer/answer/9866151?hl=en",
               "recommended_upload_order":[x[1] for x in SHOTS],"default_feature_graphic":"en-US/feature-graphic-1024x500.png",
-              "notes":["Feature variants are optional alternatives; use one feature graphic per listing.","Original native captures and app-only crops are provenance/support files, not additional phone uploads.","Controlled fixtures are native app renders with deterministic position/hazard state; no altered scores, fabricated effects or stitched gameplay.","Assets avoid blood, corpses and death effects. Content-rating disclosures must still accurately describe the game's violence.","No ads, leaderboards, monetization, awards, pricing or store-badge claims are depicted."],"assets":assets}
+              "notes":["Feature variants are optional alternatives; use one feature graphic per listing.","Original native captures and app-only crops are provenance/support files, not additional phone uploads.","Controlled fixtures are native app renders with deterministic position/hazard state; no altered scores, fabricated effects or stitched gameplay.","Assets avoid blood, corpses and death effects. Content-rating disclosures must still accurately describe the game's violence.","No ads, leaderboards, monetization, awards, pricing or store-badge claims are depicted.","Each phone screenshot retains its actual source_version and role. Current images include native menus and controlled gameplay/reward fixtures; displayed scores and unlocks are not natural playthrough claims."],"assets":assets}
     (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n",encoding="utf-8")
     # An early review-only source contact sheet is not a deliverable.
     old=OUT/"source-review.png"

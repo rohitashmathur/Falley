@@ -1,0 +1,56 @@
+{
+  "product": "Falley",
+  "date": "2026-10-25",
+  "source_version": "4.2.1-beta-test",
+  "version_code": 15,
+  "package": "com.perfgames.falley.motiontest",
+  "apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+  "capture_api": 35,
+  "viewport": "720x1600, density 320, font scale 1.3, English",
+  "acceptance_receipt": "build/device/v4.2.1-debug/tall/checks.txt",
+  "scope": "Native Android compositor frames from the final debug APK; controlled test profile and gameplay/reward fixtures, not a natural phone playthrough. Raw images below are exact source copies.",
+  "captures": [
+    {
+      "role": "mixed_rope_gameplay",
+      "path": "store/assets/source/v4.2.1/ux-arcade-mixed-wave2-controlled.png",
+      "native_capture": "build/device/v4.2.1-debug/tall/ux-arcade-mixed-wave2-controlled.png",
+      "sha256": "55eb0be9c5358fc7f617ae5af6995c0d492cfe040b784d4e99cef9ca9ce33bae",
+      "copied_without_changes": true
+    },
+    {
+      "role": "informational_rope_guide",
+      "path": "store/assets/source/v4.2.1/ux-rope-guide.png",
+      "native_capture": "build/device/v4.2.1-debug/tall/ux-rope-guide.png",
+      "sha256": "05fe5c76107fca57846a0fb114c6638fed1dc447a1bea344e53689b79749cca8",
+      "copied_without_changes": true
+    },
+    {
+      "role": "avatar_unlock_celebration",
+      "path": "store/assets/source/v4.2.1/ux-unlock-demon-controlled.png",
+      "native_capture": "build/device/v4.2.1-debug/tall/ux-unlock-demon-controlled.png",
+      "sha256": "3e9657ee1936c447ed36f296b44263fc180059249ac6ec9ed4af039de0d8f274",
+      "copied_without_changes": true
+    },
+    {
+      "role": "campaign_briefing_and_goals",
+      "path": "store/assets/source/v4.2.1/ux-brief-0.png",
+      "native_capture": "build/device/v4.2.1-debug/tall/ux-brief-0.png",
+      "sha256": "c3ea6bd99297bee5b1c6ed1a73d424098540cdd9cdf3943b650ebd6c9cc4b217",
+      "copied_without_changes": true
+    },
+    {
+      "role": "arcade_configuration",
+      "path": "store/assets/source/v4.2.1/ux-arcade-0.png",
+      "native_capture": "build/device/v4.2.1-debug/tall/ux-arcade-0.png",
+      "sha256": "9fbf52d0dd2d2d3db423e44ed898d305848e1083f92117a08593c7b31903c1a2",
+      "copied_without_changes": true
+    },
+    {
+      "role": "settings_and_motion_preferences",
+      "path": "store/assets/source/v4.2.1/ux-settings-0.png",
+      "native_capture": "build/device/v4.2.1-debug/tall/ux-settings-0.png",
+      "sha256": "4cd4f606838c1d1a3c687153ea1b57eb2f930cf289b28141ecab700f55b078bb",
+      "copied_without_changes": true
+    }
+  ]
+}

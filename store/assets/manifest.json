@@ -1,7 +1,8 @@
 {
   "product": "Falley",
   "locale": "en-US",
-  "prepared_date": "2026-10-16",
+  "prepared_date": "2026-10-25",
+  "brand_version": "4.2.1",
   "specification_source": "https://support.google.com/googleplay/android-developer/answer/9866151?hl=en",
   "recommended_upload_order": [
     "01-motion-and-touch.png",
@@ -17,82 +18,100 @@
     "Original native captures and app-only crops are provenance/support files, not additional phone uploads.",
     "Controlled fixtures are native app renders with deterministic position/hazard state; no altered scores, fabricated effects or stitched gameplay.",
     "Assets avoid blood, corpses and death effects. Content-rating disclosures must still accurately describe the game's violence.",
-    "No ads, leaderboards, monetization, awards, pricing or store-badge claims are depicted."
+    "No ads, leaderboards, monetization, awards, pricing or store-badge claims are depicted.",
+    "Each phone screenshot retains its actual source_version and role. Current images include native menus and controlled gameplay/reward fixtures; displayed scores and unlocks are not natural playthrough claims."
   ],
   "assets": [
     {
       "path": "en-US/icon-512.png",
       "kind": "icon",
-      "alt_text": "Falley icon: a mint F, a falling human figure and a glowing landing target.",
+      "alt_text": "Falley icon: the original winged Demon avatar above a crisp FALLEY wordmark.",
       "source": "app/src/main/res/drawable/icon.xml",
-      "source_sha256": "519032732eadce137fffdabd968bebe7cae74e6b5f03f410d4f2d9d7ec980028",
-      "provenance": "Supersampled export of the original Android vector icon's coordinates and colors; no imposed corner mask or shadow.",
+      "source_sha256": "57c7caaed963a5d65df48b4f2f34f4ce79eb9d3506e41558e35243af1d458e23",
+      "provenance": "Original code-native Demon rig and geometric FALLEY wordmark; supersampled from shared Android/vector geometry. No imposed corner mask or shadow.",
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
-      "bytes": 32839,
-      "sha256": "43a63106a8d9ca481a3f1f3d5ca6331ae037bf5f9fe4e0d57e77d6759ee8ba9e"
+      "bytes": 30709,
+      "sha256": "8ea52a59a77c45ad8b1e217de092de0080e57cdcfa68daa867e8a3d133bbf09e",
+      "brand_version": "4.2.1"
     },
     {
       "path": "en-US/feature-graphic-1024x500.png",
       "kind": "feature_graphic",
-      "alt_text": "Falley's avatar falls toward a bouncy mint rope and a glowing target.",
-      "provenance": "Original promotional vector artwork matching MainActivity's avatar, ropes, target and hazard primitives; not a gameplay screenshot.",
+      "alt_text": "FALLEY wordmark and winged Demon avatar above a mint rope.",
+      "source": "store/brand/generate_brand.py",
+      "source_sha256": "11815b391406e4f006bc9a5b809282e6e267c139d974afe1da3af69404c18df6",
+      "provenance": "Original promotional vector illustration matching the Demon avatar rig and game palette; not a gameplay screenshot.",
       "dimensions": [
         1024,
         500
       ],
       "mode": "RGB",
-      "bytes": 75436,
-      "sha256": "a4e0123a7f753e3bd663c42d193f39ad2b4e06c548de30ccbe76fe88af83378b"
+      "bytes": 63056,
+      "sha256": "ec9fe769d58fe30865852064c5d0abefb41d8be794a3e55b944f0018025d60ea",
+      "brand_version": "4.2.1"
     },
     {
       "path": "en-US/variants/feature-motion-1024x500.png",
       "kind": "feature_graphic",
-      "alt_text": "Falley's avatar above a bouncy rope with left and right motion arrows.",
-      "provenance": "Original promotional vector artwork matching MainActivity's avatar, ropes, target and hazard primitives; not a gameplay screenshot.",
+      "alt_text": "FALLEY wordmark and winged Demon avatar with motion arrows above a mint rope.",
+      "source": "store/brand/generate_brand.py",
+      "source_sha256": "11815b391406e4f006bc9a5b809282e6e267c139d974afe1da3af69404c18df6",
+      "provenance": "Original promotional vector illustration matching the Demon avatar rig and game palette; not a gameplay screenshot.",
       "dimensions": [
         1024,
         500
       ],
       "mode": "RGB",
-      "bytes": 74990,
-      "sha256": "fdb00ca7e99d2799b925554344574173fac1934cc0795885104b1eac68e06204"
+      "bytes": 68707,
+      "sha256": "5bcf89f8d8c6a0090ae3dbeef5db4db6fe6df3048535a2ffc598f70f185cca39",
+      "brand_version": "4.2.1"
     },
     {
       "path": "en-US/variants/feature-arcade-1024x500.png",
       "kind": "feature_graphic",
-      "alt_text": "Falley's avatar and rope with illustrated buzzsaw, fireball and lightning threats.",
-      "provenance": "Original promotional vector artwork matching MainActivity's avatar, ropes, target and hazard primitives; not a gameplay screenshot.",
+      "alt_text": "FALLEY wordmark and winged Demon avatar with illustrated fireball and lightning.",
+      "source": "store/brand/generate_brand.py",
+      "source_sha256": "11815b391406e4f006bc9a5b809282e6e267c139d974afe1da3af69404c18df6",
+      "provenance": "Original promotional vector illustration matching the Demon avatar rig and game palette; not a gameplay screenshot.",
       "dimensions": [
         1024,
         500
       ],
       "mode": "RGB",
-      "bytes": 79846,
-      "sha256": "d01ef42a58da9cf57863d88defdbc8c46706c52d62bc1a81647a1b9209bbd772"
+      "bytes": 68142,
+      "sha256": "0679105f17f75cf437974eb9f139c83b442c1876ccc12e31b2ded2515dd1167f",
+      "brand_version": "4.2.1"
     },
     {
       "path": "en-US/phone/01-motion-and-touch.png",
       "kind": "phone_screenshot",
-      "alt_text": "Falley gameplay with bouncy ropes, narrowing walls and a touch jump control.",
-      "source": "build/store-captures/campaign.png",
-      "source_sha256": "e9befcf7db39f69ce07d815959fb01e0e633a076b479a0a328860593608d3faf",
+      "alt_text": "Actual Falley Arcade gameplay with the Shadow avatar, narrowing spike walls and mixed individual rope types.",
+      "source": "store/assets/source/v4.2.1/ux-arcade-mixed-wave2-controlled.png",
+      "source_sha256": "55eb0be9c5358fc7f617ae5af6995c0d492cfe040b784d4e99cef9ca9ce33bae",
       "native_size": [
-        1080,
-        1920
+        720,
+        1600
       ],
       "app_crop": [
-        33,
-        63,
-        1047,
-        1794
+        0,
+        161,
+        720,
+        1391
       ],
       "controlled_fixture": true,
-      "source_version": "3.2.0",
-      "provenance": "Version 3.2.0 release-derived APK: living avatar reacting to a bouncy rope in campaign stage 1; controlled position followed by actual physics frames.",
+      "source_version": "4.2.1-beta-test",
+      "source_role": "mixed_rope_gameplay",
+      "source_package": "com.perfgames.falley.motiontest",
+      "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+      "capture_api": 35,
+      "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+      "capture_origin": "build/device/v4.2.1-debug/tall/ux-arcade-mixed-wave2-controlled.png",
+      "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+      "provenance": "Actual native Arcade gameplay frame. The test seeded elapsed time (the pictured 21.0 seconds is not a natural survival record), camera/position and inactive attack fixtures, then advanced the real engine to recycle and render mixed individual ropes from Wave 2. Avatar ownership was seeded; no gameplay pixels were altered.",
       "operations": "Android system bars and unused outer letterboxing cropped; the full rendered design viewport, including header, jump and settings controls, stays intact and is proportionally fitted within a navy card with truthful captions.",
       "source_copy": "raw-source/campaign.png",
       "app_crop_copy": "app-crops/campaign.png",
@@ -101,28 +120,36 @@
         1920
       ],
       "mode": "RGB",
-      "bytes": 166069,
-      "sha256": "42f91716128245db81a62ee461d1e4ba1d46d143d46c6837a94bc6a05b753eb9"
+      "bytes": 224373,
+      "sha256": "bc8c907354a7b452643b0417dfab0ede3957253d9b81bfad742322ccba1f790b",
+      "source_version_code": 15
     },
     {
       "path": "en-US/phone/02-ropes-and-target.png",
       "kind": "phone_screenshot",
-      "alt_text": "The avatar lands on the glowing target at the end of a long campaign drop.",
-      "source": "build/store-captures/landing.png",
-      "source_sha256": "74c4c500f52bf19602226b2d29716251dccc102dd4bac0cbd7ee096c0a95cd58",
+      "alt_text": "The actual Collection rope guide explains Classic, Spring and Static effects and where special ropes appear.",
+      "source": "store/assets/source/v4.2.1/ux-rope-guide.png",
+      "source_sha256": "05fe5c76107fca57846a0fb114c6638fed1dc447a1bea344e53689b79749cca8",
       "native_size": [
-        1080,
-        1920
+        720,
+        1600
       ],
       "app_crop": [
-        33,
-        63,
-        1047,
-        1794
+        0,
+        161,
+        720,
+        1391
       ],
       "controlled_fixture": true,
-      "source_version": "3.2.0",
-      "provenance": "Version 3.2.0 release-derived APK: controlled target approach resolved by actual collision into a winning bounce, before the result overlay.",
+      "source_version": "4.2.1-beta-test",
+      "source_role": "informational_rope_guide",
+      "source_package": "com.perfgames.falley.motiontest",
+      "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+      "capture_api": 35,
+      "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+      "capture_origin": "build/device/v4.2.1-debug/tall/ux-rope-guide.png",
+      "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+      "provenance": "Actual Collection > Ropes screen reached through native touch navigation in the controlled test profile. This is the in-app informational guide, not a rope purchase/equip screen or live gameplay.",
       "operations": "Android system bars and unused outer letterboxing cropped; the full rendered design viewport, including header, jump and settings controls, stays intact and is proportionally fitted within a navy card with truthful captions.",
       "source_copy": "raw-source/landing.png",
       "app_crop_copy": "app-crops/landing.png",
@@ -131,28 +158,36 @@
         1920
       ],
       "mode": "RGB",
-      "bytes": 158400,
-      "sha256": "274474f51a30eaa012dfa9e8f29f1ef30fdd2a5b252a4e341c4eebe96d3c5b7b"
+      "bytes": 285731,
+      "sha256": "f3a12eda981bee123de23d997f0b60bda36bb5381d8021fe9e1e2d2066d0c222",
+      "source_version_code": 15
     },
     {
       "path": "en-US/phone/03-dodge-the-hazards.png",
       "kind": "phone_screenshot",
-      "alt_text": "A diagonal lightning warning crosses Falley's rope arena while the avatar is alive.",
-      "source": "build/store-captures/lightning.png",
-      "source_sha256": "234d60011eb0cce30cefd7f7139d71fe17502453de00314e48147d113e14fab7",
+      "alt_text": "The actual Demon unlock celebration offers Use Demon or Keep Human beside the animated winged avatar.",
+      "source": "store/assets/source/v4.2.1/ux-unlock-demon-controlled.png",
+      "source_sha256": "3e9657ee1936c447ed36f296b44263fc180059249ac6ec9ed4af039de0d8f274",
       "native_size": [
-        1080,
-        1920
+        720,
+        1600
       ],
       "app_crop": [
-        33,
-        63,
-        1047,
-        1794
+        0,
+        161,
+        720,
+        1391
       ],
       "controlled_fixture": true,
-      "source_version": "3.2.0",
-      "provenance": "Version 3.2.0 release-derived APK: living avatar with a diagonal lightning telegraph in Arcade; controlled warning fixture after actual frames.",
+      "source_version": "4.2.1-beta-test",
+      "source_role": "avatar_unlock_celebration",
+      "source_package": "com.perfgames.falley.motiontest",
+      "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+      "capture_api": 35,
+      "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+      "capture_origin": "build/device/v4.2.1-debug/tall/ux-unlock-demon-controlled.png",
+      "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+      "provenance": "Actual animated Demon unlock offer after the test seeded prerequisite stage completions and resolved a controlled finale target landing through the native engine. Human remained equipped when captured. This demonstrates the genuine Use Demon / Keep Human screen; it is not a natural full-chapter playthrough claim.",
       "operations": "Android system bars and unused outer letterboxing cropped; the full rendered design viewport, including header, jump and settings controls, stays intact and is proportionally fitted within a navy card with truthful captions.",
       "source_copy": "raw-source/lightning.png",
       "app_crop_copy": "app-crops/lightning.png",
@@ -161,28 +196,36 @@
         1920
       ],
       "mode": "RGB",
-      "bytes": 225925,
-      "sha256": "044b0e2153e64ec027bc69cd3ed7c399bfe53673a1f7a6ff0f8825c4222d9a34"
+      "bytes": 217053,
+      "sha256": "0912ecf5cadcf1085f68d8627cab934664b91382fc1e21e9a6da88ae184d5b1e",
+      "source_version_code": 15
     },
     {
       "path": "en-US/phone/04-buzzsaw-survival.png",
       "kind": "phone_screenshot",
-      "alt_text": "A buzzsaw warning path appears near the living avatar and a bouncy rope in Arcade survival.",
-      "source": "build/store-captures/saw.png",
-      "source_sha256": "a3972c98cc8e0ab706a4ec1d8d4d408f7a4887ab4ea2c03ec1f0d778f7621cbc",
+      "alt_text": "The actual campaign briefing explains stage-one story, rope cue and three star goals before starting.",
+      "source": "store/assets/source/v4.2.1/ux-brief-0.png",
+      "source_sha256": "c3ea6bd99297bee5b1c6ed1a73d424098540cdd9cdf3943b650ebd6c9cc4b217",
       "native_size": [
-        1080,
-        1920
+        720,
+        1600
       ],
       "app_crop": [
-        33,
-        63,
-        1047,
-        1794
+        0,
+        161,
+        720,
+        1391
       ],
       "controlled_fixture": true,
-      "source_version": "3.2.0",
-      "provenance": "Version 3.2.0 release-derived APK: living avatar with the advertised sideways buzzsaw warning path; controlled warning fixture after actual frames.",
+      "source_version": "4.2.1-beta-test",
+      "source_role": "campaign_briefing_and_goals",
+      "source_package": "com.perfgames.falley.motiontest",
+      "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+      "capture_api": 35,
+      "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+      "capture_origin": "build/device/v4.2.1-debug/tall/ux-brief-0.png",
+      "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+      "provenance": "Actual Chapter 1 / Stage 1 briefing reached through native touch navigation in the controlled test profile. The chapter art is the application own illustration, with genuine story, rope cue, three optional-mastery goals and controls. This is a briefing, not a live gameplay frame.",
       "operations": "Android system bars and unused outer letterboxing cropped; the full rendered design viewport, including header, jump and settings controls, stays intact and is proportionally fitted within a navy card with truthful captions.",
       "source_copy": "raw-source/saw.png",
       "app_crop_copy": "app-crops/saw.png",
@@ -191,28 +234,36 @@
         1920
       ],
       "mode": "RGB",
-      "bytes": 213708,
-      "sha256": "e4965785bd6dc8d8f431db71036aaca065d28354dc75635448f2e58f3785132d"
+      "bytes": 271547,
+      "sha256": "80950c3ab957d318459447c7909cbff07c78141d75251eecfdaac7ff901013f0",
+      "source_version_code": 15
     },
     {
       "path": "en-US/phone/05-choose-your-skirmish.png",
       "kind": "phone_screenshot",
-      "alt_text": "Arcade setup offers three difficulties and toggles for fireballs, two laser types, lightning and buzzsaws.",
-      "source": "build/store-captures/arcade.png",
-      "source_sha256": "6a24f16e6bce582aee13271d3fff6bf718fab44b8c915e21b9f433e0b70f4db8",
+      "alt_text": "The actual Arcade setup offers Chill, Standard and Brutal cards, five hazard choices and touch or motion controls.",
+      "source": "store/assets/source/v4.2.1/ux-arcade-0.png",
+      "source_sha256": "9fbf52d0dd2d2d3db423e44ed898d305848e1083f92117a08593c7b31903c1a2",
       "native_size": [
-        1080,
-        1920
+        720,
+        1600
       ],
       "app_crop": [
-        33,
-        63,
-        1047,
-        1794
+        0,
+        161,
+        720,
+        1391
       ],
       "controlled_fixture": true,
-      "source_version": "3.2.0",
-      "provenance": "Version 3.2.0 release-derived APK: actual Arcade setup with Standard difficulty and all five hazard families enabled.",
+      "source_version": "4.2.1-beta-test",
+      "source_role": "arcade_configuration",
+      "source_package": "com.perfgames.falley.motiontest",
+      "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+      "capture_api": 35,
+      "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+      "capture_origin": "build/device/v4.2.1-debug/tall/ux-arcade-0.png",
+      "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+      "provenance": "Actual native Arcade configuration reached through touch navigation: Standard difficulty, five hazard choices, special-rope Wave 2 disclosure and Touch controls. This is a setup screen, not a claim that all hazards are simultaneously visible during gameplay.",
       "operations": "Android system bars and unused outer letterboxing cropped; the full rendered design viewport, including header, jump and settings controls, stays intact and is proportionally fitted within a navy card with truthful captions.",
       "source_copy": "raw-source/arcade.png",
       "app_crop_copy": "app-crops/arcade.png",
@@ -221,28 +272,36 @@
         1920
       ],
       "mode": "RGB",
-      "bytes": 196247,
-      "sha256": "23a3e4d30e4c3affd3ff4c5e376e204fdd79015661a9de9af0b92a850013db93"
+      "bytes": 277968,
+      "sha256": "d626f29ff29ceaa0a66275fa7c03f9ab2de57ef7653135af8646a6a137af0ba0",
+      "source_version_code": 15
     },
     {
       "path": "en-US/phone/06-motion-your-way.png",
       "kind": "phone_screenshot",
-      "alt_text": "Falley settings include motion steering, three motion feels, sound, vibration and blood effect toggles.",
-      "source": "build/store-captures/settings.png",
-      "source_sha256": "6e3af3f810ddab1f2d40115b3842d68eed8570451d7c57477a411aedd5a43eb1",
+      "alt_text": "Actual Falley Settings show motion feel, language, independent retro music and sound, vibration and blood controls.",
+      "source": "store/assets/source/v4.2.1/ux-settings-0.png",
+      "source_sha256": "4cd4f606838c1d1a3c687153ea1b57eb2f930cf289b28141ecab700f55b078bb",
       "native_size": [
-        1080,
-        1920
+        720,
+        1600
       ],
       "app_crop": [
-        33,
-        63,
-        1047,
-        1794
+        0,
+        161,
+        720,
+        1391
       ],
       "controlled_fixture": true,
-      "source_version": "3.2.0",
-      "provenance": "Version 3.2.0 release-derived APK: actual settings with motion steering enabled and Balanced response selected through touch.",
+      "source_version": "4.2.1-beta-test",
+      "source_role": "settings_and_motion_preferences",
+      "source_package": "com.perfgames.falley.motiontest",
+      "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+      "capture_api": 35,
+      "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+      "capture_origin": "build/device/v4.2.1-debug/tall/ux-settings-0.png",
+      "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+      "provenance": "Actual Settings screen reached through native touch navigation. The controlled test profile shows Motion off, Balanced feel, English, music/sound/vibration off and blood effects on. The screenshot demonstrates available controls and does not assert audio audibility or sensor feel.",
       "operations": "Android system bars and unused outer letterboxing cropped; the full rendered design viewport, including header, jump and settings controls, stays intact and is proportionally fitted within a navy card with truthful captions.",
       "source_copy": "raw-source/settings.png",
       "app_crop_copy": "app-crops/settings.png",
@@ -251,8 +310,9 @@
         1920
       ],
       "mode": "RGB",
-      "bytes": 198732,
-      "sha256": "5b7adc2410f9fe0fd67a5faa0b9a5cd60dfd60cbbdaa12791d625c5bb2d9e589"
+      "bytes": 243166,
+      "sha256": "a302fed48a8eed9aead7d665912a3a744410867a82066fdb74a85282cb44a367",
+      "source_version_code": 15
     }
   ]
 }

@@ -32,10 +32,10 @@ public final class CampaignExpansionTest {
         return best;
     }
     static void steer(Physics p) {
-        p.steerTouch(Physics.clamp(((destination(p)-p.x)*10-p.driftVelocity()-p.nudgeVelocity()-p.windVelocity())/p.steeringScale(),-300,300));
+        p.steerTouch(Physics.clamp(((destination(p)-p.x)*10-p.driftVelocity()-p.nudgeVelocity()-p.windVelocity())/p.steeringScale()/p.ropeSteeringScale(),-300,300));
     }
-    private static void steerMotion(Physics p) {
-        p.gx=Physics.clamp(((destination(p)-p.x)*6-p.vx*.65f-p.nudgeVelocity()-p.windVelocity())/p.steeringScale()*950/Physics.MAX_MOTION_SPEED,-950,950);
+    static void steerMotion(Physics p) {
+        p.gx=Physics.clamp(((destination(p)-p.x)*6-p.vx*.65f-p.nudgeVelocity()-p.motionGustVelocity()-p.windVelocity())/p.steeringScale()/p.ropeSteeringScale()*950/Physics.MAX_MOTION_SPEED,-950,950);
     }
     private static void catalog() {
         check(StageCatalog.COUNT==24&&StageCatalog.CHAPTER_COUNT==6,"24 courses in six chapters");

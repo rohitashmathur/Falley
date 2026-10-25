@@ -1,74 +1,122 @@
 {
   "campaign": {
-    "path": "store/assets/raw-source/campaign.png",
-    "app_crop": [
-      33,
-      63,
-      1047,
-      1794
-    ],
     "controlled": true,
-    "source_version": "3.2.0",
-    "description": "Version 3.2.0 release-derived APK: living avatar reacting to a bouncy rope in campaign stage 1; controlled position followed by actual physics frames."
+    "source_version": "4.2.1-beta-test",
+    "source_version_code": 15,
+    "source_package": "com.perfgames.falley.motiontest",
+    "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+    "capture_api": 35,
+    "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+    "app_crop": [
+      0,
+      161,
+      720,
+      1391
+    ],
+    "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+    "path": "store/assets/source/v4.2.1/ux-arcade-mixed-wave2-controlled.png",
+    "role": "mixed_rope_gameplay",
+    "capture_origin": "build/device/v4.2.1-debug/tall/ux-arcade-mixed-wave2-controlled.png",
+    "description": "Actual native Arcade gameplay frame. The test seeded elapsed time (the pictured 21.0 seconds is not a natural survival record), camera/position and inactive attack fixtures, then advanced the real engine to recycle and render mixed individual ropes from Wave 2. Avatar ownership was seeded; no gameplay pixels were altered."
   },
   "landing": {
-    "path": "store/assets/raw-source/landing.png",
-    "app_crop": [
-      33,
-      63,
-      1047,
-      1794
-    ],
     "controlled": true,
-    "source_version": "3.2.0",
-    "description": "Version 3.2.0 release-derived APK: controlled target approach resolved by actual collision into a winning bounce, before the result overlay."
+    "source_version": "4.2.1-beta-test",
+    "source_version_code": 15,
+    "source_package": "com.perfgames.falley.motiontest",
+    "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+    "capture_api": 35,
+    "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+    "app_crop": [
+      0,
+      161,
+      720,
+      1391
+    ],
+    "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+    "path": "store/assets/source/v4.2.1/ux-rope-guide.png",
+    "role": "informational_rope_guide",
+    "capture_origin": "build/device/v4.2.1-debug/tall/ux-rope-guide.png",
+    "description": "Actual Collection > Ropes screen reached through native touch navigation in the controlled test profile. This is the in-app informational guide, not a rope purchase/equip screen or live gameplay."
   },
   "lightning": {
-    "path": "store/assets/raw-source/lightning.png",
-    "app_crop": [
-      33,
-      63,
-      1047,
-      1794
-    ],
     "controlled": true,
-    "source_version": "3.2.0",
-    "description": "Version 3.2.0 release-derived APK: living avatar with a diagonal lightning telegraph in Arcade; controlled warning fixture after actual frames."
+    "source_version": "4.2.1-beta-test",
+    "source_version_code": 15,
+    "source_package": "com.perfgames.falley.motiontest",
+    "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+    "capture_api": 35,
+    "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+    "app_crop": [
+      0,
+      161,
+      720,
+      1391
+    ],
+    "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+    "path": "store/assets/source/v4.2.1/ux-unlock-demon-controlled.png",
+    "role": "avatar_unlock_celebration",
+    "capture_origin": "build/device/v4.2.1-debug/tall/ux-unlock-demon-controlled.png",
+    "description": "Actual animated Demon unlock offer after the test seeded prerequisite stage completions and resolved a controlled finale target landing through the native engine. Human remained equipped when captured. This demonstrates the genuine Use Demon / Keep Human screen; it is not a natural full-chapter playthrough claim."
   },
   "saw": {
-    "path": "store/assets/raw-source/saw.png",
-    "app_crop": [
-      33,
-      63,
-      1047,
-      1794
-    ],
     "controlled": true,
-    "source_version": "3.2.0",
-    "description": "Version 3.2.0 release-derived APK: living avatar with the advertised sideways buzzsaw warning path; controlled warning fixture after actual frames."
+    "source_version": "4.2.1-beta-test",
+    "source_version_code": 15,
+    "source_package": "com.perfgames.falley.motiontest",
+    "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+    "capture_api": 35,
+    "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+    "app_crop": [
+      0,
+      161,
+      720,
+      1391
+    ],
+    "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+    "path": "store/assets/source/v4.2.1/ux-brief-0.png",
+    "role": "campaign_briefing_and_goals",
+    "capture_origin": "build/device/v4.2.1-debug/tall/ux-brief-0.png",
+    "description": "Actual Chapter 1 / Stage 1 briefing reached through native touch navigation in the controlled test profile. The chapter art is the application own illustration, with genuine story, rope cue, three optional-mastery goals and controls. This is a briefing, not a live gameplay frame."
   },
   "arcade": {
-    "path": "store/assets/raw-source/arcade.png",
-    "app_crop": [
-      33,
-      63,
-      1047,
-      1794
-    ],
     "controlled": true,
-    "source_version": "3.2.0",
-    "description": "Version 3.2.0 release-derived APK: actual Arcade setup with Standard difficulty and all five hazard families enabled."
+    "source_version": "4.2.1-beta-test",
+    "source_version_code": 15,
+    "source_package": "com.perfgames.falley.motiontest",
+    "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+    "capture_api": 35,
+    "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+    "app_crop": [
+      0,
+      161,
+      720,
+      1391
+    ],
+    "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+    "path": "store/assets/source/v4.2.1/ux-arcade-0.png",
+    "role": "arcade_configuration",
+    "capture_origin": "build/device/v4.2.1-debug/tall/ux-arcade-0.png",
+    "description": "Actual native Arcade configuration reached through touch navigation: Standard difficulty, five hazard choices, special-rope Wave 2 disclosure and Touch controls. This is a setup screen, not a claim that all hazards are simultaneously visible during gameplay."
   },
   "settings": {
-    "path": "store/assets/raw-source/settings.png",
-    "app_crop": [
-      33,
-      63,
-      1047,
-      1794
-    ],
     "controlled": true,
-    "source_version": "3.2.0",
-    "description": "Version 3.2.0 release-derived APK: actual settings with motion steering enabled and Balanced response selected through touch."
+    "source_version": "4.2.1-beta-test",
+    "source_version_code": 15,
+    "source_package": "com.perfgames.falley.motiontest",
+    "source_apk_sha256": "487e5304c912ef4a061594b9357e2727c5e524a9d3af856c0b745009faef2f24",
+    "capture_api": 35,
+    "capture_viewport": "720x1600, density 320, font scale 1.3, English",
+    "app_crop": [
+      0,
+      161,
+      720,
+      1391
+    ],
+    "crop_verification": "Full 480x820 Canvas at scale 1.5, origin (0,161), visually verified against the header back button at (36,191) and complete bottom controls. Cropping removes only Android bars and unused outer letterboxing.",
+    "path": "store/assets/source/v4.2.1/ux-settings-0.png",
+    "role": "settings_and_motion_preferences",
+    "capture_origin": "build/device/v4.2.1-debug/tall/ux-settings-0.png",
+    "description": "Actual Settings screen reached through native touch navigation. The controlled test profile shows Motion off, Balanced feel, English, music/sound/vibration off and blood effects on. The screenshot demonstrates available controls and does not assert audio audibility or sensor feel."
   }
 }

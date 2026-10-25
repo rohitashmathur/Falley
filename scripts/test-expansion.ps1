@@ -4,7 +4,7 @@ if(!$JdkRoot){throw 'Pass JdkRoot for JDK17.'}
 $root=Split-Path -Parent $PSScriptRoot
 $classes=Join-Path $root 'build\expansion-tests'
 New-Item -ItemType Directory -Force -Path $classes | Out-Null
-$portable=@('ArcadeRules','StageCatalog','Physics','TouchSteering','MotionSteering','FalleyStrings','ExpansionStrings','FalleyProfile','HazardAudioCue','DailyDrop','Cosmetics','AvatarCatalog','ChapterStories','UxRules','UxStrings','RopeCatalog','AvatarPose','CountryRules','ReleaseStrings','PrivacyPolicy')
+$portable=@('ArcadeRules','StageCatalog','Physics','TouchSteering','MotionSteering','FalleyStrings','ExpansionStrings','FalleyProfile','HazardAudioCue','DailyDrop','Cosmetics','AvatarCatalog','ChapterStories','UxRules','UxStrings','RopeCatalog','AvatarRewards','AvatarPose','CountryRules','ReleaseStrings','PrivacyPolicy')
 $sources=@($portable | ForEach-Object { Join-Path $root ('app\src\main\java\com\perfgames\ropelab\'+$_+'.java') })
 $tests=@(Get-ChildItem -LiteralPath (Join-Path $root 'tests') -File -Filter '*Test.java' | Sort-Object Name)
 & (Join-Path $JdkRoot 'bin\javac.exe') -encoding UTF-8 -d $classes @sources @($tests.FullName)

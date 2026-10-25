@@ -3,7 +3,7 @@ public final class Profile42Test {
  private static int checks;private static void check(boolean value,String why){checks++;if(!value)throw new AssertionError(why);}
  public static void main(String[]args){
   FalleyProfile p=new FalleyProfile();check(p.music&&!p.languageConfirmed&&p.language==0,"fresh player receives English confirmation and independent music default");
-  p.selectedRope=2;p.sanitize();check(p.selectedRope==0,"unearned rope cannot enter gameplay from a corrupt save");
+  p.selectedRope=2;p.sanitize();check(p.selectedRope==2,"legacy rope preference is retained for compatibility without gating mixed-rope gameplay");
   for(int i=0;i<4;i++){p.stageWins[i]=1;p.stars[i]=7;}p.selectedRope=2;p.sanitize();check(p.selectedRope==2&&p.totalStars()==12,"earned Static selection survives sanitization");
   long day=DailyDrop.utcDay(1792886400000L);p.dailyDay=day;p.lastObservedDay=day;p.lastDailyCompletedDay=day;p.dailyBestScore=900;p.dailyBestJumps=3;p.dailyAttempts=9;p.dailyWins=2;p.dailyBestTime=12;p.dailyStreak=4;p.dailyBestStreak=6;p.dailyGeneratorVersion=1;
   p.language=2;p.languageConfirmed=true;p.music=false;p.sanitize();

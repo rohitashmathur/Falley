@@ -29,16 +29,16 @@ public final class MotionGameplayTest {
     }
     private static void neutralAndNoise() {
         for(boolean gyro:new boolean[]{false,true})for(int rate:new int[]{30,120}) {
-            MotionSteering m=centered(gyro,2);Physics p=isolated();float peak=0;
+            MotionSteering m=centered(gyro,2);Physics p=isolated(),environment=isolated();float peak=0;
             for(int i=1;i<=240*8;i++) {
                 long now=START+400_000_008L+i*STEP_NS;
                 if(i%(240/rate)==0) {
                     m.acceptGyroscope(now,.001f,.003f,-.001f);
                     m.acceptAccelerometer(now,2+.03f*(float)Math.sin(i*.07),.01f*(float)Math.cos(i*.11),9.3f);
                 }
-                p.gx=m.acceleration(now);levelStep(p);peak=Math.max(peak,Math.abs(p.x-240));
+                p.gx=m.acceleration(now);levelStep(p);levelStep(environment);peak=Math.max(peak,Math.abs(p.x-environment.x));
             }
-            check(!p.lost && peak<2 && Math.abs(p.vx)<1,"eight-second tilted neutral hold with small noise/bias cannot translate into runaway left/right movement");
+            check(!p.lost && peak<2 && Math.abs(p.vx-environment.vx)<1 && Math.abs(p.x-240)<16,"eight-second noisy neutral follows only the bounded intentional gust, without sensor runaway");
         }
     }
     private static void mirrorBrakingAndReverse() {
@@ -114,13 +114,13 @@ public final class MotionGameplayTest {
     private static void uprightPortraitGameplay() {
         float angle=(float)Math.toRadians(15);
         for(int preset:new int[]{MotionSteering.BALANCED,MotionSteering.TIGHT}) {
-            MotionSteering m=upright(preset);Physics p=isolated();float peak=0;
+            MotionSteering m=upright(preset);Physics p=isolated(),environment=isolated();float peak=0;
             for(int i=1;i<=240*6;i++) {
                 long now=START+400_000_008L+i*STEP_NS;
                 if(i%4==0){m.acceptGyroscope(now,.001f,.001f,.003f);m.acceptAccelerometer(now,.025f*(float)Math.sin(i*.11),9.6f,2);}
-                p.gx=m.acceleration(now);levelStep(p);peak=Math.max(peak,Math.abs(p.x-240));
+                p.gx=m.acceleration(now);levelStep(p);levelStep(environment);peak=Math.max(peak,Math.abs(p.x-environment.x));
             }
-            check(!p.lost && peak<2 && Math.abs(p.vx)<1,"upright portrait neutral with gyro-z bias remains still in Balanced and Tight");
+            check(!p.lost && peak<2 && Math.abs(p.vx-environment.vx)<1 && Math.abs(p.x-240)<16,"upright Balanced/Tight sensor neutrality stays independent of the bounded deliberate gust");
             float[] travel=new float[2];int index=0;
             for(int direction:new int[]{-1,1}) {
                 m=upright(preset);p=isolated();

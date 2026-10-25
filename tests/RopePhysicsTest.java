@@ -1,15 +1,15 @@
 package com.perfgames.ropelab;
 
-/** Supporting-rope abilities are real, bounded and isolated from comparable Daily/Arcade runs. */
+/** Individual supporting-rope abilities are real, bounded and mixed safely into complete courses. */
 public final class RopePhysicsTest {
     private static int checks;
     private static void check(boolean ok,String message){checks++;if(!ok)throw new AssertionError(message);}
     private static void near(float actual,float expected,float tolerance,String message){check(Math.abs(actual-expected)<=tolerance,message+" actual="+actual+" expected="+expected);}
     private static Physics fixture(int type){
-        Physics p=new Physics();p.configureRope(type);p.reset(0);p.touchControlled(true);p.y=2400;p.cameraY=1970;
+        Physics p=new Physics();p.reset(0);p.touchControlled(true);p.y=2400;p.cameraY=1970;
         try{java.lang.reflect.Field f=Physics.class.getDeclaredField("attackCountdown");f.setAccessible(true);f.setFloat(p,100000);}catch(ReflectiveOperationException e){throw new AssertionError(e);}
         for(Physics.Rope rope:p.ropes){rope.cut=12;rope.base=100000;}
-        Physics.Rope rope=p.ropes[0];rope.reset(2400,p.leftWall(),p.rightWall());p.x=240;p.y=rope.y[Physics.Rope.N/2]-p.radius()-5;p.vy=80;
+        Physics.Rope rope=p.ropes[0];rope.reset(2400,p.leftWall(),p.rightWall());rope.type=type;p.x=240;p.y=rope.y[Physics.Rope.N/2]-p.radius()-5;p.vy=80;
         return p;
     }
     private static void neutral(Physics p){p.steerTouch((-p.driftVelocity()-p.nudgeVelocity()-p.windVelocity())/p.steeringScale()/p.ropeSteeringScale());p.step();}
@@ -40,28 +40,35 @@ public final class RopePhysicsTest {
         check(cut.ropes[0].cut>=0&&!cut.staticJumpReady&&cut.ropeAbilityTime==0,"cutting without support grants no ability");
     }
     private static void modesAndSafety(){
-        Physics p=new Physics();p.configureRope(1);check(p.effectiveRope()==0,"equipment applies on next campaign start, not midrun");p.reset(0);check(p.effectiveRope()==1,"campaign installs configured rope");
-        p.resetDaily(123);check(p.effectiveRope()==0&&!p.staticJumpReady&&p.ropeAbilityTime==0,"Daily forces Classic and clears ability state");p.reset();check(p.effectiveRope()==0,"Daily retry remains Classic");
-        p.resetArcade(1,ArcadeRules.ALL);check(p.effectiveRope()==0,"Arcade forces Classic");p.reset(0);check(p.effectiveRope()==1,"temporary comparable-mode override preserves Campaign equipment");
-        p.configureRope(2);p.reset(1);p.staticJumpReady=true;p.ropeAbilityTime=.5f;p.reset();check(p.effectiveRope()==2&&!p.staticJumpReady&&p.ropeAbilityTime==0,"restart resets ability state, retaining selected equipment");
-        p.configureRope(55);p.reset(0);check(p.effectiveRope()==0,"invalid equipment cannot leak an unknown physical effect");
+        Physics p=fixture(2);support(p);check(p.lastSupportRope==2&&p.staticJumpReady,"support feedback records the individual Static rope");
+        p.reset();check(p.lastSupportRope==0&&!p.staticJumpReady&&p.ropeAbilityTime==0&&p.ropeSteeringScale()==1,"restart clears feedback, charge and damping");
+        p.resetDaily(123);check(p.daily&&!p.arcade,"Daily remains independent");for(Physics.Rope rope:p.ropes)check(rope.type==0,"Daily initial ropes remain Classic");
+        p.resetArcade(1,ArcadeRules.ALL);for(Physics.Rope rope:p.ropes)check(rope.type==0,"Arcade Wave 1 starts with readable Classic ropes");
         for(int type=0;type<3;type++){
-            p=new Physics();p.configureRope(type);p.reset(0);check(p.jump(),"fresh manual jump available for every rope");
-            float initial=p.vy;for(int i=0;i<150;i++)p.step();check(!p.lost,"fresh manual jump never gains a rope-only bonus or unsafe ceiling death");near(initial,-450,.001f,"all equipped ropes use the same initial manual jump");
+            p=fixture(type);p.y=310;p.cameraY=0;for(Physics.Rope rope:p.ropes)rope.cut=12;
+            check(p.jump(),"fresh manual jump available regardless of course rope type");float initial=p.vy;
+            for(int i=0;i<150;i++)p.step();check(!p.lost,"fresh manual jump never gains an unsafe rope bonus");near(initial,-450,.001f,"all initial manual jumps remain identical");
         }
         p=fixture(1);support(p);for(Physics.Rope r:p.ropes)r.cut=12;float minimum=p.headTop();for(int i=0;i<240&&!p.lost;i++){neutral(p);minimum=Math.min(minimum,p.headTop());}
         check(!p.lost&&minimum>Physics.ARENA_TOP,"automatic Spring support bounce retains ceiling clearance");
-        for(int mode=0;mode<2;mode++){
-            Physics a=new Physics(),b=new Physics();a.configureRope(1);b.configureRope(2);if(mode==0){a.resetDaily(123);b.resetDaily(123);}else{a.resetArcade(0,ArcadeRules.TOP_LASERS);b.resetArcade(0,ArcadeRules.TOP_LASERS);}
-            a.touchControlled(true);b.touchControlled(true);for(int i=0;i<240*8&&!a.lost&&!a.won;i++){CampaignExpansionTest.steer(a);CampaignExpansionTest.steer(b);a.step();b.step();check(Float.floatToIntBits(a.x)==Float.floatToIntBits(b.x)&&Float.floatToIntBits(a.y)==Float.floatToIntBits(b.y)&&a.score==b.score,"equipment cannot alter comparable-mode trajectory or records");}
+        p=fixture(2);support(p);p.ropes[0].reset(2400,p.leftWall(),p.rightWall());p.ropes[0].type=0;
+        p.y=p.ropes[0].y[Physics.Rope.N/2]-p.radius()-5;p.cameraY=1970;p.vy=80;p.landingPulse=0;support(p);
+        check(p.lastSupportRope==0&&p.staticJumpReady&&p.ropeSteeringScale()==.84f,"a real later Classic support preserves the pending Static charge and brief current");
+        p.jump();check(!p.staticJumpReady,"next-jump charge is consumed exactly once, independently of last support");
+        near(p.vy,-Math.max(350,450/(float)Math.sqrt(p.mass()))*.8f,.001f,"Classic support does not discard the promised next smaller Static jump");
+    }
+    private static void mixedCourseClearance(){
+        for(boolean touch:new boolean[]{true,false})for(int stage=0;stage<StageCatalog.COUNT;stage++){
+            Physics p=new Physics();p.reset(stage);p.touchControlled(touch);int steps=0;boolean spring=false,statik=false;
+            while(!p.lost&&!p.won&&steps++<240*120){
+                for(Physics.Rope r:p.ropes){spring|=r.type==RopeCatalog.SPRING;statik|=r.type==RopeCatalog.STATIC;}
+                if(touch)CampaignExpansionTest.steer(p);else CampaignExpansionTest.steerMotion(p);p.step();
+                check(Float.isFinite(p.x)&&Float.isFinite(p.y)&&Float.isFinite(p.vx)&&Float.isFinite(p.vy),"finite real mixed-rope course");
+            }
+            check(p.won&&!p.lost,"mixed course clear: touch="+touch+" stage="+stage+" reason="+p.deathReason+" x="+p.x+" y="+p.y);
+            check(spring&&(stage<2||statik),"whole actual course contains the introduced visible rope types");
+            System.out.printf("Mixed %s stage %d PASS %.2fs%n",touch?"touch":"motion",stage+1,p.elapsed);
         }
     }
-    private static void earnedCourseClearance(){
-        for(int type=1;type<3;type++)for(int stage=0;stage<24;stage++){
-            Physics p=new Physics();p.configureRope(type);p.reset(stage);p.touchControlled(true);int steps=0;
-            while(!p.lost&&!p.won&&steps++<240*120){CampaignExpansionTest.steer(p);p.step();check(Float.isFinite(p.x)&&Float.isFinite(p.y)&&Float.isFinite(p.vx)&&Float.isFinite(p.vy),"finite earned-rope course");}
-            check(p.won&&!p.lost,"equipped rope keeps complete course escapable: type="+type+" stage="+stage+" reason="+p.deathReason+" x="+p.x+" y="+p.y);
-        }
-    }
-    public static void main(String[]args){catalog();effects();modesAndSafety();earnedCourseClearance();System.out.println("PASS: earned rope physical effects, safety, reset/mode isolation and all-course clearance ("+checks+" checks)");}
+    public static void main(String[]args){catalog();effects();modesAndSafety();mixedCourseClearance();System.out.println("PASS: mixed rope physical effects, safety, reset/Daily isolation and all-course touch/motion clearance ("+checks+" checks)");}
 }
