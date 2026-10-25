@@ -31,3 +31,6 @@ Record the public certificate fingerprint from the release receipt. Future build
 The release pipeline runs bundletool validation, strict jarsigner verification against this key/alias, and `VerifyBundleSignature.java`. The Java check reads every payload entry through signature validation and requires the preserved certificate. It rejects unsigned entries, unexpected signers and empty payloads. A successfully signed universal test APK alone is not evidence that the AAB is signed.
 
 [Android app signing](https://developer.android.com/studio/publish/app-signing), [jarsigner verification](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jarsigner.html).
+
+
+From 4.2, release builds also run R8 and resource shrinking. Keep the generated `mapping.txt` for each exact version alongside its private local AAB. `scripts/build-release.ps1` compares it to the embedded AAB mapping and preserves available R8 reports plus `release-verification.json`. These files stay local with the artifacts. See [4.2 verification notes](BETA_4_2.md).

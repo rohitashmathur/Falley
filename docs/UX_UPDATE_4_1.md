@@ -34,7 +34,7 @@ Two jumps remain a **burst** limit, with a one-jump burst on the appropriate mod
 
 | Item | Value |
 | --- | --- |
-| APK | `C:\Users\mathu\Documents\Codex\2026-10-24\Falley-4.1.0-debug\Falley-4.1.0-debug.apk` |
+| APK | `C:\local-delivery\2026-10-24\Falley-4.1.0-debug\Falley-4.1.0-debug.apk` |
 | Version | `4.1.0-ux-test` |
 | Version code | `13` |
 | Package | `com.perfgames.falley.motiontest` |

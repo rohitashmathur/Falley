@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.perfgames.ropelab'
     compileSdk 36
-    defaultConfig { applicationId 'com.perfgames.falley'; minSdk 24; targetSdk 36; versionCode 13; versionName '4.1.0' }
+    defaultConfig { applicationId 'com.perfgames.falley'; minSdk 24; targetSdk 36; versionCode 14; versionName '4.2.0' }
     compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
 
     def signingNames = ['FALLEY_UPLOAD_KEYSTORE', 'FALLEY_UPLOAD_STORE_PASSWORD', 'FALLEY_UPLOAD_KEY_ALIAS', 'FALLEY_UPLOAD_KEY_PASSWORD']
@@ -20,8 +20,10 @@ android {
     buildTypes {
         release {
             debuggable false
-            // Keep this small beta straightforward to inspect; no reflective resources are stripped.
-            minifyEnabled false
+            // Keep release mapping beside each local artifact; debug builds stay unminified.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             if (releaseSigningAvailable) signingConfig signingConfigs.upload
         }
     }

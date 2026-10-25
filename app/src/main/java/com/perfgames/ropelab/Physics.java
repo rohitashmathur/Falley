@@ -65,6 +65,13 @@ public final class Physics {
     private java.util.Random random;
     private long dailySeed;
     private float dt = DT, bossCountdown;
+    private int configuredRope=RopeCatalog.CLASSIC, activeRope=RopeCatalog.CLASSIC;
+    /** Short cosmetic feedback/damping pulse. Static's next-jump charge lasts until consumed. */
+    public float ropeAbilityTime;
+    public boolean staticJumpReady;
+    public void configureRope(int rope){configuredRope=RopeCatalog.normalize(rope);}
+    public int effectiveRope(){return arcade||daily?RopeCatalog.CLASSIC:activeRope;}
+    public float ropeSteeringScale(){return effectiveRope()==RopeCatalog.STATIC&&ropeAbilityTime>0?.84f:1;}
 
     public static final class Rope {
         public static final int N = 25;
@@ -117,7 +124,7 @@ public final class Physics {
         deepestY = y;
         nextRopeY = FIRST_ROPE_Y + ropes.length * ROPE_SPACING;
         random = new java.util.Random(daily ? dailySeed : 7283L + courseSalt() * 101L);
-        dt = DT; slowTimeRemaining = 0;
+        dt = DT; slowTimeRemaining = 0; activeRope=arcade||daily?RopeCatalog.CLASSIC:configuredRope; ropeAbilityTime=0; staticJumpReady=false;
         landingX = landingTargetCenter = landingTargetWidth = Float.NaN;
         bossPhase = 0; bossWarning = bossLive = 0; bossCountdown = .6f;
         bossActive = false; bossSafeX = 240; bossY = groundY() - 1550;
@@ -187,7 +194,7 @@ public final class Physics {
     }
     public void steerTouch(float desiredVelocity) {
         touchVelocity = clamp(desiredVelocity, -340, 340);
-        if (touchControl && !lost && !won) vx = touchVelocity * steeringScale() + driftVelocity() + nudgeVelocity() + windVelocity();
+        if (touchControl && !lost && !won) vx = touchVelocity * steeringScale() * ropeSteeringScale() + driftVelocity() + nudgeVelocity() + windVelocity();
     }
     public float steeringVelocity() { return touchVelocity; }
     /** A bounded, alternating air current makes idle touch-only runs require correction. */
@@ -225,7 +232,9 @@ public final class Physics {
         if (!canJump()) return false;
         if (jumpsLeft == maxBurstJumps()) burstStartY = burstPeakY = y;
         // One fresh jump fits beneath the ceiling; a second near it is a deliberate risk.
-        vy = -Math.max(350, 450 / (float) Math.sqrt(mass()));
+        float jumpScale=effectiveRope()==RopeCatalog.STATIC&&staticJumpReady?.8f:1;
+        vy = -Math.max(350, 450 / (float) Math.sqrt(mass()))*jumpScale;
+        staticJumpReady=false;
         jumpsLeft--;
         manualJumps++;
         lastJumpTime = elapsed;
@@ -290,6 +299,7 @@ public final class Physics {
         if (lost) { blast = Math.max(0, blast - dt * .7f); return; }
         dt = DT * worldTimeScale();
         slowTimeRemaining = Math.max(0,slowTimeRemaining-DT);
+        ropeAbilityTime=Math.max(0,ropeAbilityTime-dt);
         landingPulse = Math.max(0, landingPulse - dt);
         groundBounce = Math.max(0, groundBounce - dt * 2);
         if (won) { celebrateLanding(); return; }
@@ -307,11 +317,11 @@ public final class Physics {
             simulateRope(rope, left, right);
         }
         float previousX = x, previousY = y;
-        if (touchControl) vx = touchVelocity * steeringScale() + driftVelocity() + nudgeVelocity() + windVelocity();
+        if (touchControl) vx = touchVelocity * steeringScale() * ropeSteeringScale() + driftVelocity() + nudgeVelocity() + windVelocity();
         else {
             // Tilt requests a bounded sideways speed. Returning to neutral
             // brakes momentum and rope kicks instead of coasting for seconds.
-            float command = clamp(gx, -950, 950) * (MAX_MOTION_SPEED/950) * steeringScale();
+            float command = clamp(gx, -950, 950) * (MAX_MOTION_SPEED/950) * steeringScale() * ropeSteeringScale();
             float target = clamp(command+nudgeVelocity()+windVelocity(), -MAX_MOTION_SPEED, MAX_MOTION_SPEED);
             float response = Math.abs(command) < 1 ? 14 : 10;
             vx += (target-vx) * (1f-(float)Math.exp(-response*dt));
@@ -418,7 +428,16 @@ public final class Physics {
                     refillBurst();
                     landingPulse = .18f;
                     // A landing naturally produces a small spring-assisted human jump.
-                    vy = -Math.max(235, 325 / (float) Math.sqrt(mass()));
+                    float rebound=Math.max(235,325/(float)Math.sqrt(mass()));
+                    if(effectiveRope()==RopeCatalog.SPRING){
+                        // The bonus belongs to rope support, never to manual jumps or cutting.
+                        float ceilingRoom=Math.max(0,headTop()-ARENA_TOP-12);
+                        rebound=Math.min(rebound*1.5f,(float)Math.sqrt(2*GRAVITY*gravityScale()*ceilingRoom)*.95f);
+                        ropeAbilityTime=.65f;
+                    }else if(effectiveRope()==RopeCatalog.STATIC){
+                        staticJumpReady=true;ropeAbilityTime=.75f;
+                    }
+                    vy=-rebound;
                     flash = Math.max(flash, .35f);
                 }
                 for (int k = i; k <= i + 1; k++) if (k > 0 && k < Rope.N - 1) {
@@ -526,6 +545,13 @@ public final class Physics {
                 // Introduce the new blade predictably before mixing it with side lasers.
                 if (!arcade && stage.openingHazard != 0 && attackCount == 0) kind = stage.openingHazard;
                 spawnAttack(kind, difficulty);
+                if(!arcade&&!daily&&stage.index<3&&attackCount==0){
+                    // An aimed, frozen opening warning gives a generous, readable escape window.
+                    float aim=clamp(x+(touchControl?driftVelocity()*.6f:0),leftWall()+hazardInset()+38,rightWall()-hazardInset()-38);
+                    for(BeamHazard beam:beamHazards)if(beam.active&&beam.kind==ArcadeRules.TOP_LASERS){
+                        beam.x1=beam.x2=aim;beam.warningTime=1.65f;beam.liveTime=.34f;
+                    }
+                }
                 attackCount++;
                 attackCountdown = ArcadeRules.attackGap(difficulty, wave) + random.nextFloat() * .3f;
             }

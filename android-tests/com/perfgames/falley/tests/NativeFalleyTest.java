@@ -76,12 +76,13 @@ public final class NativeFalleyTest extends Instrumentation {
                 copy(backup,storage.getAll());
                 require(backup.edit().putBoolean(BACKUP_MARKER,true).commit(),"original preferences backed up");
                 SharedPreferences.Editor fixture=storage.edit().clear().putBoolean("motion",false)
-                        .putBoolean("sound",false).putBoolean("haptics",false).putBoolean("blood",true);
+                        .putBoolean("sound",false).putBoolean("music",false).putBoolean("haptics",false).putBoolean("blood",true);
+                if(!mode.equals("ux"))fixture.putBoolean("language_confirmed",true);
                 if (!mode.equals("features")) fixture.putInt("preset",1);
                 require(fixture.commit(),"deterministic emulator settings installed");
                 launch();
                 if (mode.equals("ux")) {
-                    waitScreen(HOME,4000); uxRegression();
+                    waitScreen(LANGUAGE,4000); uxFirstRun(); uxRegression();
                 } else if (mode.equals("expansion")) {
                     waitScreen(HOME,4000); expansionRegression();
                 } else if (mode.equals("revision")||mode.equals("revision_smoke")) {
@@ -136,7 +137,7 @@ public final class NativeFalleyTest extends Instrumentation {
                 : mode.equals("v31") ? "focused V3.1 mask migration, five hazards, saw physics and native SoundPool counters/lifecycle; audibility not assessed"
                 : mode.equals("release") ? "V3.2 focused privacy, virtual accessibility actions, active-play screen awake, five hazards and audio lifecycle"
                 : mode.equals("privacy") ? "focused EN/HI/ID offline policy, contact/URL visibility and accessibility, long-token glyph fit, real-touch browser/mail intent handoff interception, Back and no requested app permissions"
-                : mode.equals("ux") ? "debug EN/HI/ID Chapter spotlight, bottom navigation and owner Back flows, six chapter art previews, Continue progression, named independent star objectives, immediate retry, control cues and persisted Collection; controlled fixtures"
+                : mode.equals("ux") ? "debug EN/HI/ID first-run confirmed language and local country fallback, two-tab earned avatar/rope Collection, native rope support abilities and Classic mode isolation, independent music lifecycle, compact results and Chapter spotlight navigation; controlled fixtures, audio audibility not assessed"
                 : mode.equals("expansion") ? "debug EN/HI/ID six chapter pages, local Daily Drop retry/share intent and PNG provider, cumulative mastery stars and chapter wardrobe rewards, actual native finale/mechanic render fixtures and twelve-to-twenty-four-stage preference migration"
                 : mode.equals("store") ? "V3.2 high-resolution actual native Canvas store captures and measured crop metadata"
                 : mode.equals("motion") ? "focused debug motion start/restart/resume recentering, neutral hold, bilateral tilt, release braking and touch handoff; controlled real-time accelerometer samples, not a phone comfort test"
@@ -159,6 +160,76 @@ public final class NativeFalleyTest extends Instrumentation {
         finish(failure==null?Activity.RESULT_OK:Activity.RESULT_CANCELED,result);
     }
 
+    private void uxFirstRun() throws Exception {
+        requireScreen(LANGUAGE,"fresh app transitions from splash to a language choice");
+        ui(() -> {Object p=read(arena,"profile");require(((Number)read(p,"language")).intValue()==0&&!(Boolean)read(p,"languageConfirmed"),"fresh default stays English and awaits explicit confirmation");});
+        require(!storage.getBoolean("language_confirmed",false),"first prompt is not silently confirmed");
+        String[] permissions=getTargetContext().getPackageManager().getPackageInfo(APP,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;
+        require(permissions==null||permissions.length==0,"local country hint, music and ropes add no requested app permissions");
+        ui(() -> {Object hint=read(arena,"countryHint");String country=(String)read(hint,"country"),source=(String)read(hint,"source");require(java.util.Arrays.asList("network","sim","device","none").contains(source),"native country hint identifies its local fallback source");require(country.isEmpty()||country.matches("[A-Z]{2}"),"native country hint is coarse ISO text or absent");log.append("NATIVE coarse country hint ").append(country).append(" source ").append(source).append("; no language override\n");});
+        Class<?> rules=Class.forName("com.perfgames.ropelab.CountryRules",true,getTargetContext().getClassLoader());Method choose=rules.getMethod("choose",String.class,String.class,String.class);
+        Object hint=choose.invoke(null,"","id","IN");require("ID".equals(read(hint,"country"))&&"sim".equals(read(hint,"source")),"native rules fall back from unavailable network country to SIM");
+        hint=choose.invoke(null,null,"?","IN");require("IN".equals(read(hint,"country"))&&"device".equals(read(hint,"source")),"native rules fall back to device region without permissions");
+        hint=choose.invoke(null,"?",null,"");require("".equals(read(hint,"country"))&&"none".equals(read(hint,"source")),"missing local country leaves the hint absent");
+        for(int language=0;language<3;language++){require(buttonEnabled("language_"+language),"first run offers all three language choices");click("language_"+language);require(storage.getInt("language",-1)==language&&!storage.getBoolean("language_confirmed",false),"selecting a language persists the choice without confirming it");uxFit("first language prompt "+language);localizedNodes(language,"first language prompt");capture("ux-first-language-"+language);}
+        recreate();requireScreen(LANGUAGE,"recreation before Continue keeps the unconfirmed language prompt");ui(() -> require(((Number)read(read(arena,"profile"),"language")).intValue()==2,"unconfirmed language choice survives recreation"));
+        click("language_0");click("language_done");requireScreen(HOME,"explicit Continue confirms English and opens Home");require(storage.getBoolean("language_confirmed",false)&&storage.getInt("language",-1)==0,"confirmation and English are saved");
+        recreate();requireScreen(HOME,"confirmed player does not see onboarding again");
+        close();require(storage.edit().remove("language_confirmed").putInt("language",2).commit(),"controlled legacy preference fixture retains explicit language but lacks new confirmation key");launch(false);waitScreen(HOME,4000);
+        ui(() -> {Object p=read(arena,"profile");require((Boolean)read(p,"languageConfirmed")&&((Number)read(p,"language")).intValue()==2,"legacy explicit language bypasses onboarding without losing preference");});
+        featureLanguage(0);back();requireScreen(HOME,"first-run and legacy checks return Home with English");
+    }
+    private void uxRopeUnlockThresholds() throws Exception {
+        uxHome();uxNav("wardrobe",WARDROBE);click("closet_tab_1");final int[][] saved={null,null};
+        ui(() -> {Object p=read(arena,"profile");int[] wins=(int[])read(p,"stageWins"),stars=(int[])read(p,"stars");saved[0]=wins.clone();saved[1]=stars.clone();java.util.Arrays.fill(wins,0);java.util.Arrays.fill(stars,0);for(int i=0;i<2;i++){wins[i]=1;stars[i]=7;}arena.invalidate();log.append("FIXTURE earned-star thresholds 6,11,12 for native Collection controls; original campaign restored below\n");});settle(50);
+        require(buttonEnabled("rope_1")&&!buttonEnabled("rope_2"),"six earned stars unlock Spring while Static remains locked");click("rope_1");require(storage.getInt("rope_type",-1)==1,"six-star Spring can be equipped by actual touch");uxFit("six-star rope unlock");capture("ux-rope-six-stars-controlled");
+        ui(() -> {Object p=read(arena,"profile");int[] wins=(int[])read(p,"stageWins"),stars=(int[])read(p,"stars");wins[2]=wins[3]=1;stars[2]=7;stars[3]=3;arena.invalidate();});settle(50);require(!buttonEnabled("rope_2"),"eleven earned stars cannot equip Static");
+        ui(() -> {Object p=read(arena,"profile");((int[])read(p,"stars"))[3]=7;arena.invalidate();});settle(50);require(buttonEnabled("rope_2"),"twelve earned stars unlock Static");click("rope_2");require(storage.getInt("rope_type",-1)==2,"twelve-star Static can be equipped by actual touch");uxFit("twelve-star rope unlock");capture("ux-rope-twelve-stars-controlled");
+        ui(() -> {Object p=read(arena,"profile");System.arraycopy(saved[0],0,(int[])read(p,"stageWins"),0,24);System.arraycopy(saved[1],0,(int[])read(p,"stars"),0,24);write(p,"selectedRope",0);call(arena,"saveProfile");arena.invalidate();});uxHome();
+    }
+    private void uxRopeSupportFixture() throws Exception {
+        ui(() -> {
+            write(arena,"motionEnabled",false);call(physics,"touchControlled",true);write(physics,"x",240f);write(physics,"y",2400f);write(physics,"cameraY",1970f);write(physics,"vx",0f);write(physics,"vy",80f);write(physics,"attackCountdown",100000f);
+            for(String name:new String[]{"fireHazards","beamHazards","sawHazards"})for(Object h:(Object[])read(physics,name))write(h,"active",false);
+            Object[] ropes=(Object[])read(physics,"ropes");for(Object rope:ropes){write(rope,"cut",12);write(rope,"base",100000f);}
+            Object rope=ropes[0];call(rope,"reset",2400f,((Number)call(physics,"leftWall")).floatValue(),((Number)call(physics,"rightWall")).floatValue());
+            write(physics,"y",((float[])read(rope,"y"))[12]-((Number)call(physics,"radius")).floatValue()-5);write(physics,"landingPulse",0f);arena.invalidate();log.append("FIXTURE actual intact supporting-rope contact for equipped campaign ability\n");
+        });
+        animation(true);long deadline=SystemClock.uptimeMillis()+1200;boolean caught=false;
+        while(SystemClock.uptimeMillis()<deadline){SystemClock.sleep(8);final boolean[] yes={false};ui(() -> {yes[0]=((Number)read(physics,"landingPulse")).floatValue()>0;if(yes[0])write(arena,"active",false);});if(yes[0]){caught=true;break;}}
+        animation(false);require(caught&&!physicsBool("lost")&&physicsFloat("vy")<0,"actual intact rope support rebounds before ability assertion");
+    }
+    private void uxRopeAbilities() throws Exception {
+        uxHome();uxNav("wardrobe",WARDROBE);click("closet_tab_1");click("rope_2");uxNav("home",HOME);expansionStart(0,false);
+        require(physicsCallFloat("effectiveRope")==2,"equipped Static applies at campaign start");uxRopeSupportFixture();require(physicsBool("staticJumpReady")&&physicsFloat("ropeAbilityTime")>0,"support arms the visible safe Static next-jump charge");
+        renderedFit("Static ability HUD",false);capture("ux-static-support-controlled");float jump=-Math.max(350,450/(float)Math.sqrt(physicsCallFloat("mass")))*.8f;click("jump");require(!physicsBool("staticJumpReady")&&Math.abs(physicsFloat("vy")-jump)<.1f,"actual jump consumes Static charge at eighty-percent manual impulse");uxHome();
+        uxNav("wardrobe",WARDROBE);click("closet_tab_1");click("rope_1");uxNav("home",HOME);expansionStart(0,false);require(physicsCallFloat("effectiveRope")==1,"equipped Spring applies at campaign start");uxRopeSupportFixture();
+        float ordinary=Math.max(235,325/(float)Math.sqrt(physicsCallFloat("mass")));require(-physicsFloat("vy")>ordinary*1.3f&&physicsFloat("ropeAbilityTime")>0,"actual Spring support adds a bounded stronger rebound");renderedFit("Spring ability HUD",false);capture("ux-spring-support-controlled");uxHome();
+        require(storage.getInt("rope_type",-1)==1,"earned campaign rope remains saved for mode-isolation checks");
+    }
+    private void uxAwaitMusic(Object audio,boolean expected,String context) throws Exception {
+        long deadline=SystemClock.uptimeMillis()+2500;while(audioFlag(audio,"isMusicPlaying")!=expected&&SystemClock.uptimeMillis()<deadline)SystemClock.sleep(20);
+        require(audioFlag(audio,"isMusicPlaying")==expected,context);
+    }
+    private void uxMusicLifecycle() throws Exception {
+        uxHome();uxNav("settings",SETTINGS);Object audio=audio();
+        if(storage.getBoolean("music",false))click("music");if(storage.getBoolean("sound",false))click("sound");
+        require(!audioFlag(audio,"isMusicEnabled")&&!audioFlag(audio,"isEnabled"),"music and effects can both be independently disabled");
+        click("music");animation(true);uxAwaitMusic(audio,true,"native music plays in an eligible foreground menu with effects off");require(audioFlag(audio,"isMusicEnabled")&&!audioFlag(audio,"isEnabled"),"enabling music does not enable Sound Effects");
+        int starts=audioCount(audio,"musicStartCount");ui(() -> {for(int i=0;i<4;i++)call(activity,"updateMusic");});require(audioCount(audio,"musicStartCount")==starts,"repeated eligible frames do not restart the music loop");
+        click("sound");require(audioFlag(audio,"isEnabled")&&audioFlag(audio,"isMusicPlaying"),"effects enablement preserves independent music playback");click("music");uxAwaitMusic(audio,false,"music off stops playback while effects remain enabled");require(audioFlag(audio,"isEnabled"),"music toggle does not mute effects");
+        click("music");uxAwaitMusic(audio,true,"music can resume after explicit reenablement");require(storage.getBoolean("music",false)&&storage.getBoolean("sound",false),"independent audio choices persist");animation(false);uxAwaitMusic(audio,false,"inactive render fixture correctly suppresses music");
+        uxHome();expansionStart(0,false);animation(true);uxAwaitMusic(audio,true,"foreground campaign permits music");click("pause");uxAwaitMusic(audio,false,"pause suspends music");click("settings");requireScreen(SETTINGS,"pause opens its own Settings");uxAwaitMusic(audio,false,"Settings reached from Pause keeps music suspended");back();requireScreen(PAUSE,"Settings returns to Pause");click("resume");uxAwaitMusic(audio,true,"Resume restarts the permitted loop");
+        sendKeyDownUpSync(KeyEvent.KEYCODE_HOME);long deadline=SystemClock.uptimeMillis()+4000;while(audioFlag(audio,"isForeground")&&SystemClock.uptimeMillis()<deadline)SystemClock.sleep(20);
+        require(!audioFlag(audio,"isForeground"),"actual Android background clears audio foreground ownership");uxAwaitMusic(audio,false,"background suspends native music");
+        ui(() -> getTargetContext().startActivity(new Intent().setClassName(APP,ACTIVITY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
+        deadline=SystemClock.uptimeMillis()+5000;while((!audioFlag(audio,"isForeground")||!activity.hasWindowFocus())&&SystemClock.uptimeMillis()<deadline)SystemClock.sleep(20);
+        requireScreen(PAUSE,"foreground return remains safely paused");uxAwaitMusic(audio,false,"foreground return does not start music through Pause");animation(false);click("home");
+        final Object oldAudio=audio;recreate();audio=audio();require(audio!=oldAudio&&audioFlag(oldAudio,"isMusicReleased"),"destroyed Activity releases the old music owner");
+        require(audioFlag(audio,"isMusicEnabled")&&audioFlag(audio,"isEnabled"),"audio preferences survive recreation");animation(true);uxAwaitMusic(audio,true,"new foreground Activity can play the retained music preference");
+        animation(false);uxNav("settings",SETTINGS);click("music");click("sound");require(!storage.getBoolean("music",true)&&!storage.getBoolean("sound",true),"fixture returns both audio channels to silent preferences");uxHome();
+        log.append("Native music engine lifecycle and counters checked; listening quality, output volume and audibility not assessed\n");
+    }
     private void uxHome() throws Exception {
         if(screen()==PLAY)click("pause");
         if(screen()==PAUSE||screen()==RESULT)click("home");
@@ -210,7 +281,11 @@ public final class NativeFalleyTest extends Instrumentation {
             back();click("chapters");click("stage_0");back();requireScreen(CHAPTERS,"chapter-origin brief returns chapter list");back();
             click("daily");uxFit("Daily menu "+language);localizedNodes(language,"Daily menu");capture("ux-daily-"+language);back();
             click("arcade");uxFit("Arcade setup "+language);localizedNodes(language,"Arcade setup");capture("ux-arcade-"+language);back();
-            uxNav("wardrobe",WARDROBE);for(int tab=0;tab<4;tab++){click("closet_tab_"+tab);uxFit("Collection "+tab+" language "+language);localizedNodes(language,"Collection");if(tab==0||tab==3)capture("ux-collection-"+tab+"-"+language);}
+            uxNav("wardrobe",WARDROBE);requireButtonsAbsent("closet_tab_2","closet_tab_3","look_0","look_3");
+            for(int tab=0;tab<2;tab++){click("closet_tab_"+tab);uxFit("Collection "+tab+" language "+language);localizedNodes(language,"Collection");capture("ux-collection-"+tab+"-"+language);
+                if(tab==0){for(int avatar=0;avatar<7;avatar++)require(buttonEnabled("avatar_"+avatar)==(avatar==0),"new profile earns avatars through chapter finales");click("avatar_preview");require(numeric(arena,"avatarPreviewTime")==0,"Preview Jump resets the selected avatar's preview clock");runFrames(180);require(numeric(arena,"avatarPreviewTime")>0,"actual native frames animate avatar preview");}
+                else for(int rope=0;rope<3;rope++)require(buttonEnabled("rope_"+rope)==(rope==0),"fresh profile locks earned Spring/Static abilities");
+            }
             uxNav("settings",SETTINGS);uxFit("Settings "+language);localizedNodes(language,"Settings");capture("ux-settings-"+language);
             click("privacy");renderedFit("Privacy "+language,true);localizedNodes(language,"Privacy");capture("ux-privacy-"+language);back();requireScreen(SETTINGS,"Privacy returns to Settings");
             click("help");requireScreen(HELP,"Help is discoverable from Settings");click("help_touch");
@@ -218,7 +293,7 @@ public final class NativeFalleyTest extends Instrumentation {
             while(numeric(arena,"helpPage")>0)click("help_prev");click("help_motion");uxFit("Motion Help "+language);capture("ux-help-motion-"+language);back();requireScreen(SETTINGS,"Help returns to its Settings owner");
             uxNav("home",HOME);requireButtonsAbsent("help");
         }
-        featureLanguage(0);back();uxNav("wardrobe",WARDROBE);click("closet_tab_2");uxNav("wardrobe",WARDROBE);require(numeric(arena,"closetTab")==2,"reselecting Collection keeps its current tab");uxNav("home",HOME);
+        featureLanguage(0);back();uxNav("wardrobe",WARDROBE);click("closet_tab_1");uxNav("wardrobe",WARDROBE);require(numeric(arena,"closetTab")==1,"reselecting Collection keeps its current tab");uxNav("home",HOME);
     }
     private void uxCuesAndRetry() throws Exception {
         for(int language=0;language<3;language++) {
@@ -255,17 +330,17 @@ public final class NativeFalleyTest extends Instrumentation {
         ui(() -> {Object p=read(arena,"profile");((int[])read(p,"stars"))[7]=7;write(p,"selectedStage",20);call(arena,"saveProfile");arena.invalidate();});
         click("play");require(stageIndex()==20,"fully mastered campaign retains the player's selected replay stage");back();
         uxNav("wardrobe",WARDROBE);for(int i=0;i<7;i++)require(buttonEnabled("avatar_"+i),"all earned chapter rewards remain selectable");click("avatar_6");
-        String[] keys={"","rope_palette","trail_palette","landing_palette"};for(int tab=1;tab<4;tab++){click("closet_tab_"+tab);click("look_3");require(storage.getInt(keys[tab],-1)==3,"Collection saves earned category "+tab);}
-        uxNav("home",HOME);recreate();requireScreen(HOME,"Activity recreation returns to Home");ui(() -> {Object p=read(arena,"profile");require(((Number)read(p,"selectedAvatar")).intValue()==6&&((Number)call(p,"totalStars")).intValue()==72,"Collection and campaign mastery persist after Activity recreation");});capture("ux-home-mastered-controlled");
+        click("closet_tab_1");for(int rope=0;rope<3;rope++)require(buttonEnabled("rope_"+rope),"mastery unlocks earned rope "+rope);click("rope_2");require(storage.getInt("rope_type",-1)==2,"Collection saves the earned Static rope");
+        uxNav("home",HOME);recreate();requireScreen(HOME,"Activity recreation returns to Home");ui(() -> {Object p=read(arena,"profile");require(((Number)read(p,"selectedAvatar")).intValue()==6&&((Number)read(p,"selectedRope")).intValue()==2&&((Number)call(p,"totalStars")).intValue()==72,"earned avatar, rope and mastery persist after Activity recreation");});capture("ux-home-mastered-controlled");
     }
     private void uxModeIsolation() throws Exception {
         expansionDailyCheck();uxHome();Map<String,Object> campaign=campaignRecords();
-        click("arcade");click("start_arcade");require(physicsBool("arcade")&&!physicsBool("daily"),"Arcade remains separate from Daily and campaign");ceilingFixture();runFrames(500);requireScreen(RESULT,"Arcade also exposes quick Retry");uxFit("Arcade death result");capture("ux-arcade-result-controlled");
+        click("arcade");click("start_arcade");require(physicsBool("arcade")&&!physicsBool("daily"),"Arcade remains separate from Daily and campaign");require(physicsCallFloat("effectiveRope")==0,"Arcade forces Classic regardless of saved campaign equipment");ceilingFixture();runFrames(500);requireScreen(RESULT,"Arcade also exposes quick Retry");uxFit("Arcade death result");capture("ux-arcade-result-controlled");
         require(campaign.equals(campaignRecords()),"Arcade result cannot alter campaign stars or records");click("restart");require(physicsBool("arcade")&&!physicsBool("lost"),"Arcade Retry preserves selected mode");uxHome();
     }
     private void uxRegression() throws Exception {
         require(APP.equals("com.perfgames.falley.motiontest"),"UX checks target only the isolated local debug package");require((getTargetContext().getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0,"UX package is debuggable");
-        uxMenus();uxCuesAndRetry();uxMasteryAndContinue();uxModeIsolation();
+        uxMenus();uxRopeUnlockThresholds();uxCuesAndRetry();uxMasteryAndContinue();uxRopeAbilities();uxMusicLifecycle();uxModeIsolation();
     }
     private void expansionHome() throws Exception {
         if(screen()==PLAY)click("pause");
@@ -277,7 +352,7 @@ public final class NativeFalleyTest extends Instrumentation {
         expansionHome();click("chapters");int page=(int)numeric(arena,"chapterPage");
         while(page<stage/4){click("next_chapters");page++;}while(page>stage/4){click("prev_chapters");page--;}
         require(buttonEnabled("stage_"+stage),"expanded stage is earned and playable");click("stage_"+stage);
-        requireScreen(BRIEF,"stage opens a pre-drop briefing");if(mirror)click("mirror_run");click("begin_campaign");requireScreen(PLAY,"briefing starts gameplay");
+        requireScreen(BRIEF,"stage opens a pre-drop briefing");if(mirror){click("practice_options");require(buttonEnabled("mirror_run"),"Mirror Practice is revealed by its explicit disclosure");click("mirror_run");}click("begin_campaign");requireScreen(PLAY,"briefing starts gameplay");
         require(stageIndex()==stage,"selected expanded stage is active");
     }
     private void expansionLanding(int jumps,float offset) throws Exception {
@@ -371,6 +446,7 @@ public final class NativeFalleyTest extends Instrumentation {
         expansionHome();int wins=storage.getInt("wins",0),best=storage.getInt("bestScore",0);final int[] stars={0};
         ui(() -> stars[0]=((Number)call(read(arena,"profile"),"totalStars")).intValue());
         click("daily");click("start_daily");requireScreen(PLAY,"Daily Drop starts an independent finite course");
+        if(mode.equals("ux"))require(physicsCallFloat("effectiveRope")==0,"Daily forces Classic regardless of saved campaign equipment");
         require(physicsBool("daily")&&!physicsBool("arcade"),"Daily Drop uses its own mode flag");
         int template=stageIndex();float ground=physicsCallFloat("groundY");final long[] seed={0};ui(() -> seed[0]=((Number)read(physics,"dailySeed")).longValue());
         click("jump");click("restart");
@@ -723,7 +799,7 @@ public final class NativeFalleyTest extends Instrumentation {
         click("language_"+language); require(storage.getInt("language",-1)==language,"chosen language persists by actual touch: "+language);
         localizedNodes(language,"language choices "+language); renderedFit("language choices "+language,false);
         if (!new File(output,"language-"+language+"-choices.png").exists()) capture("language-"+language+"-choices");
-        back(); requireScreen(SETTINGS,"language Back returns to Settings");
+        click("language_done"); requireScreen(SETTINGS,"language Done returns to Settings");
     }
     private void ceilingFixture() throws Exception {
         ui(() -> {

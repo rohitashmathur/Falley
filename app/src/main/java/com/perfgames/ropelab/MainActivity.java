@@ -53,7 +53,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         arena = new Arena(this, accelerometer != null, gyroscope != null);
         audio = new FalleyAudio(this);
-        if (state != null) arena.screen = Arena.HOME;
+        if (state != null) arena.screen = arena.profile.languageConfirmed ? Arena.HOME : Arena.LANGUAGE;
         setContentView(arena);
         arena.setOnApplyWindowInsetsListener((view, insets) -> {
             arena.safeTop = insets.getSystemWindowInsetTop(); arena.safeBottom = insets.getSystemWindowInsetBottom();
@@ -67,7 +67,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         super.onResume(); resumed = true; arena.active = true; arena.last = 0;
         arena.accumulator = 0; arena.motion.resetSamples();
         arena.soundCue.reset(arena.physics.soundSequence);
-        audio.setEnabled(arena.profile.sound); audio.setForeground(true);
+        audio.setEnabled(arena.profile.sound); audio.setMusicEnabled(arena.profile.music); updateMusic(); audio.setForeground(true);
         registerMotion(); arena.invalidate();
     }
     @Override protected void onPause() {
@@ -88,7 +88,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         navigateBack();
     }
     private void navigateBack() {
-        if (arena.screen == Arena.HOME) finish(); else arena.back();
+        if (arena.screen == Arena.HOME || arena.screen == Arena.LANGUAGE && !arena.profile.languageConfirmed) finish(); else arena.back();
     }
     @Override protected void onDestroy() {
         if (audio != null) audio.release();
@@ -134,6 +134,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
     void stopEffects() { if (audio != null) audio.stopAll(); }
     void setSoundEnabled(boolean enabled) { if (audio != null) audio.setEnabled(enabled); }
+    void setMusicEnabled(boolean enabled) { if(audio!=null)audio.setMusicEnabled(enabled); }
+    void updateMusic() {
+        boolean pausedMenu=arena.settingsReturn==Arena.PAUSE && (arena.screen==Arena.SETTINGS||arena.screen==Arena.LANGUAGE||arena.screen==Arena.PRIVACY||arena.screen==Arena.HELP);
+        if(audio!=null)audio.setMusicPlaying(arena.active && arena.profile.languageConfirmed && arena.screen!=Arena.SPLASH && arena.screen!=Arena.PAUSE && !pausedMenu);
+    }
     void openPrivacyLink(boolean email) {
         Intent intent = email ? new Intent(Intent.ACTION_SENDTO,Uri.fromParts("mailto",PrivacyPolicy.CONTACT_EMAIL,null))
                 : new Intent(Intent.ACTION_VIEW,Uri.parse(PrivacyPolicy.PUBLIC_URL));
@@ -199,6 +204,9 @@ public class MainActivity extends Activity implements SensorEventListener {
         final boolean[] trailValid = new boolean[18];
         final ArrayList<Hit> buttons = new ArrayList<>();
         final MenuAccessibility menuAccessibility = new MenuAccessibility();
+        final CountryRules.Hint countryHint;
+        boolean practiceExpanded;
+        float avatarPreviewTime=2;
         Hit pressed;
         private static final class Hit {
             final String id, label; final float left, top, right, bottom;
@@ -215,6 +223,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             super(context); owner = context; hasMotion = hasAccelerometer; hasGyro = hasGyroscope;
             storage = context.getSharedPreferences("falley-v1", Context.MODE_PRIVATE);
             ProfileStorage.load(storage,profile); ProfileStorage.save(storage,profile);
+            countryHint=CountryDetector.detect(context);
+            physics.configureRope(profile.selectedRope);
             physics.reset(profile.selectedStage); chapterPage = profile.selectedStage/4;
             motion = new MotionSteering(hasGyroscope); motion.setPreset(profile.preset);
             motionEnabled = hasMotion && profile.motion;
@@ -229,7 +239,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             scale = Math.min(width/480f,height/820f);
             ox = safeLeft+(width-480f*scale)/2; oy = safeTop+(height-820f*scale)/2;
         }
-        private String t(String english,Object... args) { return UxStrings.text(profile.language,english,args); }
+        private String t(String english,Object... args) { return ReleaseStrings.text(profile.language,english,args); }
         private Locale languageLocale() { return profile.language == FalleyStrings.HINDI ? new Locale("hi") : profile.language == FalleyStrings.INDONESIAN ? new Locale("id") : Locale.ENGLISH; }
         private CharSequence spoken(String value) {
             SpannableString result = new SpannableString(value);
@@ -270,7 +280,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         private void button(Canvas c,String id,float l,float top,float r,float b,String label,int color,float size) {
             boolean enabled = !id.equals("jump") || physics.canJump();
-            boolean choice = id.startsWith("preset_") || id.startsWith("difficulty_") || id.startsWith("language_") || id.startsWith("closet_tab_");
+            boolean choice = id.startsWith("preset_") || id.startsWith("difficulty_") || id.startsWith("language_")&&!id.equals("language_done") || id.startsWith("closet_tab_");
             boolean checked = id.startsWith("preset_") ? id.equals("preset_"+profile.preset) : id.startsWith("language_") ? id.equals("language_"+profile.language) : id.startsWith("difficulty_") ? id.equals("difficulty_"+profile.arcadeDifficulty) : id.startsWith("closet_tab_") && id.equals("closet_tab_"+closetTab);
             if(id.equals("prev_chapters"))enabled=chapterPage>0;
             if(id.equals("next_chapters"))enabled=chapterPage+1<StageCatalog.CHAPTER_COUNT;
@@ -280,7 +290,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             if(id.equals("control_touch")||id.equals("control_motion")){choice=true;checked=id.equals("control_motion")==motionEnabled;if(id.equals("control_motion"))enabled=hasMotion;}
             if(id.equals("next_stage"))enabled=!physics.daily&&!physics.arcade&&!runMirror&&profile.isStageUnlocked(physics.stage.index+1);
             if(id.equals("start_daily"))enabled=DailyDrop.validDay(DailyDrop.today());
-            boolean primary = screen==HOME&&id.equals("play") || screen==BRIEF&&id.equals("begin_campaign") || screen==DAILY&&id.equals("start_daily") || screen==ARCADE_SETUP&&id.equals("start_arcade") || screen==PAUSE&&id.equals("resume") || screen==RESULT&&(id.equals("next_stage")||id.equals("restart")&&(!physics.won||physics.daily||physics.arcade||runMirror||!profile.isStageUnlocked(physics.stage.index+1)));
+            boolean primary = screen==LANGUAGE&&id.equals("language_done") || screen==HOME&&id.equals("play") || screen==BRIEF&&id.equals("begin_campaign") || screen==DAILY&&id.equals("start_daily") || screen==ARCADE_SETUP&&id.equals("start_arcade") || screen==PAUSE&&id.equals("resume") || screen==RESULT&&(id.equals("next_stage")||id.equals("restart")&&(!physics.won||physics.daily||physics.arcade||runMirror||!profile.isStageUnlocked(physics.stage.index+1)));
             int fill=primary&&enabled?mint:checked?0xff2c4c43:panel;
             rect(c,l,top,r,b,13,fill);
             if(checked)line(c,l+12,b-5,r-12,b-5,mint,2);
@@ -311,9 +321,10 @@ public class MainActivity extends Activity implements SensorEventListener {
                 last = now; visualTime += frameDt; setupMessage = Math.max(0,setupMessage-frameDt);
                 if (screen == SPLASH) {
                     splashElapsed += frameDt;
-                    if (splashElapsed >= 1.5f) enterHome();
+                    if (splashElapsed >= 1.5f) { if(profile.languageConfirmed)enterHome();else{screen=LANGUAGE;clearTouch();} }
                 }
                 if (screen == HOME) homeElapsed += frameDt;
+                if(screen==WARDROBE && avatarPreviewTime<1.1f)avatarPreviewTime+=frameDt;
                 if (screen == PLAY) advance(frameDt,now);
                 else {
                     accumulator = 0;
@@ -340,12 +351,14 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
             c.restore();
             setKeepScreenOn(active && screen == PLAY);
+            owner.updateMusic();
             menuAccessibility.updateScreen();
             // Static menus need no render loop. Home retains its gentle title
             // animation at 30fps; gameplay and its short effects use vsync.
             if (active) {
                 if (screen == PLAY || screen == SPLASH || screen == RESULT && physics.lost && burstTime < 2.8f)
                     postInvalidateOnAnimation();
+                else if(screen==WARDROBE && avatarPreviewTime<1.1f && !reducedMotion())postInvalidateOnAnimation();
                 else if (screen == HOME && !reducedMotion() || screen == ARCADE_SETUP && setupMessage > 0) postInvalidateDelayed(33);
                 else last = 0;
             }
@@ -458,8 +471,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             rect(c,24,117,456,505,20,0xff22332f);
             fitText(c,t("CHAPTER %d",stage.chapterIndex+1),44,151,13,mint,260);
             button(c,"chapters",332,129,436,177,"CHAPTERS",muted,13);
-            fitText(c,stage.title,44,194,29,white,392);
-            fitText(c,t("STAGE %d",next+1)+" / "+t(stage.chapterTitle),44,220,14,muted,392);
+            fitText(c,stage.chapterTitle,44,194,29,white,392);
+            fitText(c,t("STAGE %d",next+1)+" / "+t(stage.title),44,220,14,muted,392);
             FalleyUi.chapterScene(c,43,233,437,397,stage.chapterIndex,profile.selectedAvatar,profile.selectedPalette,visualTime,reducedMotion());
             button(c,"play",44,409,436,473,complete?"CHASE THE STARS":profile.stageWins[0]==0?"START FALLING":"CONTINUE",mint,22);
             copy(c,t("%d of 4 stages complete",UxRules.completedInChapter(profile,stage.chapterIndex)),44,491,300,12,1,muted);
@@ -472,7 +485,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             if(reward>=0){
                 FalleyUi.miniAvatar(c,52,711,17,reward,0,visualTime,reducedMotion());
                 fitText(c,t("Next reward: %s",t(AvatarCatalog.name(reward))),88,705,16,white,348);
-                fitText(c,t("Finish chapter %d to unlock",reward),88,727,13,muted,348);
+                fitText(c,t("%d stages until %s",4-UxRules.completedInChapter(profile,reward-1),t(AvatarCatalog.name(reward))),88,727,13,muted,348);
             }else{FalleyUi.icon(c,"star",51,707,22,gold);fitText(c,"All avatars unlocked",88,708,17,white,348);copy(c,"Chase the stars",88,729,348,13,1,muted);}
             buttons.add(new Hit("wardrobe",24,681,456,736,t("Collection"),true,false,false));
             bottomNav(c,0);
@@ -537,22 +550,29 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
 
         private void drawBrief(Canvas c){
-            StageCatalog.Stage stage=physics.stage;header(c,t("CHAPTER %d",stage.chapterIndex+1));
-            text(c,stage.bossKind>0?"CHAPTER FINALE":"NEXT DESCENT",24,122,13,stage.bossKind>0?gold:mint);
-            fitText(c,stage.title,24,164,30,white,432);
-            copy(c,ChapterStories.intro(stage.chapterIndex),24,194,432,16,3,muted);
-            FalleyUi.chapterScene(c,24,264,456,390,stage.chapterIndex,profile.selectedAvatar,profile.selectedPalette,visualTime,true);
-            copy(c,mechanicCopy(stage),24,418,432,16,3,white);
-            fitText(c,runMirror?"PRACTICE / NO STARS":modifierCopy(stage),24,511,13,runMirror?gold:mint,432);
-            fitText(c,t("PAR %d JUMPS",stage.parJumps),24,536,17,gold,300);drawStars(c,profile.stars[stage.index],365,530,9);
-            text(c,"Choose controls",24,557,13,muted);
-            button(c,"control_touch",24,569,234,631,"TOUCH",!motionEnabled?mint:muted,17);
-            button(c,"control_motion",246,569,456,631,"MOTION",motionEnabled?mint:muted,17);
-            rect(c,24,643,456,699,13,panel);text(c,"Mirror practice",44,667,16,white);copy(c,"No progress or stars",44,688,300,12,1,muted);
-            rect(c,376,658,436,686,14,runMirror?mint:border);circle(c,runMirror?421:391,672,10,runMirror?background:muted);
-            buttons.add(new Hit(runMirror?"standard_run":"mirror_run",24,643,456,699,t("Mirror practice")+". "+t("No progress or stars"),true,true,runMirror));
-            button(c,"begin_campaign",24,718,456,794,"START DROP",mint,22);
+            StageCatalog.Stage stage=physics.stage;
+            header(c,"Before the drop");
+            text(c,t("CHAPTER %d",stage.chapterIndex+1)+" / "+t("STAGE %d",stage.index+1),24,121,13,mint);
+            fitText(c,stage.title,24,161,29,white,432);
+            copy(c,ChapterStories.intro(stage.chapterIndex),24,191,432,15,2,muted);
+            FalleyUi.chapterScene(c,24,238,456,353,stage.chapterIndex,profile.selectedAvatar,profile.selectedPalette,0,true);
+            copy(c,mechanicCopy(stage),24,380,432,15,2,white);
+            text(c,"Three star goals",24,432,12,mint);
+            String[] goals={"Finish",t("Par ≤ %d",stage.parJumps),"Gold centre"};String[] icons={"play","restart","star"};
+            for(int i=0;i<3;i++){float x=24+i*147;rect(c,x,445,x+138,512,12,panel);FalleyUi.icon(c,icons[i],x+69,465,16,gold);center(c,goals[i],x+69,497,13,white);}
+            copy(c,"Finish to progress. Other stars are optional.",24,537,432,13,1,muted);
+            button(c,"control_touch",24,552,234,608,"TOUCH",!motionEnabled?mint:muted,16);
+            button(c,"control_motion",246,552,456,608,"MOTION",motionEnabled?mint:muted,16);
+            copy(c,UxRules.controlCue(motionEnabled),24,633,432,13,1,muted);
+            button(c,"practice_options",24,645,456,689,practiceExpanded?"Hide practice options":"Practice options",muted,14);
+            if(practiceExpanded){
+                rect(c,24,695,456,746,12,panel);text(c,"Mirror practice",40,716,14,white);copy(c,"No progress or stars",40,736,295,12,1,muted);
+                rect(c,377,707,437,733,13,runMirror?mint:border);circle(c,runMirror?423:391,720,9,runMirror?background:muted);
+                buttons.add(new Hit(runMirror?"standard_run":"mirror_run",24,695,456,746,t("Mirror practice")+". "+t("No progress or stars"),true,true,runMirror));
+                button(c,"begin_campaign",24,758,456,812,"START DROP",mint,20);
+            }else button(c,"begin_campaign",24,715,456,794,"START DROP",mint,22);
         }
+
         private String mechanicCopy(StageCatalog.Stage s){
             if(s.bossKind>0)return "Finale: read the machine's warnings, take the safe gap, then land on the target.";
             ArrayList<String> hints=new ArrayList<>();
@@ -576,35 +596,47 @@ public class MainActivity extends Activity implements SensorEventListener {
             return "READ THE WARNINGS";
         }
 
+        private String avatarStyleCopy(int id){String[] styles={"Classic jump","Wings spread on takeoff","Graceful wing flare","Tucked knees","Floating jump pose","Mechanical spring pose","Shadow stretch"};return styles[Math.max(0,Math.min(6,id))];}
         private void drawWardrobe(Canvas c){
-            rootHeader(c,"Collection","Make the fall yours.");String[] tabs={"AVATARS","ROPES","TRAILS","LANDING"};
-            for(int i=0;i<4;i++)button(c,"closet_tab_"+i,24+i*110,122,126+i*110,188,tabs[i],closetTab==i?mint:muted,13);
+            rootHeader(c,"Collection","Avatars and ropes. Make the fall yours.");
+            button(c,"closet_tab_0",24,122,234,180,"AVATARS",closetTab==0?mint:muted,16);
+            button(c,"closet_tab_1",246,122,456,180,"ROPES",closetTab==1?mint:muted,16);
             if(closetTab==0){
+                rect(c,24,194,456,324,17,0xff223b34);
+                float time=reducedMotion()?2:avatarPreviewTime;
+                float y=274-(time<1.1f?(float)Math.sin(time/1.1f*Math.PI)*18:0);
+                float velocity=time<.5f?-240:time<1?180:0;
+                AvatarRenderer.draw(c,88,y,31,velocity,time>1&&time<1.1f?.1f:0,profile.selectedAvatar,profile.selectedPalette);
+                fitText(c,AvatarCatalog.name(profile.selectedAvatar),148,225,24,white,288);
+                copy(c,avatarStyleCopy(profile.selectedAvatar),148,249,288,14,1,muted);
+                button(c,"avatar_preview",148,267,436,313,"PREVIEW JUMP",mint,14);
                 for(int i=0;i<7;i++){
-                    int row=i/3,col=i%3;float left=24+col*148,top=207+row*153;boolean unlocked=Cosmetics.isAvatarUnlocked(profile,i),selected=profile.selectedAvatar==i;
-                    rect(c,left,top,left+136,top+139,15,selected?0xff2c4c43:panel);
-                    AvatarRenderer.draw(c,left+68,top+54,23,0,0,i,0);
-                    paint.setTextAlign(Paint.Align.CENTER);fitText(c,AvatarCatalog.name(i),left+68,top+104,16,unlocked?white:muted,120);fitText(c,selected?"SELECTED":unlocked?"UNLOCKED":t("CHAPTER %d",i),left+68,top+126,11,selected?mint:muted,120);paint.setTextAlign(Paint.Align.LEFT);
-                    buttons.add(new Hit("avatar_"+i,left,top,left+136,top+139,t(AvatarCatalog.name(i))+". "+t(unlocked?"UNLOCKED":"LOCKED"),unlocked,true,selected));
+                    int row=i/3,col=i%3;float left=24+col*148,top=337+row*115;boolean unlocked=Cosmetics.isAvatarUnlocked(profile,i),selected=profile.selectedAvatar==i;
+                    rect(c,left,top,left+136,top+105,13,selected?0xff2c4c43:panel);
+                    AvatarRenderer.draw(c,left+68,top+42,16,0,0,i,0);
+                    if(!unlocked)drawLock(c,left+119,top+11,muted);
+                    paint.setTextAlign(Paint.Align.CENTER);fitText(c,AvatarCatalog.name(i),left+68,top+75,15,unlocked?white:muted,120);fitText(c,selected?"SELECTED":unlocked?"UNLOCKED":t("CHAPTER %d",i),left+68,top+96,11,selected?mint:muted,120);paint.setTextAlign(Paint.Align.LEFT);
+                    buttons.add(new Hit("avatar_"+i,left,top,left+136,top+105,t(AvatarCatalog.name(i))+". "+t(unlocked?"UNLOCKED":"LOCKED"),unlocked,true,selected));
                 }
-                copy(c,"A new avatar for every chapter finale.",24,704,432,15,2,muted);
+                copy(c,"Jump style only. Same physics and hitbox.",24,710,432,13,1,muted);
             }else{
-                int selected=closetTab==1?profile.selectedPalette:closetTab==2?profile.selectedTrail:profile.selectedLanding;
-                for(int i=0;i<4;i++){
-                    String name=closetTab==1?Cosmetics.paletteName(i):closetTab==2?Cosmetics.trailName(i):Cosmetics.landingName(i);
-                    int need=closetTab==1?Cosmetics.paletteStars(i):closetTab==2?Cosmetics.trailStars(i):Cosmetics.landingStars(i);
-                    boolean unlocked=closetTab==1?Cosmetics.isPaletteUnlocked(profile,i):closetTab==2?Cosmetics.isTrailUnlocked(profile,i):Cosmetics.isLandingUnlocked(profile,i);
-                    float top=213+i*111;rect(c,24,top,456,top+94,15,selected==i?0xff2c4c43:panel);
-                    fitText(c,name,44,top+34,23,unlocked?white:muted,268);text(c,selected==i?"SELECTED":unlocked?"UNLOCKED":t("%d STARS",need),44,top+68,13,selected==i?mint:muted);
-                    int color=appearanceColor(i);if(closetTab==1){line(c,337,top+46,423,top+46,color,5);circle(c,337,top+46,5,color);circle(c,423,top+46,5,color);}
-                    else if(closetTab==2){for(int k=0;k<5;k++)circle(c,340+k*17,top+46,(k+1)*1.6f,color);}
-                    else{for(int k=1;k<4;k++){paint.setStyle(Paint.Style.STROKE);paint.setColor(color);paint.setStrokeWidth(2);c.drawCircle(383,top+46,k*8,paint);}paint.setStyle(Paint.Style.FILL);}
-                    buttons.add(new Hit("look_"+i,24,top,456,top+94,t(name)+". "+t(unlocked?"UNLOCKED":"LOCKED"),unlocked,true,selected==i));
+                for(int i=0;i<RopeCatalog.COUNT;i++){
+                    float top=206+i*148;boolean unlocked=profile.totalStars()>=RopeCatalog.requiredStars(i),selected=profile.selectedRope==i;
+                    rect(c,24,top,456,top+134,16,selected?0xff2c4c43:panel);
+                    fitText(c,RopeCatalog.name(i),44,top+31,24,unlocked?white:muted,285);
+                    copy(c,RopeCatalog.description(i),44,top+58,350,14,2,muted);
+                    fitText(c,selected?"SELECTED":unlocked?"UNLOCKED":t("%d STARS",RopeCatalog.requiredStars(i)),44,top+116,13,selected?mint:muted,270);
+                    int color=RopeCatalog.color(i);line(c,348,top+111,426,top+111,color,4);
+                    if(i==RopeCatalog.STATIC){line(c,382,top+101,393,top+110,color,2);line(c,393,top+110,380,top+121,color,2);}
+                    if(!unlocked)drawLock(c,426,top+19,muted);
+                    buttons.add(new Hit("rope_"+i,24,top,456,top+134,t(RopeCatalog.name(i))+". "+t(RopeCatalog.description(i))+". "+t(unlocked?"UNLOCKED":"LOCKED"),unlocked,true,selected));
                 }
-                text(c,t("%d / %d STARS",profile.totalStars(),72),24,704,16,gold);
+                copy(c,"Campaign abilities. Daily and Arcade use Classic.",24,687,432,14,2,muted);
+                fitText(c,t("%d / %d STARS",profile.totalStars(),72),24,727,14,gold,432);
             }
             bottomNav(c,1);
         }
+
         private void toggleRow(Canvas c,String id,String title,float top,boolean value,boolean available) {
             rect(c,24,top,456,top+74,9,panel); fitText(c,title,44,top+44,18,available ? white : muted,310);
             rect(c,376,top+23,436,top+51,14,value && available ? mint : border);
@@ -621,29 +653,39 @@ public class MainActivity extends Activity implements SensorEventListener {
         private void drawSettings(Canvas c) {
             boolean paused=settingsReturn==PAUSE;
             if(paused){header(c,"SETTINGS");copy(c,"Your way to play.",24,108,432,14,1,muted);}else rootHeader(c,"Settings","Your way to play.");
-            compactToggle(c,"motion","Motion steering",120,70,motionEnabled,hasMotion);
-            text(c,"MOTION FEEL",24,212,13,muted);
-            for(int i=0;i<3;i++)button(c,"preset_"+i,24+i*146,224,Math.min(456,164+i*146),286,PRESETS[i],profile.preset==i?mint:muted,14);
+            compactToggle(c,"motion","Motion steering",120,60,motionEnabled,hasMotion);
+            text(c,"MOTION FEEL",24,202,12,muted);
+            for(int i=0;i<3;i++)button(c,"preset_"+i,24+i*146,214,Math.min(456,164+i*146),268,PRESETS[i],profile.preset==i?mint:muted,14);
             String detail=profile.preset==0?"Quick response. Small tilts move you more.":profile.preset==2?"Calmer response. More tilt, less movement.":"A steady balance of response and control.";
-            copy(c,detail,24,312,432,14,2,muted);
-            copy(c,!hasMotion?"No sensor available. Swipe left or right to steer.":!motionEnabled?"Motion is off. Swipe left or right to steer.":!motion.hasSample()?"Waiting for a sensor reading...":"Your hold centers at every start and resume.",24,354,432,12,1,muted);
-            rect(c,24,368,456,432,13,panel);text(c,"Language",44,408,20,white);paint.setTextAlign(Paint.Align.RIGHT);fitText(c,FalleyStrings.languageName(profile.language),436,407,16,mint,210);paint.setTextAlign(Paint.Align.LEFT);
-            buttons.add(new Hit("language",24,368,456,432,t("Language")+". "+FalleyStrings.languageName(profile.language),true,false,false));
-            compactToggle(c,"sound","Sound Effects",444,64,profile.sound,true);
-            compactToggle(c,"haptics","Vibration",520,64,profile.haptics,true);
-            compactToggle(c,"blood","Blood Effects",596,64,profile.blood,true);
+            copy(c,detail,24,290,432,13,1,muted);
+            copy(c,!hasMotion?"No sensor available. Swipe left or right to steer.":!motionEnabled?"Motion is off. Swipe left or right to steer.":!motion.hasSample()?"Waiting for a sensor reading...":"Your hold centers at every start and resume.",24,319,432,12,1,muted);
+            rect(c,24,333,456,391,13,panel);text(c,"Language",44,369,18,white);paint.setTextAlign(Paint.Align.RIGHT);fitText(c,FalleyStrings.languageName(profile.language),436,368,15,mint,210);paint.setTextAlign(Paint.Align.LEFT);
+            buttons.add(new Hit("language",24,333,456,391,t("Language")+". "+FalleyStrings.languageName(profile.language),true,false,false));
+            compactToggle(c,"music","Retro music",403,56,profile.music,true);
+            compactToggle(c,"sound","Sound Effects",470,56,profile.sound,true);
+            compactToggle(c,"haptics","Vibration",537,56,profile.haptics,true);
+            compactToggle(c,"blood","Blood Effects",604,56,profile.blood,true);
             button(c,"help",24,672,234,736,"HOW TO PLAY",white,15);button(c,"privacy",246,672,456,736,"PRIVACY POLICY",white,15);
             if(paused)button(c,"back",24,744,456,816,"BACK TO PAUSE",mint,17);else bottomNav(c,2);
         }
         private void drawLanguage(Canvas c) {
-            header(c,"LANGUAGE");
-            for (int i = 0; i < 3; i++) {
-                float top = 190+i*96;
-                button(c,"language_"+i,24,top,456,top+74,FalleyStrings.languageName(i),profile.language == i ? mint : white,21);
-                if (profile.language == i) circle(c,426,top+37,5,mint);
+            boolean first=!profile.languageConfirmed;
+            if(first){rootHeader(c,"Choose your language","English is selected by default.");}else header(c,"LANGUAGE");
+            copy(c,"You can change this anytime in Settings.",24,145,432,16,2,muted);
+            if(!countryHint.country.isEmpty()){
+                String region=new Locale("",countryHint.country).getDisplayCountry(languageLocale());
+                fitText(c,t("Region hint: %s",region),24,204,15,mint,432);
             }
-            button(c,"back",24,734,456,808,"DONE",mint,17);
+            for(int i=0;i<3;i++){
+                float top=234+i*108;
+                button(c,"language_"+i,24,top,456,top+84,FalleyStrings.languageName(i),profile.language==i?mint:white,22);
+                if(profile.language==i)circle(c,426,top+42,5,mint);
+                if(!countryHint.country.isEmpty()&&i==countryHint.suggestedLanguage())fitText(c,"Available for your region",40,top+74,11,muted,370);
+            }
+            copy(c,"Your choice stays on this device.",24,609,432,15,2,muted);
+            button(c,"language_done",24,734,456,808,first?"CONTINUE":"DONE",mint,19);
         }
+
         private void drawHelp(Canvas c) {
             header(c,"HOW TO PLAY");
             button(c,"help_touch",24,132,234,206,"TOUCH",!helpMotion ? mint : muted,17);
@@ -697,7 +739,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         private String helpTip() {
             if(helpPage==3)return "Leave room below the lethal ceiling. One-jump stages allow one jump per burst, then descent restores it.";
             if(helpPage==4)return "Each chapter ends with a machine finale. Follow its warnings and safe gap. Mirror Practice is optional and awards no stars.";
-            if(helpPage==5)return "Daily Drop refreshes at 00:00 UTC. Complete chapters for avatars; collect stars for ropes, trails and landing effects.";
+            if(helpPage==5)return "Daily Drop refreshes at 00:00 UTC. Complete chapters for avatars; collect stars for rope abilities.";
             if (helpPage == 0) return helpMotion ? "Tap the arena or JUMP to jump. You can still swipe to take over steering briefly." :
                     "Tap the arena or JUMP to jump. Watch the burst and total jump counters.";
             if (helpPage == 1) return "Campaign has a total jump budget for each stage. Recovery refills the burst, not the total. Arcade has no total limit.";
@@ -860,7 +902,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 line(c,x,TOP+3,x+5,TOP+9,coral,1.5f);
             drawFloor(c); drawMechanisms(c);
             for (int j = 0; j < physics.ropes.length; j++) {
-                Physics.Rope rope = physics.ropes[j]; int color = rope.fragile ? gold : profile.selectedPalette == 0 ? (j%2 == 0 ? mint : 0xffac9eef) : appearanceColor(profile.selectedPalette);
+                Physics.Rope rope = physics.ropes[j]; int color = rope.fragile ? gold : physics.effectiveRope()==RopeCatalog.CLASSIC ? (j%2==0?mint:0xffac9eef) : RopeCatalog.color(physics.effectiveRope());
                 float tension = clamp(rope.tension,0,1);
                 path.reset(); path.moveTo(rope.x[0],rope.y[0]-physics.cameraY);
                 for (int i = 1; i < rope.x.length; i++) {
@@ -880,14 +922,6 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
             drawFireHazards(c); drawBeamHazards(c); drawSawHazards(c);
             if (!physics.lost) {
-                for (int k = 0; k < trailX.length; k++) {
-                    int i = (trailIndex+k)%trailX.length;
-                    if (trailValid[i] && profile.selectedTrail>0) {
-                        int tint=appearanceColor(profile.selectedTrail);float tx=trailX[i],ty=trailY[i]-physics.cameraY;
-                        circle(c,tx,ty,1.5f+k*(profile.selectedTrail==2?.20f:.1f),(tint&0xffffff)|((k*4)<<24));
-                        if(profile.selectedTrail==3)line(c,tx-2,ty,tx+2,ty,(gold&0xffffff)|((k*5)<<24),1);
-                    }
-                }
                 drawHuman(c,physics.x,physics.y-physics.cameraY,physics.radius(),physics.vy,physics.landingPulse);
             }
             drawDeath(c);
@@ -972,17 +1006,10 @@ public class MainActivity extends Activity implements SensorEventListener {
                 float x = middle+(i-2)*gap;
                 rect(c,x-barWidth/2,y+18,x+barWidth/2,y+23,2,0xff273f38);
             }
-            int landingColor=appearanceColor(profile.selectedLanding);
+            int landingColor=mint;
             circle(c,middle,y+7,16,0xff29584d); circle(c,middle,y+7,11,landingColor); circle(c,middle,y+7,4,background);
             float precise=physics.targetWidth()*FalleyProfile.PRECISION_FRACTION;
             line(c,middle-precise/2,y-7,middle+precise/2,y-7,gold,3);
-            if(physics.won && profile.selectedLanding>0){
-                float radius=20+physics.winTime*65;
-                for(int k=0;k<profile.selectedLanding+1;k++){
-                    paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(2);paint.setColor(landingColor);c.drawCircle(middle,y+7,Math.max(2,radius-k*15),paint);
-                }paint.setStyle(Paint.Style.FILL);
-                if(profile.selectedLanding>=2)for(int k=0;k<10;k++){double a=k*Math.PI/5;line(c,middle+(float)Math.cos(a)*radius,y+7+(float)Math.sin(a)*radius,middle+(float)Math.cos(a)*(radius+8),y+7+(float)Math.sin(a)*(radius+8),landingColor,2);}
-            }
             center(c,"LAND HERE",middle,y-21,13,mint);
         }
         private int hazardColor() {
@@ -1217,7 +1244,9 @@ public class MainActivity extends Activity implements SensorEventListener {
             text(c,"JUMP",44,774,19,ready?gold:muted);
             for(int i=0;i<physics.maxBurstJumps();i++)circle(c,194+i*26,770,8,i<physics.jumpsRemaining()?gold:border);
             paint.setTextAlign(Paint.Align.RIGHT);fitText(c,remaining<0?"NO TOTAL LIMIT":t("%d jumps left",remaining),436,774,14,muted,160);paint.setTextAlign(Paint.Align.LEFT);
-            fitText(c,status,44,797,12,remaining==0?coral:muted,392);
+            String ability=physics.staticJumpReady?"Static charged: next jump 0.8×":physics.ropeAbilityTime>0&&physics.effectiveRope()==RopeCatalog.STATIC?"Static current":physics.effectiveRope()==RopeCatalog.SPRING?"Spring rebound 1.5×":"";
+            String feedback=t(status)+(remaining!=0&&!ability.isEmpty()?" / "+t(ability):"");
+            fitText(c,feedback,44,797,12,remaining==0?coral:physics.staticJumpReady?mint:muted,392);
             float progress=remaining==0?0:physics.jumpsRemaining()==0?physics.burstRecoveryProgress():1-clamp(physics.jumpRemaining()/.30f,0,1);
             rect(c,44,804,436,808,2,0x44f6d477);rect(c,44,804,44+392*progress,808,2,ready?gold:mint);
         }
@@ -1250,37 +1279,49 @@ public class MainActivity extends Activity implements SensorEventListener {
                 button(c,"resume",74,308,406,382,"RESUME",mint,20);button(c,"restart",74,394,406,468,"RESTART",white,18);
                 button(c,"settings",74,480,234,554,"SETTINGS",white,15);button(c,"home",246,480,406,554,"HOME",muted,15);return;
             }
+            if(!physics.won){
+                rect(c,24,188,456,718,21,panel);
+                center(c,physics.arcade?"RUN ENDED":"FALL ENDED",240,237,31,coral);
+                center(c,t("HIT BY %s",t(physics.deathReason)),240,276,19,white);
+                String progress=physics.arcade?t("WAVE %d",physics.wave):t("%d%% OF THE DROP",Math.max(0,Math.min(100,(int)(100*(physics.y-310)/(physics.groundY()-physics.radius()-310)))));
+                center(c,progress,240,307,15,muted);
+                text(c,"Try this",44,350,13,mint);copy(c,UxRules.deathTip(physics.deathReason),44,381,392,18,3,white);
+                center(c,t("SCORE %d",physics.score)+" / "+t("%.1fs / %d JUMPS",physics.elapsed,physics.jumpsUsed()),240,459,14,muted);
+                if(physics.daily){
+                    button(c,"share_daily",44,481,436,535,"SHARE RESULT",white,16);
+                    button(c,"restart",44,547,436,613,"TRY AGAIN",mint,20);
+                    button(c,"daily",44,625,234,689,"DAILY DROP",white,15);button(c,"home",246,625,436,689,"HOME",muted,16);
+                }else{
+                    button(c,"restart",44,491,436,561,"TRY AGAIN",mint,21);
+                    button(c,physics.arcade?"arcade":"chapters",44,577,234,641,physics.arcade?"CHANGE SETUP":"CHAPTERS",white,15);
+                    button(c,"home",246,577,436,641,"HOME",muted,17);
+                    if(runMirror)center(c,"PRACTICE / NO STARS",240,684,13,muted);
+                }
+                return;
+            }
             rect(c,24,128,456,812,21,panel);
-            center(c,physics.won?"LANDED!":physics.arcade?"RUN ENDED":"FALL ENDED",240,180,32,physics.won?mint:coral);
-            center(c,physics.won?"A soft landing. A good bounce.":t("HIT BY %s",t(physics.deathReason)),240,216,15,white);
-            center(c,t("SCORE %d",physics.score),240,262,28,gold);
-            center(c,t("%.1fs / %d JUMPS",physics.elapsed,physics.jumpsUsed()),240,292,14,muted);
+            int fresh=Integer.bitCount(resultStarsNew);
+            boolean campaign=!physics.daily&&!physics.arcade&&!runMirror;
+            center(c,campaign&&fresh>0?(fresh==1?t("1 NEW STAR"):t("%d NEW STARS",fresh)):"LANDED!",240,182,31,mint);
+            if(campaign)drawStars(c,profile.stars[physics.stage.index],202,226,14);
+            else center(c,"A soft landing. A good bounce.",240,221,15,white);
+            center(c,t("SCORE %d",physics.score),240,270,20,gold);
+            center(c,t("%.1fs / %d JUMPS",physics.elapsed,physics.jumpsUsed()),240,298,13,muted);
             if(physics.daily){
-                center(c,DailyDrop.courseId(runDailyDay),240,343,17,mint);center(c,runControl==2?"MIXED CONTROLS":runControl==1?"MOTION":"TOUCH",240,375,13,muted);
-                center(c,t("STREAK %d / BEST %d",profile.dailyStreak,profile.dailyBestStreak),240,426,22,gold);
-                if(!physics.won)copy(c,UxRules.deathTip(physics.deathReason),44,468,392,16,3,white);
-                button(c,"share_daily",60,528,420,594,"SHARE RESULT",white,17);
-                button(c,"restart",44,624,436,694,"TRY AGAIN",mint,20);
+                center(c,DailyDrop.courseId(runDailyDay),240,351,17,mint);center(c,runControl==2?"MIXED CONTROLS":runControl==1?"MOTION":"TOUCH",240,385,13,muted);
+                center(c,t("STREAK %d / BEST %d",profile.dailyStreak,profile.dailyBestStreak),240,440,22,gold);
+                button(c,"share_daily",60,528,420,594,"SHARE RESULT",white,17);button(c,"restart",44,624,436,694,"TRY AGAIN",mint,20);
                 button(c,"daily",44,706,234,780,"DAILY DROP",white,16);button(c,"home",246,706,436,780,"HOME",muted,17);
-            }else if(physics.arcade){
-                center(c,t("WAVE %d",physics.wave),240,347,19,mint);center(c,t("ARCADE BEST %d",profile.arcadeBest[physics.arcadeDifficulty]),240,388,20,gold);
-                copy(c,UxRules.deathTip(physics.deathReason),44,449,392,17,3,white);
-                button(c,"restart",44,624,436,694,"TRY AGAIN",mint,20);
-                button(c,"arcade",44,706,234,780,"CHANGE SETUP",white,15);button(c,"home",246,706,436,780,"HOME",muted,17);
             }else{
-                boolean hasNext=physics.won&&!runMirror&&profile.isStageUnlocked(physics.stage.index+1);
-                if(physics.won&&!runMirror){
+                boolean hasNext=!runMirror&&profile.isStageUnlocked(physics.stage.index+1);
+                if(campaign){
                     masteryRows(c);
                     if(physics.stage.bossKind>0){copy(c,ChapterStories.outro(physics.stage.chapterIndex),44,544,392,14,2,mint);fitText(c,t("UNLOCKED: %s",t(AvatarCatalog.name(physics.stage.chapterIndex+1))),44,599,15,gold,392);}
-                    else copy(c,"Stars combine across your best runs.",44,561,392,15,2,muted);
-                }else if(runMirror&&physics.won){
-                    center(c,"Practice only",240,356,24,mint);FalleyUi.miniAvatar(c,240,438,38,profile.selectedAvatar,profile.selectedPalette,0,true);copy(c,"Practice does not award stars.",44,539,392,17,3,muted);
+                    else {int reward=UxRules.nextRewardAvatar(profile);copy(c,reward<0?"Chase the stars":t("%d stages until %s",4-UxRules.completedInChapter(profile,reward-1),t(AvatarCatalog.name(reward))),44,561,392,16,2,mint);}
                 }else{
-                    copy(c,UxRules.deathTip(physics.deathReason),44,350,392,19,4,white);
-                    center(c,runMirror?"PRACTICE / NO STARS":t("PAR %d JUMPS",physics.stage.parJumps),240,477,17,muted);
-                    copy(c,runMirror?"Practice does not award stars.":"Stars combine across your best runs.",44,535,392,15,3,muted);
+                    center(c,"Practice only",240,356,24,mint);FalleyUi.miniAvatar(c,240,438,38,profile.selectedAvatar,profile.selectedPalette,0,true);copy(c,"Practice does not award stars.",44,539,392,17,3,muted);
                 }
-                button(c,hasNext?"next_stage":"restart",44,624,436,694,hasNext?"NEXT STAGE":physics.won?"REPLAY":"TRY AGAIN",mint,20);
+                button(c,hasNext?"next_stage":"restart",44,624,436,694,hasNext?"NEXT STAGE":"REPLAY",mint,20);
                 button(c,hasNext?"restart":"chapters",44,706,234,780,hasNext?"REPLAY":"CHAPTERS",white,16);button(c,"home",246,706,436,780,"HOME",muted,17);
             }
         }
@@ -1306,12 +1347,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         private void enterHome() { owner.stopEffects(); screen = HOME; homeElapsed = 0; clearTouch(); }
         private void restart() {
+            physics.configureRope(profile.selectedRope);
             if(physics.daily)physics.resetDaily(DailyDrop.seed(runDailyDay));else physics.reset();beginRun();
         }
         private void startCampaign() {
             if (!profile.isStageUnlocked(profile.selectedStage)) return;
             briefReturn=screen==CHAPTERS?CHAPTERS:HOME;
-            runMirror=false;runDailyDay=DailyDrop.NO_DAY;physics.reset(profile.selectedStage);screen=BRIEF;clearTouch();
+            runMirror=false;practiceExpanded=false;runDailyDay=DailyDrop.NO_DAY;physics.configureRope(profile.selectedRope);physics.reset(profile.selectedStage);screen=BRIEF;clearTouch();
         }
         private void openDaily(){
             long day=DailyDrop.today();dailyClockValid=DailyDrop.validDay(day)&&day>=profile.lastObservedDay;profile.beginDaily(day);saveProfile();screen=DAILY;clearTouch();
@@ -1335,7 +1377,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             if (screen == PLAY) { owner.stopEffects(); screen = PAUSE; }
             else if (screen == PAUSE) { resumeMotion(); screen = PLAY; }
             else if (screen == PRIVACY) screen = SETTINGS;
-            else if(screen==LANGUAGE)screen=SETTINGS;
+            else if(screen==LANGUAGE){if(!profile.languageConfirmed)return;screen=SETTINGS;}
             else if(screen==HELP)screen=helpReturn;
             else if(screen==BRIEF)screen=briefReturn;
             else if (screen == SETTINGS) { if (settingsReturn == PLAY) resumeMotion(); screen = settingsReturn; }
@@ -1349,14 +1391,11 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if(id.equals("start_daily"))startDaily();
             else if(id.equals("share_daily") && screen==RESULT && physics.daily)DailyShare.send(owner,physics,runDailyDay,runControl,profile.selectedAvatar,profile.language);
             else if(id.equals("wardrobe")){if(screen!=WARDROBE)closetTab=0;screen=WARDROBE;clearTouch();}
-            else if(id.startsWith("closet_tab_"))closetTab=Math.max(0,Math.min(3,Integer.parseInt(id.substring(11))));
+            else if(id.startsWith("closet_tab_"))closetTab=Math.max(0,Math.min(1,Integer.parseInt(id.substring(11))));
+            else if(id.equals("avatar_preview")){avatarPreviewTime=0;}
             else if(id.startsWith("avatar_")){int choice=Integer.parseInt(id.substring(7));if(Cosmetics.isAvatarUnlocked(profile,choice)){profile.selectedAvatar=choice;saveProfile();}}
-            else if(id.startsWith("look_")){
-                int choice=Integer.parseInt(id.substring(5));
-                if(closetTab==1&&Cosmetics.isPaletteUnlocked(profile,choice))profile.selectedPalette=choice;
-                if(closetTab==2&&Cosmetics.isTrailUnlocked(profile,choice))profile.selectedTrail=choice;
-                if(closetTab==3&&Cosmetics.isLandingUnlocked(profile,choice))profile.selectedLanding=choice;saveProfile();
-            }
+            else if(id.startsWith("rope_")){int choice=RopeCatalog.normalize(Integer.parseInt(id.substring(5)));if(profile.totalStars()>=RopeCatalog.requiredStars(choice)){profile.selectedRope=choice;saveProfile();}}
+            else if(id.equals("practice_options")&&screen==BRIEF)practiceExpanded=!practiceExpanded;
             else if(id.equals("begin_campaign")&&screen==BRIEF)beginRun();
             else if((id.equals("control_touch")||id.equals("control_motion"))&&screen==BRIEF){boolean wanted=id.equals("control_motion");if((!wanted||hasMotion)&&motionEnabled!=wanted)owner.toggleMotion();}
             else if(id.equals("standard_run")&&screen==BRIEF)runMirror=false;
@@ -1395,6 +1434,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (id.equals("privacy_web") && screen == PRIVACY) owner.openPrivacyLink(false);
             else if (id.equals("privacy_email") && screen == PRIVACY) owner.openPrivacyLink(true);
             else if (id.equals("language")) { screen = LANGUAGE; clearTouch(); }
+            else if(id.equals("language_done")){boolean first=!profile.languageConfirmed;profile.languageConfirmed=true;saveProfile();if(first)enterHome();else screen=SETTINGS;}
             else if (id.startsWith("language_")) { profile.language = FalleyStrings.sanitize(Integer.parseInt(id.substring(9))); saveProfile(); }
             else if (id.equals("back")) back();
             else if (id.equals("pause")) { owner.stopEffects(); screen = PAUSE; clearTouch(); }
@@ -1405,10 +1445,11 @@ public class MainActivity extends Activity implements SensorEventListener {
                 profile.preset = Integer.parseInt(id.substring(7));
                 motion.setPreset(profile.preset); saveProfile();
             }
+            else if(id.equals("music")){profile.music=!profile.music;owner.setMusicEnabled(profile.music);saveProfile();}
             else if (id.equals("sound")) { profile.sound = !profile.sound; owner.setSoundEnabled(profile.sound); saveProfile(); }
             else if (id.equals("haptics")) { profile.haptics = !profile.haptics; saveProfile(); }
             else if (id.equals("blood")) { profile.blood = !profile.blood; saveProfile(); }
-            cue(0); accumulator = 0; invalidate(); menuAccessibility.contentChanged();
+            owner.updateMusic(); cue(0); accumulator = 0; invalidate(); menuAccessibility.contentChanged();
         }
         @Override public boolean performClick() { super.performClick(); return true; }
         @Override public AccessibilityNodeProvider getAccessibilityNodeProvider() { return menuAccessibility; }
@@ -1450,6 +1491,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                 if (screen == HELP) return t(helpMotion ? "MOTION" : "TOUCH")+". "+t(helpTitle())+". "+t(helpExplanation())+" "+t(helpTip());
                 if(screen==BRIEF)return t(physics.stage.title)+". "+t(ChapterStories.intro(physics.stage.chapterIndex))+" "+t(mechanicCopy(physics.stage))+" "+t("PAR %d JUMPS",physics.stage.parJumps);
                 if(screen==DAILY)return DailyDrop.courseId(DailyDrop.today())+". "+t("NEW COURSE AT 00:00 UTC")+". "+t("STREAK %d / BEST %d",profile.dailyStreak,profile.dailyBestStreak);
+                if(screen==LANGUAGE)return t("Choose your language")+". "+(!profile.languageConfirmed?t("English is selected by default.")+" ":"")+t("Your choice stays on this device.");
+                if(screen==WARDROBE)return t("Collection")+". "+t("Campaign abilities. Daily and Arcade use Classic.");
                 if(screen==PLAY&&!contextCue.isEmpty())return t(contextCue);
                 if(screen==RESULT){
                     String result=physics.won?t("Landed. Score %d. %.1f seconds.",physics.score,physics.elapsed):t("Run ended. Hit by %s. Score %d. %.1f seconds.",t(physics.deathReason),physics.score,physics.elapsed)+" "+t(UxRules.deathTip(physics.deathReason));

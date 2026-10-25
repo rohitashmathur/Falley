@@ -17,7 +17,7 @@ Prepared 17 October 2026. Android only, offline and ad-free. Source publication 
 
 Source release metadata is **3.3.0 / code 10**, package `com.perfgames.falley`, minimum API 24 and compile/target API 36.
 
-The compatible debug test build is **3.3.0-controls-test / code 10**, package `com.perfgames.falley.motiontest`, label **Falley Motion Test**. It updates the earlier motion-test app and preserves its preferences/records. The production package is separate. Debug APK: `C:\Users\mathu\Documents\Codex\2026-10-17\Falley-3.3.0\Falley-3.3.0-debug.apk`, 341,456 bytes, SHA-256 `62AE017D69D6752E3CE8EC0F8D48F97311CCB7F01E475E6D1DE821B7F8DF6AE4`; v2/v3 signatures pass.
+The compatible debug test build is **3.3.0-controls-test / code 10**, package `com.perfgames.falley.motiontest`, label **Falley Motion Test**. It updates the earlier motion-test app and preserves its preferences/records. The production package is separate. Debug APK: `C:\local-delivery\2026-10-17\Falley-3.3.0\Falley-3.3.0-debug.apk`, 341,456 bytes, SHA-256 `62AE017D69D6752E3CE8EC0F8D48F97311CCB7F01E475E6D1DE821B7F8DF6AE4`; v2/v3 signatures pass.
 
 From the source repository with JDK 17, SDK platform 36/build-tools 35.0.0:
 
@@ -49,7 +49,7 @@ Raw native evidence: `build/device/revision-330/debug-api35/{small,tall}` and `r
 
 Release generation passes `lintRelease` (**0 errors, 9 warnings**) and `bundleRelease`; bundletool 1.18.3 validation, strict JAR verification, all 24 payload certificate checks, APK v2/v3 signatures and 16 KiB alignment also pass. Existing ZIP/archive-order warnings from jarsigner are retained in the log; this is not a zero-warning claim. The preserved public upload-certificate SHA-256 is `16cc163611d6a0b2f13474470ed8328e7e5093ba8c5af34ef0701ebf423f9caa`.
 
-The bundle embeds application source revision **`f4b3a5abc465fffd50f1e904e593914bf11efb7d`**. The later evidence/documentation commit leaves application source unchanged. Local release files are under `C:\Users\mathu\Documents\Codex\2026-10-17\Falley-3.3.0\release\`:
+The bundle embeds application source revision **`f4b3a5abc465fffd50f1e904e593914bf11efb7d`**. The later evidence/documentation commit leaves application source unchanged. Local release files are under `C:\local-delivery\2026-10-17\Falley-3.3.0\release\`:
 
 | File | Bytes | SHA-256 |
 | --- | ---: | --- |

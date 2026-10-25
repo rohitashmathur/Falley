@@ -16,7 +16,7 @@ This update is for owner phone testing. Source changes remain uncommitted and un
 
 The test app uses `com.perfgames.falley.motiontest`, the same package and local debug identity as the earlier motion test, so it can update that app while preserving its choices and records. The normal Falley installation is separate. The source release metadata remains 3.2.0/code 7; the portable builder overrides metadata for this local build.
 
-Built local artifact: `C:\Users\mathu\Documents\Codex\2026-10-17\Falley-Campaign-Languages-Test\Falley-Campaign-debug.apk`, version **3.2.0-campaign-test / code 9**, **337,360 bytes**. SHA-256: `4C83BD6992A886C93E3DDC86F8AF2057D0223A0D48AD0495DA0F59142CAF8A7A`. APK v2/v3 signature checks pass. Manifest inspection confirms debuggable, API 24 minimum/API 36 target, optional motion sensors and no requested permissions. Source remains based on `2010f4e618424f31ae6b9e59b28ee0a3e09f0739` with local changes.
+Built local artifact: `C:\local-delivery\2026-10-17\Falley-Campaign-Languages-Test\Falley-Campaign-debug.apk`, version **3.2.0-campaign-test / code 9**, **337,360 bytes**. SHA-256: `4C83BD6992A886C93E3DDC86F8AF2057D0223A0D48AD0495DA0F59142CAF8A7A`. APK v2/v3 signature checks pass. Manifest inspection confirms debuggable, API 24 minimum/API 36 target, optional motion sensors and no requested permissions. Source remains based on `2010f4e618424f31ae6b9e59b28ee0a3e09f0739` with local changes.
 
 Run from the repository root with JDK 17, SDK platform 36 and build-tools 35.0.0:
 

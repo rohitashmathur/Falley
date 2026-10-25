@@ -5,7 +5,8 @@ public final class FalleyProfile {
     public static final int PROGRESSION_VERSION = 2;
     public static final int COMPLETE = 1, PAR = 2, PRECISION = 4, ALL_STARS = 7;
     public static final float PRECISION_FRACTION = .35f;
-    public boolean motion = true, sound = true, haptics = true;
+    public boolean motion = true, sound = true, haptics = true, music = true;
+    public boolean languageConfirmed;
     public int preset = MotionSteering.LOOSE, bestScore, wins;
     public int language = FalleyStrings.ENGLISH;
     public float fastestWin;
@@ -15,11 +16,13 @@ public final class FalleyProfile {
     public final int[] stars = new int[StageCatalog.COUNT];
     public int progressionVersion = PROGRESSION_VERSION;
     public int selectedAvatar, selectedPalette, selectedTrail, selectedLanding;
+    public int selectedRope;
     public long dailyDay = DailyDrop.NO_DAY, lastDailyCompletedDay = DailyDrop.NO_DAY,
             lastObservedDay = DailyDrop.NO_DAY;
     public int dailyBestScore, dailyAttempts, dailyWins, dailyBestJumps = -1,
             dailyBestControlMode = DailyDrop.TOUCH, dailyStreak, dailyBestStreak;
     public float dailyBestTime;
+    public int dailyGeneratorVersion=DailyDrop.GENERATOR_VERSION;
     public boolean blood = true;
     public int arcadeDifficulty = 1, arcadeHazards = ArcadeRules.ALL;
     public final int[] arcadeBest = new int[3], arcadeRuns = new int[3];
@@ -47,8 +50,14 @@ public final class FalleyProfile {
         selectedStage = Math.max(0, Math.min(highestUnlockedStage(), selectedStage));
         if (!Cosmetics.isAvatarUnlocked(this, selectedAvatar)) selectedAvatar = AvatarCatalog.HUMAN;
         if (!Cosmetics.isPaletteUnlocked(this, selectedPalette)) selectedPalette = 0;
+        selectedRope=RopeCatalog.normalize(selectedRope);
+        if(totalStars()<RopeCatalog.requiredStars(selectedRope))selectedRope=RopeCatalog.CLASSIC;
         if (!Cosmetics.isTrailUnlocked(this, selectedTrail)) selectedTrail = 0;
         if (!Cosmetics.isLandingUnlocked(this, selectedLanding)) selectedLanding = 0;
+        if(dailyGeneratorVersion!=DailyDrop.GENERATOR_VERSION){
+            dailyBestScore=dailyAttempts=dailyWins=0;dailyBestJumps=-1;dailyBestTime=0;dailyBestControlMode=DailyDrop.TOUCH;
+            dailyGeneratorVersion=DailyDrop.GENERATOR_VERSION;
+        }
         if (!DailyDrop.validDay(dailyDay)) dailyDay = DailyDrop.NO_DAY;
         if (!DailyDrop.validDay(lastDailyCompletedDay)) lastDailyCompletedDay = DailyDrop.NO_DAY;
         if (!DailyDrop.validDay(lastObservedDay)) lastObservedDay = DailyDrop.NO_DAY;

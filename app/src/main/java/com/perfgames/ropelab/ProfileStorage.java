@@ -5,6 +5,9 @@ import android.content.SharedPreferences;
 /** Versioned local save format; preserves the old twelve-stage campaign. */
 final class ProfileStorage {
     static void load(SharedPreferences s,FalleyProfile p) {
+        p.music=s.getBoolean("music",true);
+        p.languageConfirmed=s.getBoolean("language_confirmed",s.contains("language"));
+        p.selectedRope=s.getInt("rope_type",0);
         p.motion=s.getBoolean("motion",true); p.sound=s.getBoolean("sound",true); p.haptics=s.getBoolean("haptics",true);
         p.preset=s.getInt("preset",MotionSteering.LOOSE); p.language=s.getInt("language",0); p.blood=s.getBoolean("blood",true);
         p.bestScore=s.getInt("bestScore",0); p.wins=s.getInt("wins",0); p.fastestWin=s.getFloat("fastestWin",0);
@@ -19,13 +22,14 @@ final class ProfileStorage {
             p.best[i]=s.getInt("stage_best_"+i,0);p.stageWins[i]=s.getInt("stage_wins_"+i,0);p.stageTimes[i]=s.getFloat("stage_time_"+i,0);p.stars[i]=s.getInt("stage_stars_"+i,0);
         }
         p.selectedAvatar=s.getInt("avatar",0);p.selectedPalette=s.getInt("rope_palette",0);p.selectedTrail=s.getInt("trail_palette",0);p.selectedLanding=s.getInt("landing_palette",0);
+        p.dailyGeneratorVersion=s.getInt("daily_generator",1);
         p.dailyDay=s.getLong("daily_day",DailyDrop.NO_DAY);p.lastDailyCompletedDay=s.getLong("daily_completed",DailyDrop.NO_DAY);p.lastObservedDay=s.getLong("daily_observed",DailyDrop.NO_DAY);
         p.dailyBestScore=s.getInt("daily_best_score",0);p.dailyAttempts=s.getInt("daily_attempts",0);p.dailyWins=s.getInt("daily_wins",0);p.dailyBestJumps=s.getInt("daily_best_jumps",-1);
         p.dailyBestControlMode=s.getInt("daily_control",0);p.dailyBestTime=s.getFloat("daily_best_time",0);p.dailyStreak=s.getInt("daily_streak",0);p.dailyBestStreak=s.getInt("daily_best_streak",0);
         p.sanitize();
     }
     static void save(SharedPreferences s,FalleyProfile p) {
-        SharedPreferences.Editor e=s.edit().putInt("progression_version",2).putBoolean("motion",p.motion).putBoolean("sound",p.sound).putBoolean("haptics",p.haptics)
+        SharedPreferences.Editor e=s.edit().putInt("daily_generator",p.dailyGeneratorVersion).putBoolean("music",p.music).putBoolean("language_confirmed",p.languageConfirmed).putInt("rope_type",p.selectedRope).putInt("progression_version",2).putBoolean("motion",p.motion).putBoolean("sound",p.sound).putBoolean("haptics",p.haptics)
                 .putInt("preset",p.preset).putInt("language",p.language).putBoolean("blood",p.blood).putInt("bestScore",p.bestScore).putInt("wins",p.wins)
                 .putFloat("fastestWin",p.fastestWin).putInt("selectedStage",p.selectedStage).putInt("arcadeDifficulty",p.arcadeDifficulty).putInt("arcadeHazards",p.arcadeHazards);
         for(int i=0;i<3;i++)e.putInt("arcade_best_"+i,p.arcadeBest[i]).putInt("arcade_runs_"+i,p.arcadeRuns[i]).putFloat("arcade_longest_"+i,p.arcadeLongest[i]);

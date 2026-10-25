@@ -11,6 +11,9 @@ public final class MotionGameplayTest {
     }
     private static Physics isolated() {
         Physics p=new Physics();p.touchControlled(false);p.y=2000;p.cameraY=1570;
+        // Incoming attacks are separate from this isolated horizontal sensor-response measurement.
+        try {java.lang.reflect.Field f=Physics.class.getDeclaredField("attackCountdown");f.setAccessible(true);f.setFloat(p,100000);}
+        catch(ReflectiveOperationException e){throw new AssertionError(e);}
         // Keep course outcomes/rope recycling outside the horizontal response measurement.
         for(Physics.Rope r:p.ropes){r.cut=12;r.base=1_000_000;for(int i=0;i<Physics.Rope.N;i++)r.y[i]=r.py[i]=r.oldY[i]=r.base;}
         return p;

@@ -144,7 +144,7 @@ finally {
     if ($restored) { try { Adb @('uninstall','com.perfgames.falley.tests') | Out-Null } catch { if (!$failure) { $failure=$_ } } }
 }
 if ($failure) { throw $failure }
-if ($UxOnly) { Write-Host "PASS: focused Falley debug Chapter spotlight navigation, localization, campaign continuation, objective stars, quick retry, control cues and Collection persistence. Controlled fixtures; phone comfort remains a local playtest. Artifacts: $ArtifactRoot" }
+if ($UxOnly) { Write-Host "PASS: focused Falley 4.2 debug first-run language/country hints, two-tab earned Collection/rope abilities, independent music lifecycle, campaign continuation, compact results and EN/HI/ID layout. Controlled fixtures; phone feel and audio audibility remain owner checks. Artifacts: $ArtifactRoot" }
 elseif ($ExpansionOnly) { Write-Host "PASS: focused Falley debug Daily Drop/share handoff, mastery/progress migration, wardrobe, six chapter finales and EN/HI/ID expansion UI. Controlled fixtures, not a natural phone playtest. Artifacts: $ArtifactRoot" }
 elseif ($PrivacyOnly) { Write-Host "PASS: focused Falley EN/HI/ID policy contact, URL, wrapping/accessibility, intercepted browser/mail handoff and no app permissions. Artifacts: $ArtifactRoot" }
 elseif ($RevisionOnly -or $RevisionSmoke) { Write-Host "PASS: focused Falley campaign locks, burst recovery/budget, drift and visual Help revision checks. Artifacts: $ArtifactRoot" }

@@ -17,7 +17,7 @@ Prepared 24 October 2026. Scope: implement the approved retention/gameplay expan
 
 ## Debug identity and location
 
-- APK: `C:\Users\mathu\Documents\Codex\2026-10-24\Falley-4.0.0-debug\Falley-4.0.0-debug.apk`
+- APK: `C:\local-delivery\2026-10-24\Falley-4.0.0-debug\Falley-4.0.0-debug.apk`
 - Version: **4.0.0-expansion-test**, code **12**.
 - Package: **com.perfgames.falley.motiontest**; launcher label **Falley Motion Test**.
 - Production package remains `com.perfgames.falley`; no production artifact was generated.
@@ -62,6 +62,6 @@ Reproduce using `scripts/test-expansion.ps1`, `scripts/build-android.ps1` and `s
 
 ## Source state
 
-Working directory: `C:\Users\mathu\Documents\ChatGPT\Frontline\prototypes\falley`.
+Working directory: `<repository-root>`.
 
 Base Git HEAD: `5ef23fb21067ecdc0421e489876b79a8a985d99d`. At this checkpoint, expansion source remained local, uncommitted and unpushed. The later 4.1 update authorizes publication of these changes along with the UX work. Binaries, generated builds and signing material stay outside versioned source. The delivery input manifest identifies the working-tree files used for the final APK.

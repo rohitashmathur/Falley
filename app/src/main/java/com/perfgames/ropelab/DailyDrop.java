@@ -7,7 +7,7 @@ import java.util.TimeZone;
 
 /** The offline daily course is shared by UTC date and generator version, never by device locale. */
 public final class DailyDrop {
-    public static final int GENERATOR_VERSION = 1;
+    public static final int GENERATOR_VERSION = 2;
     public static final long MILLIS_PER_DAY = 86_400_000L;
     public static final long NO_DAY = Long.MIN_VALUE;
     // The supported public date range keeps corrupt stored timestamps out of arithmetic/formatting.

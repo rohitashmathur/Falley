@@ -1,64 +1,66 @@
-# Falley — 4.1 Chapter spotlight debug preview
+# Falley — 4.2 beta
 
-An offline Android physics game about falling, bouncing on elastic ropes and reaching a target. Play with phone motion or touch steering. This version is a **debug preview** for owner testing. Source is maintained in the public [Falley repository](https://github.com/rohitashmathur/Falley); APKs and signing material stay local. No release APK or App Bundle was built for this update.
+Falley is an offline Android physics game by **Perf Games**. Fall through elastic ropes, steer with phone motion or swipes, avoid hazards and aim for a bouncy target. The current source version is **4.2.0 / version code 14**. See [build status](BUILD_STATUS.md) and [4.2 preparation and verification notes](docs/BETA_4_2.md) for the exact artifacts and completed checks; source metadata alone is not a Play submission or rollout.
 
-## Interface and navigation
+- **Production package:** `com.perfgames.falley`
+- **Local debug package:** `com.perfgames.falley.motiontest` — Falley Motion Test
+- **Support:** [mathurrohitash16@gmail.com](mailto:mathurrohitash16@gmail.com)
+- **Privacy policy:** [falley-privacy-policy.vercel.app](https://falley-privacy-policy.vercel.app/)
+- **Source:** [github.com/rohitashmathur/Falley](https://github.com/rohitashmathur/Falley)
 
-- **Play / Collection / Settings** provide the three main destinations. Home spotlights the next Campaign stage with chapter artwork and one main Start/Continue action; Daily Drop and Arcade sit in smaller cards. Chapters live inside the Campaign card.
-- Continue finds the first unfinished stage, then missing mastery stars after Campaign completion. Explicit stage replays do not displace that recommendation. The next chapter avatar is shown as a reward preview.
-- All screens share the same dark cards, mint primary action, quieter secondary controls, spacing and icons. Briefings offer Touch/Motion controls; Settings clearly labels Language and includes Help and Privacy.
-- Gameplay emphasizes the landing/survival objective and jump charges. First-stage control hints are contextual, results name each independent star objective, and Retry appears shortly after a loss.
-- Six chapter illustrations and avatar previews are rendered from native vector code. Home and splash respect the system animation setting.
+APKs, App Bundles, mapping files, signing material and generated build outputs stay local. This repository contains source, documentation and selected verification evidence.
 
-## What is playable
+## Play and progress
 
-- **Campaign:** 24 sequentially unlocked stages across six chapters, four stages per chapter. Each chapter introduces a mechanic and ends with a telegraphed machine encounter. Short original chapter stories appear in briefings and finale results.
-- **New mechanics:** moving and shrinking targets, wind zones, bounce pads, load-sensitive breakable anchors and slow-time pickups. Campaign twists include low gravity, gusts, heavy rope load and one jump per burst. Optional mirrored steering is clearly marked practice and does not award campaign progress or stars.
-- **Replay mastery:** three independent, cumulative stars for finishing, finishing at or below the optional jump par, and finishing inside the central gold 35% of the target. A later run can earn a missing star without repeating every objective in one run. Stars never block normal stage progression.
-- **Daily Drop:** one offline UTC-date/version-seeded course, unlimited attempts, separate daily records and completion streaks. It uses six bounded course templates with seeded variation. Results can be shared as a generated image through Android's share menu; nothing is posted automatically.
-- **Arcade:** configurable Chill / Standard / Brutal survival with falling fire, top lasers, side lasers, diagonal lightning and buzzsaws. Records remain separate from Campaign and Daily Drop.
-- **Earned wardrobe:** Human starter; Demon, Angel, Military, Astronaut, Robot and Shadow unlocked by completing the six chapters. This roster was approved by the owner. Avatar physics and hitboxes are identical. Stars unlock rope colors, trails and landing effects; there are no paid items.
-- English, Hindi and Bahasa Indonesia, six illustrated How to Play pages with separate Touch/Motion guidance, persistent sound/haptics/blood preferences, and the existing motion centering and Loose default.
+**Campaign** has 24 sequentially unlocked stages across six chapters. Each chapter introduces mechanics, tells a short story and ends in a telegraphed machine finale. Moving or shrinking targets, wind, bounce pads, breakable anchors and slow-time pickups change the descent. Later stages introduce low gravity, gusts, heavier rope loads and a one-jump burst.
 
-There are normally two quick jumps per burst, with recovery after actual descent or a supporting landing. The one-jump modifier limits that burst to one. Campaign total jump allowances still grow from 8 to 18 by chapter; the optional star par is lower. Daily Drop allows 14 total jumps, while Arcade has no lifetime cap. The ceiling and narrowing side hazards remain lethal. Chapter 1 allows off-target floor recovery; later chapters require landing on the target.
+Each stage offers three independent, cumulative stars: **Finish**, **Jump par**, and **Gold centre**. Finishing unlocks the next stage; the other stars are optional mastery goals. Replays combine earned stars across successful runs. The gold landing zone covers the central 35% of the target width. Normally two quick jumps are available per burst, recovering after descent or a supporting landing; finite campaign jump allowances grow from 8 to 18. Recovery does not refund that total allowance. A one-jump modifier changes the burst, rather than limiting an entire run to one jump.
 
-## Local delivery
+**Daily Drop** is an offline UTC-date/version-seeded course with unlimited retries, separate records and completion streaks. Six bounded templates provide seeded variation. A player can explicitly share a generated result image through Android's share menu; nothing is posted automatically. **Arcade** is configurable survival against fireballs, top/side lasers, diagonal lightning and buzzsaws, with separate records and no overall jump cap.
 
-Current test APK:
+Human is the starter avatar. Demon, Angel, Military, Astronaut, Robot and Shadow unlock through the six chapter finales. All avatars have identical physics and hitboxes. Collection focuses on avatars and three campaign rope types: Classic is the original behavior, Spring unlocks at 6 stars with a 1.5× supporting-rope rebound, and Static unlocks at 12 stars with a weaker next manual jump and brief steering damping after support. Daily Drop and Arcade always use Classic. Saved decorative palettes remain separate from these abilities; there are no paid items. Mirror Practice is optional and awards no campaign progress or stars. Existing twelve-stage campaign saves migrate once without inventing optional mastery evidence.
 
-`C:\Users\mathu\Documents\Codex\2026-10-24\Falley-4.1.0-debug\Falley-4.1.0-debug.apk`
+## Interface and controls
 
-Version **4.1.0-ux-test / code 13**, package **com.perfgames.falley.motiontest**, label **Falley Motion Test**. It uses the preserved debug key for compatible updates to earlier local motion-test builds. Production package remains `com.perfgames.falley`; no new release APK/AAB was built. See [4.1 interface and verification notes](docs/UX_UPDATE_4_1.md), [the historical expansion checkpoint](docs/EXPANSION_DEBUG_4_0.md) and [build status](BUILD_STATUS.md).
+Home highlights one campaign Continue action, chapter artwork, progress and the next reward. Daily Drop and Arcade are secondary choices. The main navigation is **Play · Collection · Settings**. Continue finds the first unfinished stage, then missing mastery stars, while chapter selection still supports explicit replays.
 
-Existing twelve-stage saves are migrated once into the expanded campaign. Previously completed contiguous chapters remain complete; their inserted stages get completion credit only. Old best scores/times are retained on mapped introduction/finale stages. No invented mastery stars are granted.
+Briefings explain the three star goals before the drop. Touch and Motion choices, optional practice controls, named star results and quick Retry keep the next action clear. Collection shows the selected avatar and earned or locked rewards. Settings groups motion feel, independent music/sound preferences, vibration, blood effects, Help and Privacy.
 
-## Build, test and run
+English, Hindi and Bahasa Indonesia are supported. New players choose their language before Home, with English selected initially. A permission-free country hint can help surface a relevant option; it does not replace the player's choice. Returning saved language choices remain selected. Touch steering works without sensors; Motion uses a comfortable hold as its center, with Loose, Balanced and Tight response settings.
 
-Requires JDK 17, Android SDK platform **36**, build-tools **35.0.0**, and Android 7.0/API 24 or newer. The native test harness additionally needs SDK platform 35 and a disposable emulator.
+## Build a local debug APK
+
+Requires **JDK 17**, Android SDK **platform 36**, **build-tools 35.0.0** and Android **7.0 / API 24** or newer. Set `JAVA_HOME` and `ANDROID_HOME`, or pass explicit paths. Run from the repository root:
 
 ```powershell
 .\scripts\test-expansion.ps1 -JdkRoot 'C:\path\to\jdk-17'
-.\scripts\build-android.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17' -ApplicationId com.perfgames.falley.motiontest -AppLabel 'Falley Motion Test' -VersionName '4.1.0-ux-test' -VersionCode 13 -OutputApk 'C:\local-delivery\Falley-4.1.0-debug.apk'
-adb install -r 'C:\local-delivery\Falley-4.1.0-debug.apk'
+.\scripts\build-android.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17' -ApplicationId com.perfgames.falley.motiontest -AppLabel 'Falley Motion Test' -OutputApk 'C:\local-delivery\Falley-4.2.0-debug.apk'
+adb install -r 'C:\local-delivery\Falley-4.2.0-debug.apk'
 adb shell am start -n com.perfgames.falley.motiontest/com.perfgames.ropelab.MainActivity
 ```
 
-Alternatively set `ANDROID_HOME` and `JAVA_HOME`. The established `scripts/test-physics.ps1` command delegates to the full portable suite. The builder uses fresh staging and preserves ignored `build/debug.keystore`; preserve that key for future compatible debug updates. A different signing identity cannot update an installed copy. Do not uninstall an existing app merely to bypass a signing mismatch if its progress matters.
+The debug script defaults to **4.2.0-beta-test / code 14** and does not shrink or obfuscate the app. Its ignored `build/debug.keystore` is preserved across builds. Keep that key for compatible debug updates. Do not uninstall an existing app merely to bypass a signing mismatch if its progress matters. The established `scripts/test-physics.ps1` entry point delegates to the full portable suite.
 
-Current focused native interface acceptance:
+## Prepare a signed Play bundle
+
+The Gradle wrapper pins **8.11.1** and Android Gradle Plugin **8.10.1**, with compile/target SDK 36. Release uses R8 code optimization/obfuscation, resource shrinking, Android's optimized default rules and narrowly scoped app rules. Audio resources are referenced directly, rather than looked up by names at runtime.
 
 ```powershell
-.\scripts\test-ui.ps1 -UxOnly -AppPackage com.perfgames.falley.motiontest -Device emulator-5580 -FontScale 1.3 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17'
+.\scripts\build-release.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17' -BundletoolJar 'C:\path\to\bundletool-all-1.18.3.jar' -OutputDirectory 'C:\local-delivery\Falley-4.2.0\release'
 ```
 
-The native fixture only runs on an emulator, preserves preferences/display/font settings and removes its instrumentation app after recovery. Controlled native fixtures are distinct from the portable full-course simulations and from human phone playtesting.
+Reuse the existing upload signing identity. See [release signing](docs/RELEASE_SIGNING.md); do not initialize a replacement key for an existing app. The release script runs lint and bundle generation, validates package/version/SDK/permissions, checks bundle signatures against the preserved upload certificate, and derives a local install APK. These checks happen only when the script runs successfully.
 
-The Gradle wrapper pins **8.11.1** and AGP **8.10.1**, with compile/target SDK 36. The existing release workflow is documented in [release signing](docs/RELEASE_SIGNING.md); it is not part of this debug task. Historical signed **3.3.1/code 11** evidence remains in [privacy update notes](docs/PRIVACY_UPDATE_3_3_1.md) and does not validate this expansion for store submission.
+The script retains **mapping.txt**, confirms that the AAB's `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map` has the same SHA-256, copies available R8 configuration/usage reports, and writes `release-verification.json` plus artifact hashes beside the local output. Keep that exact mapping with each version. The bundle-derived upload-signed APK is a local test artifact; a Play-installed APK may use Google's app-signing certificate. Play upload, beta enrollment, content declarations and rollout are separate owner actions.
 
-## Privacy and remaining work
+## Verification and publishing
 
-The game requests no Android permissions and has no accounts, Internet access, advertising, analytics or backend. Sensor data is temporary. Preferences, stars, cosmetics, records and streaks stay on-device; backup/device transfer are excluded. Daily result images use private cache and a read-only, temporarily granted share URI. Clear app data or uninstall to remove local records; independently shared copies are controlled by their receiving apps.
+Portable tests cover physics, stability, motion/touch response, progression, migration, daily isolation, stars, cosmetics, recommendation rules and three-language copy. Native debug fixtures inspect controls and measured rendering; a reflection-free release smoke checks the optimized production artifact without retaining private implementation names just for tests. [4.2 notes](docs/BETA_4_2.md) and [build status](BUILD_STATUS.md) distinguish completed results from pending checks. Historical evidence is version-specific: [4.1 UX](docs/UX_UPDATE_4_1.md), [4.0 expansion](docs/EXPANSION_DEBUG_4_0.md), and [3.3.1 privacy](docs/PRIVACY_UPDATE_3_3_1.md).
 
-The existing public [privacy policy](https://falley-privacy-policy.vercel.app/) and support email **mathurrohitash16@gmail.com** remain linked in Settings. The local [policy website source](policy-site/README.md) now describes optional Daily Drop sharing and new local records; redeploy it before publishing this expansion. This task does not deploy the website.
+Physical-phone acceptance still matters for motion comfort, difficulty, sound/music balance, haptics, reachability, sustained performance and TalkBack. Have fluent speakers review Hindi and Indonesian in context. Custom canvas text-fit tests do not establish arbitrary-size text accessibility or full WCAG conformance.
 
-Current automated results and curated native screenshots are recorded in [4.1 evidence](screenshots/v4.1/README.md). Phone motion comfort, audio/haptics, frame pacing, subjective difficulty, real TalkBack navigation and native-speaker language review still need owner feedback. Daily Drop resets at 00:00 UTC (05:30 in India), is not server-verified, and cannot prevent clock manipulation after clearing app data. Backward dates are practice-only for records. There are no global leaderboards or notifications. Replay content and rewards provide goals, but retention needs actual playtest results. Ads, revives, donations, purchases and online services remain deferred.
+## Privacy and limits
+
+The app has no accounts, Internet access, advertising, analytics or backend, and requests no Android permissions. Sensor samples are temporary. Preferences, stars, cosmetics, records and streaks stay on the device; app backup/device transfer are excluded. Result images use private cache and a read-only temporary share URI. Clearing app data or uninstalling removes local progress; copies deliberately shared to another app are controlled by that app.
+
+Daily Drop resets at **00:00 UTC** (05:30 in India), uses local clock safeguards and has no server verification or global leaderboard. Date changes or cleared storage can defeat offline streak guarantees. Ads, revives, paid avatars, billing, donations and online services remain deferred. The [policy-site source](policy-site/README.md) and store listing must match the final shipped behavior; building the app does not deploy the website.

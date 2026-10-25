@@ -25,7 +25,7 @@ public final class StageCatalog {
             attackDifficulty = difficulty; this.mechanics = mechanics; this.modifiers = modifiers;
             bossKind = boss; this.parJumps = parJumps; fatalMiss = chapter > 0;
             fireRain = (attacks & ArcadeRules.FIREBALLS) != 0;
-            openingHazard = (attacks & ArcadeRules.BUZZSAWS) != 0 ? ArcadeRules.BUZZSAWS : 0;
+            openingHazard = index<3&&(attacks&ArcadeRules.TOP_LASERS)!=0 ? ArcadeRules.TOP_LASERS : (attacks & ArcadeRules.BUZZSAWS) != 0 ? ArcadeRules.BUZZSAWS : 0;
         }
         public boolean hasMechanic(int flag) { return (mechanics & flag) != 0; }
         public boolean hasModifier(int flag) { return (modifiers & flag) != 0; }
@@ -41,8 +41,8 @@ public final class StageCatalog {
                 Math.min(2, Math.max(0, chapter - 1)), mechanics, modifiers, boss, par);
     }
     private static final Stage[] STAGES = {
-        s(0, "First light", 4200, 240, 164, 0, 0, 0, 0, 3),
-        s(1, "Catch the light", 4600, 240, 144, 0, MOVING_TARGET, 0, 0, 3),
+        s(0, "First light", 4200, 215, 150, ArcadeRules.TOP_LASERS, 0, 0, 0, 3),
+        s(1, "Catch the light", 4600, 260, 144, ArcadeRules.TOP_LASERS, MOVING_TARGET, 0, 0, 3),
         s(2, "Moon drift", 5000, 240, 144, ArcadeRules.TOP_LASERS, MOVING_TARGET, LOW_GRAVITY, 0, 4),
         s(3, "Prism keeper", 5600, 240, 144, 0, MOVING_TARGET, 0, BOSS_LASER, 4),
         s(4, "Spring canyon", 5600, 240, 142, 0, BOUNCE_PADS, 0, 0, 4),

@@ -61,6 +61,9 @@ public final class PhysicsTest {
             check(Math.abs(p.x-released)>1 && Math.abs(p.driftVelocity())<=35.01f,"the visible air current requires a correction after release");
         }
         Physics neutral=stage(0);aboveRope(neutral);float center=neutral.x;
+        // Hold position is a control measurement; the new aimed lesson attack is tested separately.
+        try {java.lang.reflect.Field f=Physics.class.getDeclaredField("attackCountdown");f.setAccessible(true);f.setFloat(neutral,100000);}
+        catch(ReflectiveOperationException e){throw new AssertionError(e);}
         for(int i=0;i<1000 && !neutral.lost;i++){neutral.steerTouch((-neutral.driftVelocity()-neutral.nudgeVelocity())/neutral.steeringScale());neutral.step();}
         check(!neutral.lost && Math.abs(neutral.x-center)<1,"countersteering can hold position through air current and rope reactions");
         neutral.touchControlled(false);neutral.gx=450;run(neutral,30);
@@ -93,7 +96,7 @@ public final class PhysicsTest {
                     "actual manual/automatic jumps cannot reopen the narrowing sides");
             left=p.leftWall();right=p.rightWall();
         }
-        check(jumps>0 && right-left<=initialGap && (!p.lost || p.deathReason.equals("CEILING") || p.deathReason.equals("LASER")),"budgeted jumps cannot widen the sides, including a terminal ceiling contact");
+        check(jumps>0 && right-left<=initialGap && (!p.lost || p.deathReason.equals("CEILING") || p.deathReason.equals("LASER") || p.deathReason.equals("TOP LASER")),"budgeted jumps cannot widen the sides, including a terminal ceiling contact");
     }
     private static void safeSteer(Physics p) {
         float safeLeft=p.leftWall()+p.hazardInset()+p.radius()+8;

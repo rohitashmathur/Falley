@@ -17,8 +17,11 @@ if ($gradleSource -notmatch "versionName\s+'([0-9]+\.[0-9]+\.[0-9]+)'" ) { throw
 $releaseVersion=$Matches[1]
 if ($gradleSource -notmatch 'versionCode\s+(\d+)') { throw 'Expected a release versionCode in app/build.gradle.' }
 $releaseCode=$Matches[1]
+if ($gradleSource -notmatch 'minifyEnabled\s+(?:=\s*)?true' -or $gradleSource -notmatch 'shrinkResources\s+(?:=\s*)?true') { throw 'Release must enable R8 and resource shrinking in app/build.gradle.' }
 $outputs=if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $root ('releases\'+$releaseVersion) }
 New-Item -ItemType Directory -Force -Path $outputs | Out-Null
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 $passwordFile=$null
 function Checked([string]$Program,[string[]]$Arguments) {
     & $Program @Arguments
@@ -31,6 +34,34 @@ try {
     finally { Pop-Location }
     $aab=Join-Path $outputs ('Falley-'+$releaseVersion+'-beta.aab')
     Copy-Item -LiteralPath (Join-Path $root 'app\build\outputs\bundle\release\app-release.aab') -Destination $aab
+    # R8 mapping must travel with this exact bundle, never a previous version.
+    $mappingSource=Join-Path $root 'app\build\outputs\mapping\release\mapping.txt'
+    if (!(Test-Path -LiteralPath $mappingSource) -or (Get-Item -LiteralPath $mappingSource).Length -le 0) { throw 'R8 produced no release mapping.txt. Do not submit an obfuscated bundle without its mapping.' }
+    $mapping=Join-Path $outputs 'mapping.txt'
+    Copy-Item -LiteralPath $mappingSource -Destination $mapping
+    $mappingHash=(Get-FileHash -LiteralPath $mapping -Algorithm SHA256).Hash.ToLowerInvariant()
+    $mappingEntry='BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map'
+    $bundleZip=[IO.Compression.ZipFile]::OpenRead($aab)
+    try {
+        $entry=$bundleZip.GetEntry($mappingEntry)
+        if (!$entry -or $entry.Length -le 0) { throw 'The AAB is missing its embedded R8 mapping. Fix bundle packaging before submitting to Play.' }
+        $entryStream=$entry.Open()
+        $digest=[Security.Cryptography.SHA256]::Create()
+        try { $embeddedMappingHash=[BitConverter]::ToString($digest.ComputeHash($entryStream)).Replace('-','').ToLowerInvariant() }
+        finally { $entryStream.Dispose(); $digest.Dispose() }
+        if ($embeddedMappingHash -ne $mappingHash) { throw 'The embedded bundle mapping differs from mapping.txt. Keep the mapping generated for this exact AAB.' }
+    } finally { $bundleZip.Dispose() }
+    $r8=Join-Path $outputs 'r8'
+    New-Item -ItemType Directory -Force -Path $r8 | Out-Null
+    $reports=@()
+    foreach ($name in @('configuration.txt','usage.txt','seeds.txt','resources.txt','missing_rules.txt')) {
+        $reportSource=Join-Path (Split-Path -Parent $mappingSource) $name
+        if (Test-Path -LiteralPath $reportSource) {
+            $reportPath=Join-Path $r8 $name
+            Copy-Item -LiteralPath $reportSource -Destination $reportPath
+            $reports+= [ordered]@{ file=('r8/'+$name); bytes=(Get-Item -LiteralPath $reportPath).Length; sha256=(Get-FileHash -LiteralPath $reportPath -Algorithm SHA256).Hash.ToLowerInvariant() }
+        }
+    }
     Checked $java @('-jar',$BundletoolJar,'validate',('--bundle='+$aab))
     Checked (Join-Path $JdkRoot 'bin\jarsigner.exe') @('-verify','-strict','-keystore',$signing.KeyStore,'-storepass:env','FALLEY_UPLOAD_STORE_PASSWORD',$aab,$signing.Alias)
     $verifier=Join-Path $root 'build\release-verifier'
@@ -60,7 +91,22 @@ try {
     finally { $archive.Dispose() }
     Checked (Join-Path $SdkRoot 'build-tools\35.0.0\apksigner.bat') @('verify','--verbose','--print-certs',$apk)
     Checked (Join-Path $SdkRoot 'build-tools\35.0.0\zipalign.exe') @('-c','-P','16','4',$apk)
-    Get-FileHash -LiteralPath $aab,$apk -Algorithm SHA256 | ForEach-Object { $_.Hash.ToLowerInvariant()+'  '+[IO.Path]::GetFileName($_.Path) } | Set-Content -LiteralPath (Join-Path $outputs 'SHA256SUMS.txt') -Encoding ascii
+    Get-FileHash -LiteralPath $aab,$apk,$mapping -Algorithm SHA256 | ForEach-Object { $_.Hash.ToLowerInvariant()+'  '+[IO.Path]::GetFileName($_.Path) } | Set-Content -LiteralPath (Join-Path $outputs 'SHA256SUMS.txt') -Encoding ascii
+    $artifacts=@()
+    foreach ($artifact in @($aab,$apk,$mapping)) {
+        $artifacts+=[ordered]@{ file=[IO.Path]::GetFileName($artifact); bytes=(Get-Item -LiteralPath $artifact).Length; sha256=(Get-FileHash -LiteralPath $artifact -Algorithm SHA256).Hash.ToLowerInvariant() }
+    }
+    $receipt=[ordered]@{
+        builtAtUtc=[DateTime]::UtcNow.ToString('o'); package='com.perfgames.falley'; versionName=$releaseVersion; versionCode=[int]$releaseCode
+        minSdk=24; targetSdk=36; debuggable=$false; minified=$true; resourcesShrunk=$true
+        mapping=[ordered]@{ file='mapping.txt'; sha256=$mappingHash; embeddedEntry=$mappingEntry; embeddedSha256=$embeddedMappingHash; exactMatch=$true }
+        r8Reports=$reports; artifacts=$artifacts
+        checks=@('lintRelease and bundleRelease succeeded','bundletool validation','strict JAR verification','all payload certificates match preserved upload identity','APK signatures','16 KiB ZIP alignment','embedded mapping matches local mapping')
+        note='Local build verification only. No Play upload, rollout, website deployment, or physical-device acceptance is implied.'
+    }
+    $receipt | ConvertTo-Json -Depth 7 | Set-Content -LiteralPath (Join-Path $outputs 'release-verification.json') -Encoding utf8
+    Write-Host "R8 mapping retained and matched to embedded bundle metadata: $mapping"
+    Write-Host "R8 optimization reports: $r8"
     Write-Host "Validated local Play bundle: $aab"
     Write-Host "Local install test APK: $apk"
     Write-Host "Private upload identity preserved in: $($signing.Directory)"

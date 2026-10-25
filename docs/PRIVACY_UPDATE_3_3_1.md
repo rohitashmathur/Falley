@@ -1,5 +1,7 @@
 # Falley 3.3.1 — public privacy contact
 
+**Historical 3.3.1 checkpoint.** Current source/package/support information is in the [root README](../README.md); see [4.2 beta notes](BETA_4_2.md) and [build status](../BUILD_STATUS.md) for the latest preparation and exact-build evidence. The paths below use a portable local-delivery prefix; named files, versions and hashes are unchanged.
+
 Prepared **23 October 2026**. Source version **3.3.1 / code 11**. Source, policy website, documentation and selected verification evidence are included in the repository; Android binaries and signing files remain local. No Play upload or rollout has occurred. The game remains offline and ad-free, with no requested Android permissions.
 
 ## What changed
@@ -10,7 +12,7 @@ Two fixed footer buttons open the public policy in the user's browser or compose
 
 ## Local delivery
 
-Directory: `C:\Users\mathu\Documents\Codex\2026-10-23\Falley-3.3.1`.
+Directory: `C:\local-delivery\2026-10-23\Falley-3.3.1`.
 
 | File | Identity | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
