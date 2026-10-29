@@ -1,0 +1,1 @@
+PASS: native Falley firebase; checks=779; captures=8; viewport=small; 4.4.1 default-on Firebase, preserved opt-out, independent switches, installed gameplay hooks, background input batch handoff and EN/HI/ID settings; dashboard delivery not established; controlled collision/death fixtures, not a natural phone playtest; original preferences restored

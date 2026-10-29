@@ -40,3 +40,6 @@ firebase-debug*.log
 mapping.txt
 
 mappingFileId.txt
+
+# Raw Analytics exports and decoded device input samples stay private.
+analytics-data/

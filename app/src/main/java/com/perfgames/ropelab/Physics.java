@@ -13,6 +13,8 @@ public final class Physics {
     public static final int SFX_FIRE_LAUNCH = 1, SFX_FIRE_BURN = 2, SFX_LASER = 3,
             SFX_LIGHTNING = 4, SFX_SAW_MOTOR = 5, SFX_SAW_IMPACT = 6;
     public long soundSequence;
+    public interface RopeObserver { void encountered(int index,int type,boolean cut); }
+    public RopeObserver ropeObserver;
     public int soundEvent;
     public final Rope[] ropes = new Rope[8];
     public StageCatalog.Stage stage = StageCatalog.get(0);
@@ -458,6 +460,7 @@ public final class Physics {
                 r.cut = r.anchorStress>=1 ? (r.index%2==0 ? 0 : Rope.N-2) : i;
                 landingPulse = .18f;
                 brokenCount++;
+                if(ropeObserver!=null)ropeObserver.encountered(r.courseIndex,r.type,true);
                 score = (int) (elapsed * 10) + brokenCount * 30;
                 flash = 1;
                 // Rupture slows the fall slightly and kicks the exposed tips apart.
@@ -475,6 +478,7 @@ public final class Physics {
                 if (!touchControl) vx += nx * impulse;
                 vy += ny * impulse;
                 if (ny < -.45f && normalVelocity < -55) {
+                    if(ropeObserver!=null)ropeObserver.encountered(r.courseIndex,r.type,false);
                     refillBurst();
                     landingPulse = .18f;
                     // A landing naturally produces a small spring-assisted human jump.

@@ -7,6 +7,8 @@ public final class MixedRopeScheduleTest {
     private static void campaign(){
         for(int stage=0;stage<StageCatalog.COUNT;stage++){
             Physics a=new Physics(),b=new Physics();a.reset(stage);b.reset(stage);a.touchControlled(true);b.touchControlled(true);
+            final int[] observed={0,0};
+            a.ropeObserver=(index,type,cut)->{check(index>=0&&type>=0&&type<RopeCatalog.COUNT,"real rope callback has stable identity/type");observed[cut?1:0]++;};
             java.util.Map<Integer,Integer> seen=new java.util.TreeMap<>();
             for(int step=0;step<240*120&&!a.won&&!a.lost;step++){
                 for(int i=0;i<a.ropes.length;i++){
@@ -19,6 +21,7 @@ public final class MixedRopeScheduleTest {
                 CampaignExpansionTest.steer(a);CampaignExpansionTest.steer(b);a.step();b.step();
                 check(Float.floatToIntBits(a.x)==Float.floatToIntBits(b.x)&&Float.floatToIntBits(a.y)==Float.floatToIntBits(b.y),"mixed schedule never consumes the hazard RNG differently on retry");
             }
+            check(observed[1]==a.brokenCount,"each real rope cut observed exactly once without changing reference physics");
             check(a.won&&!a.lost&&seen.size()==a.totalRopes(),"actual full campaign course exposes every scheduled mount");
             for(int i=1;i<a.totalRopes();i++)check(seen.get(i)==0||seen.get(i-1)==0,"Classic mount separates consecutive special ropes");
         }

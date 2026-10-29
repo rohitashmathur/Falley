@@ -146,6 +146,10 @@ public final class ReleaseStrings {
         add("Enabling crash reports can include reports saved on this device.","क्रैश रिपोर्ट चालू करने पर इस डिवाइस में सहेजी रिपोर्ट भी भेजी जा सकती हैं।","Mengaktifkan laporan crash dapat menyertakan laporan yang tersimpan di perangkat ini.");
         add("No ads, advertising ID, raw motion or personal profile data.","कोई विज्ञापन, विज्ञापन आईडी, गति के मूल नमूने या निजी प्रोफ़ाइल डेटा नहीं।","Tanpa iklan, ID iklan, data gerakan mentah atau data profil pribadi.");
         add("Diagnostics are unavailable. Your choices are saved.","निदान अभी उपलब्ध नहीं है। आपके विकल्प सहेजे गए हैं।","Diagnostik tidak tersedia. Pilihan Anda telah disimpan.");
+        add("On by default. Turn either option off anytime.","शुरुआत में चालू हैं। कोई भी विकल्प कभी भी बंद करें।","Aktif secara bawaan. Matikan salah satu kapan saja.");
+        add("Share gameplay, menu use, motion and touch samples.","गेमप्ले, मेनू उपयोग, गति और स्पर्श के नमूने साझा करें।","Bagikan permainan, penggunaan menu, sampel gerak dan sentuhan.");
+        add("Input samples are batched during play. No ads or advertising ID.","खेलते समय इनपुट नमूने बैच में भेजे जाते हैं। कोई विज्ञापन या विज्ञापन आईडी नहीं।","Sampel input dikirim berkelompok saat bermain. Tanpa iklan atau ID iklan.");
+        add("Reporting starts on: gameplay, motion and touch samples go to Google for Perf Games. Change this in Settings > Diagnostics & analytics.","रिपोर्टिंग शुरुआत में चालू है: गेमप्ले, गति और स्पर्श के नमूने Perf Games के लिए Google को भेजे जाते हैं। इसे सेटिंग्स > निदान और विश्लेषण में बदलें।","Pelaporan awalnya aktif: permainan, sampel gerak dan sentuhan dikirim ke Google untuk Perf Games. Ubah di Pengaturan > Diagnostik & analitik.");
         PrivacyPolicy.addTranslations(STRINGS);
     }
     public static String text(int language,String english,Object...args){

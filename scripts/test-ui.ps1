@@ -151,7 +151,7 @@ finally {
     if ($restored) { try { Adb @('uninstall','com.perfgames.falley.tests') | Out-Null } catch { if (!$failure) { $failure=$_ } } }
 }
 if ($failure) { throw $failure }
-if ($FirebaseOnly) { Write-Host "PASS: Firebase opt-in, actual SDK initialization, independent collection, private event schema and localized settings. Console delivery remains owner confirmation. Artifacts: $ArtifactRoot" }
+if ($FirebaseOnly) { Write-Host "PASS: Firebase default-on, preserved opt-out, actual SDK initialization, background batches, individual gameplay events and localized settings. Console delivery remains owner confirmation. Artifacts: $ArtifactRoot" }
 elseif ($V43Only) { Write-Host "PASS: focused Falley 4.3 responsive Campaign/avatars/boss and EN/HI/ID measured native layouts. Controlled emulator fixtures; physical motion, audio and performance remain owner checks. Artifacts: $ArtifactRoot" }
 elseif ($UxOnly) { Write-Host "PASS: focused Falley 4.3 debug responsive phone/tablet layout, inline Campaign selection, avatar traits, boss emission cues, first-run language/country hints, durable avatar choices, mixed individual ropes, Arcade cards, music lifecycle and EN/HI/ID layout. Controlled fixtures; phone feel and audio audibility remain owner checks. Artifacts: $ArtifactRoot" }
 elseif ($ExpansionOnly) { Write-Host "PASS: focused Falley debug Daily Drop/share handoff, mastery/progress migration, wardrobe, six chapter finales and EN/HI/ID expansion UI. Controlled fixtures, not a natural phone playtest. Artifacts: $ArtifactRoot" }

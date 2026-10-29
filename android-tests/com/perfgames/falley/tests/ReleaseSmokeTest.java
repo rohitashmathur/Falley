@@ -50,7 +50,7 @@ public final class ReleaseSmokeTest extends Instrumentation {
     }
     @Override public void onCreate(Bundle arguments){
         super.onCreate(arguments);Bundle args=arguments==null?new Bundle():arguments;
-        mode=args.getString("mode","smoke");shot=args.getString("shot","small");expectedCode=Integer.parseInt(args.getString("versionCode","17"));expectedVersion=args.getString("versionName","4.4.0");
+        mode=args.getString("mode","smoke");shot=args.getString("shot","small");expectedCode=Integer.parseInt(args.getString("versionCode","18"));expectedVersion=args.getString("versionName","4.4.1");
         if((!mode.equals("smoke")&&!mode.equals("restore"))||!shot.matches("[a-z0-9-]+"))throw new IllegalArgumentException("Release smoke arguments");start();
     }
     @Override public void onStart(){
@@ -63,12 +63,12 @@ public final class ReleaseSmokeTest extends Instrumentation {
             if(!mode.equals("restore")){File[] oldFiles=output.listFiles();if(oldFiles!=null)for(File file:oldFiles)if(file.isFile()&&(file.getName().endsWith(".png")||file.getName().equals("checks.txt")))require(file.delete(),"prior smoke artifact cleared "+file.getName());}
             if(!mode.equals("restore")){
                 require(!backup.getBoolean(BACKUP_MARKER,false),"no interrupted fixture; recover with -RestoreOnly if needed");copy(backup,storage.getAll());require(backup.edit().putBoolean(BACKUP_MARKER,true).commit(),"original production preferences backed up");
-                require(storage.edit().clear().putBoolean("motion",false).putBoolean("music",true).putBoolean("sound",true).putBoolean("haptics",false).putBoolean("blood",false).putInt("preset",0).commit(),"fresh disposable emulator fixture installed without a saved language");
+                require(storage.edit().clear().putInt("telemetry_flags",0).putBoolean("motion",false).putBoolean("music",true).putBoolean("sound",true).putBoolean("haptics",false).putBoolean("blood",false).putInt("preset",0).commit(),"fresh disposable emulator fixture installed without a saved language");
                 identityAndResources();launch();freshLanguage();menusAndSettings();actualCampaign();
             }
         }catch(Throwable error){failure=error;if(activity!=null&&canvas!=null)try{capture("failure");}catch(Throwable diagnostic){failure.addSuppressed(diagnostic);}}
         finally{try{close();restoreOriginal();}catch(Throwable cleanup){if(failure==null)failure=cleanup;else failure.addSuppressed(cleanup);}}
-        String summary=failure==null?"PASS: Falley release smoke; checks="+checks+"; captures="+captures+"; viewport="+shot+"; mode="+mode+"; reflection-free production launch/onboarding/navigation/resources and default-off diagnostics, original preferences restored; no physical-phone audio or sensor comfort claim\n":"FAIL: Falley release smoke; viewport="+shot+"\n"+android.util.Log.getStackTraceString(failure);
+        String summary=failure==null?"PASS: Falley release smoke; checks="+checks+"; captures="+captures+"; viewport="+shot+"; mode="+mode+"; reflection-free production launch/onboarding/navigation/resources and explicitly opted-out diagnostics, original preferences restored; no physical-phone audio or sensor comfort claim\n":"FAIL: Falley release smoke; viewport="+shot+"\n"+android.util.Log.getStackTraceString(failure);
         try(FileOutputStream file=new FileOutputStream(new File(output,"checks.txt"))){file.write((log.toString()+summary).getBytes("UTF-8"));}catch(Exception error){summary+="Artifact log failure: "+error+"\n";}
         Bundle result=new Bundle();result.putString("stream",summary);finish(failure==null?Activity.RESULT_OK:Activity.RESULT_CANCELED,result);
     }
@@ -105,8 +105,8 @@ public final class ReleaseSmokeTest extends Instrumentation {
         click("Settings",false);awaitHost("Settings",2000);require(has("Retro music",true),"independent music setting is discoverable");capture("settings");
         click("Retro music",true);require(!storage.getBoolean("music",true)&&storage.getBoolean("sound",false),"music turns off independently of sound effects");click("Sound Effects",false);require(!storage.getBoolean("sound",true)&&!storage.getBoolean("music",true),"sound effects also turn off independently");click("Retro music",true);require(storage.getBoolean("music",false)&&!storage.getBoolean("sound",true),"music can remain on while effects are off");click("Sound Effects",false);
         click("DIAGNOSTICS & ANALYTICS",false);awaitHost("Diagnostics & analytics",2000);
-        require(!find("Crash reports",true).checked&&!find("Gameplay analytics",true).checked,"production exposes two independent optional reporting choices off by default");
-        require(storage.getInt("telemetry_flags",0)==0,"release smoke never enables production reporting");
+        require(!find("Crash reports",true).checked&&!find("Gameplay analytics",true).checked,"production preserves both explicitly saved OFF choices");
+        require(storage.getInt("telemetry_flags",0)==0,"release smoke explicitly keeps production reporting OFF");
         final String[] notice={""};ui(() -> {AccessibilityNodeInfo node=canvas.getAccessibilityNodeProvider().createAccessibilityNodeInfo(10000);require(node!=null,"diagnostics exposes readable consent details");notice[0]=String.valueOf(node.getText());node.recycle();});
         require(notice[0].contains("next app launch")&&notice[0].contains("saved on this device")&&notice[0].contains("No ads"),"optimized diagnostics discloses crash timing, cached reports and excluded advertising");capture("diagnostics-off");
         click("PRIVACY POLICY",false);awaitHost("Falley Privacy Policy",2000);back();awaitHost("Diagnostics & analytics",2000);click("DONE",false);awaitHost("Settings",2000);

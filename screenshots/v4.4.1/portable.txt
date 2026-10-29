@@ -1,0 +1,213 @@
+Arcade CHILL PASS: 25.00s, wave 2, score 3010
+Arcade STANDARD PASS: 25.00s, wave 2, score 2920
+Arcade BRUTAL PASS: 25.00s, wave 2, score 2920
+PASS: Arcade configuration/reset, swept geometry, three beam deaths/near misses, warning/refuge/lock fairness, gentle drift/later-stage challenge, three-difficulty natural survival and 100000 survival stability steps (21000427 checks)
+Avatar 0 touch PASS all24 campaign + 45.00s Arcade
+Avatar 0 motion PASS all24 campaign + 45.00s Arcade
+Avatar 1 touch PASS all24 campaign + 45.00s Arcade
+Avatar 1 motion PASS all24 campaign + 45.00s Arcade
+Avatar 2 touch PASS all24 campaign + 45.00s Arcade
+Avatar 2 motion PASS all24 campaign + 45.00s Arcade
+Avatar 3 touch PASS all24 campaign + 45.00s Arcade
+Avatar 3 motion PASS all24 campaign + 45.00s Arcade
+Avatar 4 touch PASS all24 campaign + 45.00s Arcade
+Avatar 4 motion PASS all24 campaign + 45.00s Arcade
+Avatar 5 touch PASS all24 campaign + 45.00s Arcade
+Avatar 5 motion PASS all24 campaign + 45.00s Arcade
+Avatar 6 touch PASS all24 campaign + 45.00s Arcade
+Avatar 6 motion PASS all24 campaign + 45.00s Arcade
+PASS: seven real avatar abilities, first-jump safety/shared hitboxes, lethal boundaries/floors, projectile shields, Daily isolation and full mixed campaign/Arcade both controls (1382264 checks)
+PASS: seven distinct avatar styles, safe landing contact and smooth bounded poses (112384 checks)
+PASS: once-only avatar rewards, current-equipment choices, stable queue, legacy acknowledgement and mode isolation (704 checks)
+PASS: natural center-camping failures, real boss warnings, 300ms/8Hz bounded alternating dodges and matching side emission origins (26462 checks)
+PASS: exact drawn boss rectangles, round avatar corners, swept crossing/near misses and real grid/bar end boundaries (18 checks)
+PASS: buzzsaw warning/live sweep/near misses, narrow-corridor reachable refuges and real dodges, locked paths/exclusive attacks, reset/campaign approach and one-shot hazard cues (879 checks)
+Stage 1 PASS 9.45s 21cuts boss0 attacks1
+Stage 2 PASS 10.62s 23cuts boss0 attacks1
+Stage 3 PASS 11.36s 25cuts boss0 attacks1
+Stage 4 PASS 11.95s 29cuts boss2 attacks1
+Stage 5 PASS 15.00s 29cuts boss0 attacks0
+Stage 6 PASS 10.88s 31cuts boss0 attacks0
+Stage 7 PASS 13.36s 34cuts boss0 attacks1
+Stage 8 PASS 15.55s 36cuts boss3 attacks1
+Stage 9 PASS 13.26s 35cuts boss0 attacks0
+Stage 10 PASS 9.17s 37cuts boss0 attacks1
+Stage 11 PASS 17.32s 39cuts boss0 attacks1
+Stage 12 PASS 15.09s 43cuts boss2 attacks1
+Stage 13 PASS 14.57s 41cuts boss0 attacks0
+Stage 14 PASS 15.08s 43cuts boss0 attacks1
+Stage 15 PASS 47.80s 45cuts boss0 attacks1
+Stage 16 PASS 16.39s 49cuts boss2 attacks1
+Stage 17 PASS 15.86s 47cuts boss0 attacks1
+Stage 18 PASS 11.79s 49cuts boss0 attacks1
+Stage 19 PASS 19.44s 51cuts boss0 attacks1
+Stage 20 PASS 17.71s 55cuts boss2 attacks1
+Stage 21 PASS 17.18s 52cuts boss0 attacks1
+Stage 22 PASS 17.69s 55cuts boss0 attacks1
+Stage 23 PASS 20.80s 58cuts boss0 attacks1
+Stage 24 PASS 22.58s 63cuts boss2 attacks1
+Motion stage 1 PASS 10.09s 21cuts boss0 attacks1
+Motion stage 2 PASS 10.61s 23cuts boss0 attacks1
+Motion stage 3 PASS 11.32s 25cuts boss0 attacks1
+Motion stage 4 PASS 11.95s 29cuts boss2 attacks1
+Motion stage 5 PASS 15.00s 29cuts boss0 attacks0
+Motion stage 6 PASS 10.88s 31cuts boss0 attacks0
+Motion stage 7 PASS 14.36s 34cuts boss0 attacks1
+Motion stage 8 PASS 14.53s 36cuts boss2 attacks1
+Motion stage 9 PASS 13.26s 35cuts boss0 attacks0
+Motion stage 10 PASS 9.17s 37cuts boss0 attacks1
+Motion stage 11 PASS 17.32s 39cuts boss0 attacks1
+Motion stage 12 PASS 15.08s 43cuts boss2 attacks1
+Motion stage 13 PASS 14.57s 41cuts boss0 attacks0
+Motion stage 14 PASS 15.09s 43cuts boss0 attacks1
+Motion stage 15 PASS 47.80s 45cuts boss0 attacks1
+Motion stage 16 PASS 16.39s 49cuts boss2 attacks1
+Motion stage 17 PASS 15.88s 47cuts boss0 attacks1
+Motion stage 18 PASS 11.79s 49cuts boss0 attacks1
+Motion stage 19 PASS 18.46s 51cuts boss0 attacks1
+Motion stage 20 PASS 17.71s 55cuts boss2 attacks1
+Motion stage 21 PASS 17.18s 52cuts boss0 attacks1
+Motion stage 22 PASS 17.08s 55cuts boss0 attacks1
+Motion stage 23 PASS 17.94s 58cuts boss0 attacks1
+Motion stage 24 PASS 22.58s 63cuts boss2 attacks1
+Daily template 0 PASS 11.69s 28cuts boss0 attacks0
+Daily template 1 PASS 14.95s 29cuts boss0 attacks1
+Daily template 2 PASS 12.13s 30cuts boss0 attacks1
+Daily template 3 PASS 11.70s 31cuts boss0 attacks1
+Daily template 4 PASS 11.91s 32cuts boss0 attacks1
+Daily template 5 PASS 12.12s 33cuts boss0 attacks1
+PASS campaign/daily expansion (234763 checks)
+PASS campaign mechanisms (1260 checks)
+PASS: starter plus six chapter avatar unlocks, all star thresholds, selection persistence and gameplay isolation (1192 checks)
+PASS: local country priority, ISO validation, missing-region fallback and unchanged English choice (516 checks)
+PASS: UTC/versioned daily seeds, deterministic bounded template retries, unlimited attempts, isolated records and rollback-safe streaks (21003 checks)
+PASS: hands-off opening prevention, visible grace/frozen warnings and bounded touch/motion clears (17550 checks)
+PASS: expansion EN/HI/ID catalog, format integrity and chapter stories (1249 checks)
+PASS: local preferences/language/Loose default, expanded campaign records, Arcade sanitization/independent survival records and campaign isolation (39 checks)
+PASS: EN/HI/ID selection/fallback, safe formatting, whole-catalog argument integrity and all 24 stage names (2324 checks)
+PASS: hazard cue edges, duplicate/stale/invalid suppression, pause/resume/restart and real fixed-step motor/impact priority (20 checks)
+PASS: two-jump bursts, natural descent recovery/more airborne uses, pause/handoff isolation, growing campaign allowances, unlimited Arcade total, support versus cut behavior and lethal ceiling (729 checks)
+Mixed Arcade 0 touch PASS first special 20.74s / finish 65.00s
+Mixed Arcade 0 motion PASS first special 20.49s / finish 65.00s
+Mixed Arcade 1 touch PASS first special 20.53s / finish 65.00s
+Mixed Arcade 1 motion PASS first special 20.53s / finish 65.00s
+Mixed Arcade 2 touch PASS first special 20.50s / finish 65.00s
+Mixed Arcade 2 motion PASS first special 20.53s / finish 65.00s
+PASS: mixed-rope stable generation, staged introduction, spacing/landing safety, exact retries, four-wave Arcade both controls and unchanged Daily (3919681 checks)
+PASS: real motion-to-gameplay neutral/noise, mirrored travel, half-second stop/reversal, momentum braking, touch-current isolation, intact off-center rope catches and upright Balanced/Tight gyro-z play (31 checks)
+PASS: motion-only gust grace/ease/landing fade, combined cap, 100-cycle bias bounds and preserved sensor servo (3462124 checks)
+PASS: run-grip settling/recentering, opposite tilts/presets/sample rates, gyro/fallback, invalid/stale/gapped delivery, active-gyro reset, tilted-grip noise/bias and upright gyro-z response (65 checks)
+Stage 1 PASS: 9.45s, 21 cuts, score 824
+Stage 2 PASS: 10.62s, 23 cuts, score 896
+Stage 3 PASS: 11.36s, 25 cuts, score 963
+Stage 4 PASS: 11.95s, 29 cuts, score 1089
+Stage 5 PASS: 15.00s, 29 cuts, score 1119
+Stage 6 PASS: 10.88s, 31 cuts, score 1138
+Stage 7 PASS: 13.36s, 34 cuts, score 1253
+Stage 8 PASS: 14.53s, 36 cuts, score 1325
+Stage 9 PASS: 13.26s, 35 cuts, score 1282
+Stage 10 PASS: 9.17s, 37 cuts, score 1301
+Stage 11 PASS: 17.32s, 39 cuts, score 1443
+Stage 12 PASS: 15.09s, 43 cuts, score 1540
+Stage 13 PASS: 14.57s, 41 cuts, score 1475
+Stage 14 PASS: 15.08s, 43 cuts, score 1540
+Stage 15 PASS: 47.80s, 45 cuts, score 1927
+Stage 16 PASS: 16.39s, 49 cuts, score 1733
+Stage 17 PASS: 15.86s, 47 cuts, score 1668
+Stage 18 PASS: 11.79s, 49 cuts, score 1687
+Stage 19 PASS: 19.44s, 51 cuts, score 1824
+Stage 20 PASS: 17.71s, 55 cuts, score 1927
+Stage 21 PASS: 17.18s, 52 cuts, score 1831
+Stage 22 PASS: 17.69s, 55 cuts, score 1926
+Stage 23 PASS: 20.80s, 58 cuts, score 2047
+Stage 24 PASS: 22.58s, 63 cuts, score 2215
+PASS: twenty-four campaign courses, intentional drift/nudge/countersteer, ropes/weight, narrowing/ceiling hazards, warning fire/contact, forgiving and fatal floors, terminal wins/reset and 100000 seeded stability steps (20999061 checks)
+PASS: 4.4 optional Firebase disclosures, consent timing/cache/retention limits, input sampling/country boundaries and full EN/HI/ID policy (222 checks)
+PASS: 4.2 language/music defaults, earned equipment and Daily v2 record migration (8 checks)
+PASS: independent cumulative mastery stars, explicit legacy migration, progress preservation and corrupt preference safety (757 checks)
+PASS: release EN/HI/ID labels, full privacy copy, rope descriptions, Unicode and formatting (59181 checks)
+Mixed touch stage 1 PASS 9.45s
+Mixed touch stage 2 PASS 10.62s
+Mixed touch stage 3 PASS 11.36s
+Mixed touch stage 4 PASS 11.95s
+Mixed touch stage 5 PASS 15.00s
+Mixed touch stage 6 PASS 10.88s
+Mixed touch stage 7 PASS 13.36s
+Mixed touch stage 8 PASS 15.55s
+Mixed touch stage 9 PASS 13.26s
+Mixed touch stage 10 PASS 9.17s
+Mixed touch stage 11 PASS 17.32s
+Mixed touch stage 12 PASS 15.09s
+Mixed touch stage 13 PASS 14.57s
+Mixed touch stage 14 PASS 15.08s
+Mixed touch stage 15 PASS 47.80s
+Mixed touch stage 16 PASS 16.39s
+Mixed touch stage 17 PASS 15.86s
+Mixed touch stage 18 PASS 11.79s
+Mixed touch stage 19 PASS 19.44s
+Mixed touch stage 20 PASS 17.71s
+Mixed touch stage 21 PASS 17.18s
+Mixed touch stage 22 PASS 17.69s
+Mixed touch stage 23 PASS 20.80s
+Mixed touch stage 24 PASS 22.58s
+Mixed motion stage 1 PASS 10.09s
+Mixed motion stage 2 PASS 10.61s
+Mixed motion stage 3 PASS 11.32s
+Mixed motion stage 4 PASS 11.95s
+Mixed motion stage 5 PASS 15.00s
+Mixed motion stage 6 PASS 10.88s
+Mixed motion stage 7 PASS 14.36s
+Mixed motion stage 8 PASS 14.53s
+Mixed motion stage 9 PASS 13.26s
+Mixed motion stage 10 PASS 9.17s
+Mixed motion stage 11 PASS 17.32s
+Mixed motion stage 12 PASS 15.08s
+Mixed motion stage 13 PASS 14.57s
+Mixed motion stage 14 PASS 15.09s
+Mixed motion stage 15 PASS 47.80s
+Mixed motion stage 16 PASS 16.39s
+Mixed motion stage 17 PASS 15.88s
+Mixed motion stage 18 PASS 11.79s
+Mixed motion stage 19 PASS 18.46s
+Mixed motion stage 20 PASS 17.71s
+Mixed motion stage 21 PASS 17.18s
+Mixed motion stage 22 PASS 17.08s
+Mixed motion stage 23 PASS 17.94s
+Mixed motion stage 24 PASS 22.58s
+PASS: mixed rope physical effects, safety, reset/Daily isolation and all-course touch/motion clearance (194856 checks)
+PASS: contiguous stage/chapter unlocks, loss/Arcade isolation, saved-selection clamp and sparse legacy record preservation (780 checks)
+Progression chapter 1 PASS: 21/21 cuts, scale 0.880, 9.45s
+Progression chapter 2 PASS: 23/23 cuts, scale 0.880, 10.62s
+Progression chapter 3 PASS: 25/25 cuts, scale 0.880, 11.36s
+Progression chapter 4 PASS: 29/29 cuts, scale 0.880, 11.95s
+Progression chapter 5 PASS: 29/29 cuts, scale 0.880, 15.00s
+Progression chapter 6 PASS: 31/31 cuts, scale 0.880, 10.88s
+Progression chapter 7 PASS: 34/34 cuts, scale 0.880, 13.36s
+Progression chapter 8 PASS: 36/36 cuts, scale 0.880, 15.55s
+Progression chapter 9 PASS: 35/35 cuts, scale 0.880, 13.26s
+Progression chapter 10 PASS: 37/37 cuts, scale 0.880, 9.17s
+Progression chapter 11 PASS: 39/39 cuts, scale 0.880, 17.32s
+Progression chapter 12 PASS: 43/43 cuts, scale 0.880, 15.09s
+Progression chapter 13 PASS: 41/41 cuts, scale 0.880, 14.57s
+Progression chapter 14 PASS: 43/43 cuts, scale 0.880, 15.08s
+Progression chapter 15 PASS: 45/45 cuts, scale 0.880, 47.80s
+Progression chapter 16 PASS: 49/49 cuts, scale 0.880, 16.39s
+Progression chapter 17 PASS: 47/47 cuts, scale 0.880, 15.86s
+Progression chapter 18 PASS: 49/49 cuts, scale 0.880, 11.79s
+Progression chapter 19 PASS: 51/51 cuts, scale 0.880, 19.44s
+Progression chapter 20 PASS: 55/55 cuts, scale 0.880, 17.71s
+Progression chapter 21 PASS: 52/52 cuts, scale 0.880, 17.18s
+Progression chapter 22 PASS: 55/55 cuts, scale 0.880, 17.69s
+Progression chapter 23 PASS: 58/58 cuts, scale 0.880, 20.80s
+Progression chapter 24 PASS: 63/63 cuts, scale 0.880, 22.58s
+Live Arcade CHILL: 65.00s, wave4, scale0.880, late live/warning steps2878/3703, reason=
+Live Arcade STANDARD: 65.00s, wave4, scale0.880, late live/warning steps2145/4127, reason=
+Live Arcade BRUTAL: 65.00s, wave4, scale0.880, late live/warning steps2268/4181, reason=
+PASS: finite totals/strict30percent, gradual12percent cap and Wave2 ramp, mirrored touch/motion, unchanged wind/neutral braking, mode/reset isolation, twelve real late-cut chapter clears and live65second Arcade (33745 checks)
+PASS: bounded background analytics buffer, raw sample rates/precision, SDK limits, run isolation, overflow, opt-out purge and concurrent drain (631 checks)
+PASS: default-on with preserved opt-out, independent choices, durable restart, save-failure rollback and flag migration (1404 checks)
+PASS: minimized Campaign/Arcade/Daily events, immutable snapshots, invalid numbers and private-string exclusion (17475 checks)
+PASS: touch startup/no drift, tap tremor, bilateral swipe direction, bounded velocity, release/cancel stop, reversal, return-to-start, vertical swipe and invalid coordinates (16 checks)
+PASS: UX recommendations, rewards and honest star evidence (71120 checks)
+PASS: spotlight EN/HI/ID copy, formats and contextual tips (1067 checks)
+PASS: responsive phone/tablet safe geometry, readable menu cap, separate navigation and pointer round trips (4707 checks)

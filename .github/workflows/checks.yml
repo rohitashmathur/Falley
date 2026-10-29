@@ -52,3 +52,6 @@ jobs:
 
       - name: Check original music PCM and audio lifecycle
         run: python .\scripts\test_media.py --jdk-root "$env:JAVA_HOME"
+
+      - name: Check input analysis export decoder
+        run: python .\scripts\test_analytics_decoder.py

@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/** Current opt-in disclosures, independent controls, local-data limits and complete translations. */
+/** Current default-on disclosures, independent controls, local-data limits and complete translations. */
 public final class PrivacyPolicyTest {
     private static int checks;
     private static void check(boolean ok,String why){checks++;if(!ok)throw new AssertionError(why);}
@@ -13,7 +13,7 @@ public final class PrivacyPolicyTest {
         String text=PrivacyPolicy.fullText();
         check(PrivacyPolicy.UPDATED_DATE.equals("Updated: 29 October 2026"),"4.4 policy date");
         check(text.contains("Firebase Crashlytics")&&text.contains("Google Analytics for Firebase"),"both providers disclosed");
-        check(text.contains("off by default")&&text.contains("enable it separately"),"independent opt-in defaults");
+        check(text.contains("on by default")&&text.contains("previously saved opt-out is kept"),"default-on and preserved opt-out");
         check(text.contains("both options off when the app starts")&&text.contains("does not initialize Firebase"),"cold-start SDK boundary disclosed");
         check(text.contains("next app launch")&&text.contains("stored locally while Firebase was active earlier"),"crash next-launch/cached-report semantics");
         check(text.contains("queued or in transit")&&text.contains("does not delete reports already received"),"in-flight and server-deletion limits");
@@ -21,7 +21,7 @@ public final class PrivacyPolicyTest {
         check(text.contains("approximate geography")&&text.contains("IP address"),"network-derived Analytics geography disclosed");
         check(text.contains("not included in Falley reporting events"),"country hint distinguished from SDK geography");
         check(text.contains("advertising-ID collection and advertising personalization"),"no ad identity/personalization");
-        check(text.contains("raw sensor readings")&&text.contains("touch coordinates"),"raw inputs excluded");
+        check(text.contains("unfiltered X/Y/Z")&&text.contains("touch paths")&&text.contains("192 events")&&text.contains("15 seconds"),"sampled raw inputs and bounded background batching disclosed");
         check(text.contains("installation identifiers")&&text.contains("app-instance identifier"),"pseudonymous SDK identifiers disclosed");
         check(text.contains("network-state")&&text.contains("background wake")&&text.contains("Play install-referrer"),"normal SDK permission purposes disclosed");
         check(text.contains("app-install/source attribution"),"automatic installation attribution disclosed without promising a personal-data-free referrer");
@@ -39,7 +39,7 @@ public final class PrivacyPolicyTest {
         }
         check(PrivacyPolicy.SECTIONS.length==14,"all current disclosure sections retained");
         check(!catalog.get("Country and language")[0].equals("stale"),"current policy overrides older catalog copy");
-        System.out.println("PASS: 4.4 optional Firebase disclosures, consent timing/cache/retention limits, local sensor/country boundaries and full EN/HI/ID policy ("+checks+" checks)");
+        System.out.println("PASS: 4.4 optional Firebase disclosures, consent timing/cache/retention limits, input sampling/country boundaries and full EN/HI/ID policy ("+checks+" checks)");
     }
     private static void translated(Map<String,String[]> catalog,String english){
         String[] row=catalog.get(english);check(row!=null&&row.length==2,"Hindi/Indonesian row exists");

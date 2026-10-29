@@ -1,0 +1,1 @@
+PASS: 48 HTML/app policy content, anchor, metadata and no-script checks. All14English sections match app policy.

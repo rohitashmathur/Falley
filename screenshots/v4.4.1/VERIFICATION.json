@@ -1,0 +1,321 @@
+{
+  "version": "4.4.1",
+  "versionCode": 18,
+  "parentCommit": "294bf3be7853c7247e253f532ba3837c847adf1e",
+  "artifact": {
+    "file": "Falley-4.4.1-debug.apk",
+    "bytes": 7016177,
+    "sha256": "a001c515f49ea5b60c89ad8c59918a779b3dfdaf4ada9af9e747f5a870726c20",
+    "package": "com.perfgames.falley.motiontest"
+  },
+  "native": [
+    {
+      "label": "firebase-small",
+      "checks": 779,
+      "captures": 8,
+      "rawLocalLogSha256": "1f7cbeb8a74b59b0b2831731a3a4ea5b754e642673c9b054652d91c260fd6be5"
+    },
+    {
+      "label": "firebase-tall",
+      "checks": 775,
+      "captures": 8,
+      "rawLocalLogSha256": "c3c98f7ef6d1e3f3b7e1cc20d6ae4c0555c342d1e70efd405e5d054fd9690db6"
+    },
+    {
+      "label": "privacy-small",
+      "checks": 2752,
+      "captures": 12,
+      "rawLocalLogSha256": "dba3a2093590eb535afbefeffb69cfa85e28bbc93d88996fc8c0cc17777cbf90"
+    }
+  ],
+  "portableGroups": 37,
+  "exportDecoderTests": 4,
+  "policyHtmlChecks": 48,
+  "lint": {
+    "errors": 0,
+    "warnings": 13
+  },
+  "releaseBuilt": false,
+  "firebaseDashboardConfirmed": false,
+  "sourceInputs": [
+    {
+      "path": "app/src/main/AndroidManifest.xml",
+      "canonicalLfSha256": "5aad119e224ebf9917b797e3b5fd264efb1947adc8e9cc0a76271d32834a81f3"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AppTelemetry.java",
+      "canonicalLfSha256": "bedf861fc7069be492074b6244fa42db3c304478487902373c1a362735b2d053"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ArcadeRules.java",
+      "canonicalLfSha256": "90bf7939bac52dfcd34f69d056f5930fa4a82ad3487161d99b581ba638d2a534"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarAbilities.java",
+      "canonicalLfSha256": "f2385d860303ea4c9db02473010af4721680884ceeee8af376dda72ea7169bf6"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarCatalog.java",
+      "canonicalLfSha256": "8e8543707964b3a72aececcc7de8bd3e865103a141bcdd0368285f01e6628dd8"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarPose.java",
+      "canonicalLfSha256": "45ef6b49be572938be4e8b6c64a59b0aee3772ff722cd4c404340b03e03abfaa"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarRenderer.java",
+      "canonicalLfSha256": "20e53b30a5ea2b6db9d6bf1eeeabc8c220e399e44d081e6b4be1c14d89353c40"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/AvatarRewards.java",
+      "canonicalLfSha256": "0090e37be463933092ce39c3b739fdda66a09e181a81dca1e6e0baeb8da30aca"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/BossRenderer.java",
+      "canonicalLfSha256": "a15be73ea38ab0c5ba73b66129fb208aaedab668aa9900160c6a49712876635a"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ChapterStories.java",
+      "canonicalLfSha256": "7842e4c66412b3b893da334e2ec36e9d562f89fb85ead333dcf8253233967a2c"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/Cosmetics.java",
+      "canonicalLfSha256": "06dbfe72af2fb9fb8a4f6034cd8397eb80af97d60f3e1c337e0bb128f445e6e2"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/CountryDetector.java",
+      "canonicalLfSha256": "13c21aa4545540faf9bcbd75b0c318c4c3cf465e244af86ac77af584d8ff6f2a"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/CountryRules.java",
+      "canonicalLfSha256": "a0d6aa9714087c72919c8943cfd6568dd7e718e953e6043f3e36e51cac86fc8a"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/DailyDrop.java",
+      "canonicalLfSha256": "d09572994f71ebe027646e43225528901362c941618609e348c37cec5222d846"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/DailyShare.java",
+      "canonicalLfSha256": "10fee2659b77c07a28215471426eb276b4e910d580025878a1dee85b635dd7ae"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ExpansionStrings.java",
+      "canonicalLfSha256": "dc5dc6a288ded5c773ea18f4fc5b77501ef3308b7a89bf5481bcecc88dbc2abd"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyApplication.java",
+      "canonicalLfSha256": "1bd3f9ae4ca583678536c1179a2dc318e35c6668a784097b9137def61324051e"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyAudio.java",
+      "canonicalLfSha256": "da22e17cfaa7c15c36a4f0b998d0657a8a1b87ad4c5643b41d3a00dc6a3c095a"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyMusic.java",
+      "canonicalLfSha256": "7a882dc1a36e988c9c4063e5bf1f69333f216cf1ee81378d9e9afb55460cb886"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyProfile.java",
+      "canonicalLfSha256": "5601febe0cf5bfa73b927221eb8c34c0c52323811fbc8160cf68ceea1e97ef7c"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyStrings.java",
+      "canonicalLfSha256": "889f89444c6d88b210362c1c126bfbfeaf6ca5526e8fa1eb9bd6df915486b90e"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/FalleyUi.java",
+      "canonicalLfSha256": "16895c72a1166312b35a5340d90dd47de7fa8f35ebf9bd2395401df41fb68825"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/HazardAudioCue.java",
+      "canonicalLfSha256": "be4baf6dc722bcccb08c3970576a74c733be6dd9b93301e14ff29cc16f1b4dae"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/MainActivity.java",
+      "canonicalLfSha256": "05a6d723f8711163d5a3b183f018f83cf5bcc6f72829fec4ac4db48b8a07f09c"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/MotionSteering.java",
+      "canonicalLfSha256": "6f9647a9ec2259b78561da5663ba5e5fe6908c328f72e1abbc4907ef45a46277"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/Physics.java",
+      "canonicalLfSha256": "2bf5df73133bc78514979df1b658b75520334db84051f1aad0921479fe6cba9d"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/PrivacyPolicy.java",
+      "canonicalLfSha256": "1630020e276f5e4680a7b81850b2ce897008fb5d74c3a1a2db8867fbca27499e"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ProfileStorage.java",
+      "canonicalLfSha256": "d5259e60485168d632d14a614691829fd0d20731e4f09a18c1bb4bbe13f7df55"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ReleaseStrings.java",
+      "canonicalLfSha256": "032f1145d2293107318b774274ba1945de4913ede26084dd1465c90ec0006bc9"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/RopeCatalog.java",
+      "canonicalLfSha256": "d43df3ed6393b89f0c496329386d6ed54b813d1ed547fec21b1fd522ab2bd9c2"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ShareCardProvider.java",
+      "canonicalLfSha256": "5d599121e78aaf3b5e1b869f3ada6ffaf5e16f7f0d39345ddf863c96764a4b8b"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/StageCatalog.java",
+      "canonicalLfSha256": "815658242a3299a084f92b3c45a899dd3f6887271c23f5da688f43631c80f19c"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/TelemetryBuffer.java",
+      "canonicalLfSha256": "e8f15714b86d8fe56178ca2cf57413aee21ffd3caef78fc31265aaa866bd35e3"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/TelemetryController.java",
+      "canonicalLfSha256": "dd1b78309116bf29324ec9bc384a0383bbec38bc7881d1defe21e71414007bf5"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/TelemetryEvents.java",
+      "canonicalLfSha256": "713f87bdb3791701d648dc537cc7ca8a4bc101708819ba87c4954a7518b1c518"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/TouchSteering.java",
+      "canonicalLfSha256": "986269fdc3a708a1da11f21ffbc93494679bc046e1f32f187749a2de053b5e25"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/UxRules.java",
+      "canonicalLfSha256": "ba5370b6dac53cb47e715bc1d78d40314177e650cee06d5ef4da6f382f46348c"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/UxStrings.java",
+      "canonicalLfSha256": "d5f4a80bc1a759ba1b84f5c57bf978ee1ef22ee36d9a44c14659dd3fc58ea014"
+    },
+    {
+      "path": "app/src/main/java/com/perfgames/ropelab/ViewportLayout.java",
+      "canonicalLfSha256": "7890f0da64c7001e317184236edb1013bd20e43aa451ec16d58fea878ba8ee66"
+    },
+    {
+      "path": "app/src/main/res/drawable/ic_falley_foreground.xml",
+      "canonicalLfSha256": "5ed214b5372de781a23037da473b03fd46a668c2825fee3a42074ddea344b8dc"
+    },
+    {
+      "path": "app/src/main/res/drawable/ic_falley_monochrome.xml",
+      "canonicalLfSha256": "216427614ee61184c78ea54671bc8a4f00775cd9a85ca13be7ee9cd902981501"
+    },
+    {
+      "path": "app/src/main/res/drawable/icon.xml",
+      "canonicalLfSha256": "f563bc6ee8e05fdf3432cd8bbadbda84c1ff540074cb25bf84feec950959844a"
+    },
+    {
+      "path": "app/src/main/res/drawable/splash_icon.xml",
+      "canonicalLfSha256": "ab4e206d75a3ce75e7cb83edd4a5edc74f9ca1a906e05a1491624cf68ba7a75d"
+    },
+    {
+      "path": "app/src/main/res/mipmap-anydpi/ic_launcher.xml",
+      "canonicalLfSha256": "f563bc6ee8e05fdf3432cd8bbadbda84c1ff540074cb25bf84feec950959844a"
+    },
+    {
+      "path": "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "canonicalLfSha256": "7cdee087c9fc0d19e785b458935d803be84adcc192fa1427add35a705edc9f87"
+    },
+    {
+      "path": "app/src/main/res/mipmap-anydpi-v33/ic_launcher.xml",
+      "canonicalLfSha256": "a0278b44a74aa7b4ff5cf66ac62b49356686cb0961c1788941b2c48d7256ec57"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_fire_burn.wav",
+      "canonicalLfSha256": "9f86131037872b8fb2902bdcd1f17879cc25c5cedeef6be70002d9a2874e86df"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_fire_launch.wav",
+      "canonicalLfSha256": "7be32ddc5b5e94220964032c7ea72978a2fc4daa6a58b9ce39e0193133ab08b1"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_jump.wav",
+      "canonicalLfSha256": "a3c71405dd895e625fc098e78808f51d1375efa7069f6948c62c3e150f0fd535"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_laser_zap.wav",
+      "canonicalLfSha256": "8991a3958517d82b8215f0f1383f139a4e6aa562292043757237d616e01acc0c"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_lightning_crack.wav",
+      "canonicalLfSha256": "91e3da4ad97a8d3aba304c76075813750cc39afd18ebb02a5f3e22d9f96f9bd9"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_loss.wav",
+      "canonicalLfSha256": "3b50d235d193880292e897d137667762cfc4bedb758d4a7511d6d695975973f4"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_retro_loop.wav",
+      "canonicalLfSha256": "b5ec86384803b1ad970a27740ad08bf389e86320dab0b3f4d774353b66dd69c1"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_rope.wav",
+      "canonicalLfSha256": "b8f6740717e103c2be6bacad2bd46c293202243615dd23014436437900bf04fd"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_saw_impact.wav",
+      "canonicalLfSha256": "0b761b56dba82791309538fd48f19787b5e6551b43e37a026b716c9bd629ae65"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_saw_motor.wav",
+      "canonicalLfSha256": "662b5d0b753bbd1bd17a058b599331081fe504c0e848a3abe8933e9aa8542b68"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_ui.wav",
+      "canonicalLfSha256": "14ede3499fe5f64d273c4efae66edf62f49315c97c8f813399228a669a6ec56b"
+    },
+    {
+      "path": "app/src/main/res/raw/falley_win.wav",
+      "canonicalLfSha256": "83e626accd0bc0854cef0284412d397611670a2e16211518728bb73a9101b82c"
+    },
+    {
+      "path": "app/src/main/res/values/icon_colors.xml",
+      "canonicalLfSha256": "8eab49fa92678d06711d6fa8d219713db4cc22594d6eb5e4e1c64fc9970fff0c"
+    },
+    {
+      "path": "app/src/main/res/values/styles.xml",
+      "canonicalLfSha256": "1963b9ca403be438cb7f8dd71668c8b7f507a0b50c67e1b4e14e98f9ed14414e"
+    },
+    {
+      "path": "app/src/main/res/values-v31/styles.xml",
+      "canonicalLfSha256": "efb4c28a04f66a058d4ca2605409ea06f7e777553f675b00bbdad8639f73bbfd"
+    },
+    {
+      "path": "app/src/main/res/values-v33/styles.xml",
+      "canonicalLfSha256": "e7f1e319a4383e201a6cdc544a9fa864f99745e4f1043cfd27f71cac8c3145eb"
+    },
+    {
+      "path": "app/src/main/res/xml/backup_rules.xml",
+      "canonicalLfSha256": "865cae97840e81b9950d70457a05c5c1125a68364b0a83f44cd3daa030bc7e96"
+    },
+    {
+      "path": "app/src/main/res/xml/data_extraction_rules.xml",
+      "canonicalLfSha256": "cb029b35db0e976c087100424e16e14a6256b46962398887520e51508c3b5842"
+    },
+    {
+      "path": "app/build.gradle",
+      "canonicalLfSha256": "51dd299f47cd4343250c6551357b179411fe7618cd0b832a2719bde286543a9e"
+    },
+    {
+      "path": "build.gradle",
+      "canonicalLfSha256": "b01462f906a3ffa4f592a8d5c5c142e8386c2912473f2d08e482a7aaf0173b1a"
+    },
+    {
+      "path": "gradle.properties",
+      "canonicalLfSha256": "1d925a2c8237ef8adf6b74f9738a451b298d4d48e5eda2079c2b60410cd04acb"
+    },
+    {
+      "path": "scripts/build-android.ps1",
+      "canonicalLfSha256": "d9f4f7fce3561536c048477811d57e5431f63f0761c6534296fe980a8c4d9266"
+    }
+  ],
+  "limits": [
+    "Raw sensor stream handoff used synthetic sensor values in the native fixture; physical-phone motion/performance remains owner testing.",
+    "SDK handoff is not dashboard ingestion confirmation.",
+    "Only debug built; no new release bundle/APK/mapping upload.",
+    "Sample batches are best-effort, sampled and bounded, not lossless recordings.",
+    "Website deployment and Play Data safety are owner actions."
+  ]
+}

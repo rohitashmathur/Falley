@@ -11,8 +11,8 @@ android {
         applicationId 'com.perfgames.falley'
         minSdk 24
         targetSdk 36
-        versionCode 17
-        versionName '4.4.0'
+        versionCode 18
+        versionName '4.4.1'
         resValue 'string', 'app_name', 'Falley'
     }
     buildFeatures { buildConfig true }

@@ -77,6 +77,7 @@ public final class NativeFalleyTest extends Instrumentation {
                 require(backup.edit().putBoolean(BACKUP_MARKER,true).commit(),"original preferences backed up");
                 SharedPreferences.Editor fixture=storage.edit().clear().putBoolean("motion",false)
                         .putBoolean("sound",false).putBoolean("music",false).putBoolean("haptics",false).putBoolean("blood",true);
+                if(!mode.startsWith("firebase"))fixture.putInt("telemetry_flags",0);
                 if(!mode.equals("ux"))fixture.putBoolean("language_confirmed",true);
                 if (!mode.equals("features")) fixture.putInt("preset",1);
                 require(fixture.commit(),"deterministic emulator settings installed");
@@ -138,7 +139,7 @@ public final class NativeFalleyTest extends Instrumentation {
             try { close(); restoreOriginal(); }
             catch (Throwable cleanup) { if (failure==null) failure=cleanup; else failure.addSuppressed(cleanup); }
         }
-        String coverage=mode.equals("firebase") ? "4.4 actual Firebase SDK opt-in initialization, independent durable collection choices, Analytics instance ID consent/reset, private event routing and EN/HI/ID settings; dashboard delivery not established"
+        String coverage=mode.equals("firebase") ? "4.4.1 default-on Firebase, preserved opt-out, independent switches, installed gameplay hooks, background input batch handoff and EN/HI/ID settings; dashboard delivery not established"
                 : mode.equals("firebasecrash") ? "4.4 debug-only intentional Crashlytics verification crash; console delivery and recovery recorded separately"
                 : mode.equals("effects") ? "focused fire/three-beam warnings, collisions and early/late visual effects"
                 : mode.equals("v31") ? "focused V3.1 mask migration, five hazards, saw physics and native SoundPool counters/lifecycle; audibility not assessed"
@@ -2275,33 +2276,47 @@ public final class NativeFalleyTest extends Instrumentation {
     private Object telemetry() throws Exception{return read(activity,"telemetry");}
     private Object telemetryChoices() throws Exception{return read(telemetry(),"choices");}
     private boolean choice(String name) throws Exception{return (Boolean)call(telemetryChoices(),name);}
+    private int telemetryCount(String name)throws Exception{return ((Number)call(telemetry(),"eventCount",name)).intValue();}
+    private void telemetryFlush()throws Exception{ui(()->call(telemetry(),"flush"));long end=SystemClock.uptimeMillis()+5000;while(((Number)call(read(telemetry(),"buffer"),"pending")).intValue()>0&&SystemClock.uptimeMillis()<end)SystemClock.sleep(25);settle(100);}
     private void firebaseRegression() throws Exception {
-        require(APP.equals("com.perfgames.falley.motiontest"),"Firebase consent fixture targets debug only");firebasePermissions();
-        require(getTargetContext().getPackageManager().getPackageInfo(APP,0).versionName.equals("4.4.0-beta-test"),"installed Firebase version is current");
-        Class<?> appClass=Class.forName("com.google.firebase.FirebaseApp",true,getTargetContext().getClassLoader());
-        java.util.List<?> apps=(java.util.List<?>)appClass.getMethod("getApps",Context.class).invoke(null,getTargetContext());
-        require(apps.isEmpty()&&!(Boolean)call(telemetry(),"initialized"),"fresh both-OFF cold process has no initialized Firebase app");
-        require(!choice("crashes")&&!choice("analytics"),"crash and analytics choices default OFF");
-        uxNav("settings",SETTINGS);click("telemetry");requireScreen(TELEMETRY,"Settings opens separate privacy controls");
-        for(int language=0;language<3;language++){v43Language(language);uxFit("Firebase consent "+language);localizedNodes(language,"Firebase consent");capture("firebase-consent-"+language);}
-        v43Language(0);click("privacy");requireScreen(PRIVACY,"consent screen opens in-app policy");back();requireScreen(TELEMETRY,"policy returns to consent screen");
-        click("telemetry_analytics");require(choice("analytics")&&!choice("crashes"),"Analytics opt-in leaves crash reporting OFF");
-        require((Boolean)call(telemetry(),"initialized")&&(Boolean)call(telemetry(),"available"),"real Firebase SDK initialized from local configuration");
+        require(APP.equals("com.perfgames.falley.motiontest"),"Firebase fixture targets debug only");firebasePermissions();
+        require(getTargetContext().getPackageManager().getPackageInfo(APP,0).versionName.equals("4.4.1-beta-test"),"installed Firebase version is current");
+        require(choice("crashes")&&choice("analytics"),"missing preferences default both choices ON");
+        require((Boolean)call(telemetry(),"initialized")&&(Boolean)call(telemetry(),"available"),"real Firebase initialized with defaults");
         Class<?> crashClass=Class.forName("com.google.firebase.crashlytics.FirebaseCrashlytics",true,getTargetContext().getClassLoader());Object crash=crashClass.getMethod("getInstance").invoke(null);
-        require(!(Boolean)crashClass.getMethod("isCrashlyticsCollectionEnabled").invoke(crash),"actual Crashlytics SDK remains disabled for Analytics-only choice");
-        Object analytics=read(telemetry(),"analytics");Object task=analytics.getClass().getMethod("getAppInstanceId").invoke(analytics);Class<?> taskClass=Class.forName("com.google.android.gms.tasks.Task",true,getTargetContext().getClassLoader());
+        require((Boolean)crashClass.getMethod("isCrashlyticsCollectionEnabled").invoke(crash),"actual Crashlytics default is ON");
+        uxNav("settings",SETTINGS);click("telemetry");requireScreen(TELEMETRY,"Settings opens reporting controls");
+        for(int language=0;language<3;language++){v43Language(language);uxFit("Firebase defaults "+language);localizedNodes(language,"Firebase defaults");capture("firebase-defaults-"+language);}
+        for(int language=0;language<3;language++){v43Language(language);ui(()->{write(read(arena,"profile"),"languageConfirmed",false);write(arena,"screen",LANGUAGE);arena.invalidate();});settle(80);uxFit("first-launch tracking notice "+language);localizedNodes(language,"first-launch tracking notice");capture("firebase-first-launch-"+language);ui(()->{write(read(arena,"profile"),"languageConfirmed",true);write(arena,"screen",TELEMETRY);arena.invalidate();});settle(40);}
+        v43Language(0);click("privacy");requireScreen(PRIVACY,"diagnostics opens current policy");back();requireScreen(TELEMETRY,"policy returns to diagnostics");
+        click("telemetry_crash");require(!choice("crashes")&&choice("analytics"),"crash switch independent");
+        require(!(Boolean)crashClass.getMethod("isCrashlyticsCollectionEnabled").invoke(crash),"actual SDK receives crash disable");
+        Object analytics=read(telemetry(),"analytics");Class<?> taskClass=Class.forName("com.google.android.gms.tasks.Task",true,getTargetContext().getClassLoader());Object task=analytics.getClass().getMethod("getAppInstanceId").invoke(analytics);
         long until=SystemClock.uptimeMillis()+12000;while(!(Boolean)taskClass.getMethod("isComplete").invoke(task)&&SystemClock.uptimeMillis()<until)SystemClock.sleep(60);
-        require((Boolean)taskClass.getMethod("isSuccessful").invoke(task)&&taskClass.getMethod("getResult").invoke(task)!=null,"actual Analytics instance ID is available after consent; value not logged");
-        int before=(int)numeric(telemetry(),"eventsSubmitted");back();uxNav("home",HOME);click("play");click("begin_campaign");requireScreen(PLAY,"opted-in real Campaign begins");
-        require(numeric(telemetry(),"eventsSubmitted")==before+1,"real run start submits exactly one Analytics event");click("pause");click("resume");require(numeric(telemetry(),"eventsSubmitted")==before+1,"pause/resume does not duplicate start");
-        click("pause");click("home");require(numeric(telemetry(),"eventsSubmitted")==before+2,"explicit abandonment submits exactly one end");
-        uxNav("settings",SETTINGS);click("telemetry");click("telemetry_analytics");require(!choice("analytics")&&!choice("crashes"),"Analytics opt-out preserves crash OFF");
-        click("telemetry_crash");require(choice("crashes")&&!choice("analytics"),"Crash opt-in leaves Analytics OFF");require((Boolean)crashClass.getMethod("isCrashlyticsCollectionEnabled").invoke(crash),"actual Crashlytics SDK receives explicit opt-in");
-        click("telemetry_crash");require(!choice("crashes")&&!choice("analytics"),"both choices return OFF");require(storage.getInt("telemetry_flags",-1)==0,"opt-out is durable for next cold app process");
-        Object offTask=analytics.getClass().getMethod("getAppInstanceId").invoke(analytics);until=SystemClock.uptimeMillis()+12000;
-        while(!(Boolean)taskClass.getMethod("isComplete").invoke(offTask)&&SystemClock.uptimeMillis()<until)SystemClock.sleep(60);
-        require((Boolean)taskClass.getMethod("isSuccessful").invoke(offTask)&&taskClass.getMethod("getResult").invoke(offTask)==null,"actual Analytics instance ID is unavailable after storage consent is denied");
-        before=(int)numeric(telemetry(),"eventsSubmitted");back();uxNav("home",HOME);click("play");click("begin_campaign");click("pause");click("home");require(numeric(telemetry(),"eventsSubmitted")==before,"subsequent run events are blocked after Analytics opt-out");
+        require((Boolean)taskClass.getMethod("isSuccessful").invoke(task)&&taskClass.getMethod("getResult").invoke(task)!=null,"actual Analytics identifier available; value not logged");
+        telemetryFlush();int starts=telemetryCount("falley_run_start"),ends=telemetryCount("falley_run_end"),jumps=telemetryCount("falley_jump"),swipes=telemetryCount("falley_swipe"),batches=telemetryCount("falley_input_batch");
+        back();uxNav("home",HOME);click("play");click("begin_campaign");requireScreen(PLAY,"real campaign starts");
+        ui(()->{write(arena,"active",true);write(arena,"accumulator",-1000f);});
+        tap(240,400);dragHeld(240,430,295,435);release(300,435);
+        ui(()->{call(telemetry(),"motion",1,SystemClock.elapsedRealtimeNanos(),1.25f,9.8f,-.5f,0);call(telemetry(),"motion",4,SystemClock.elapsedRealtimeNanos(),.1f,.2f,.3f,0);});
+        telemetryFlush();
+        require(telemetryCount("falley_run_start")==starts+1,"one real run start handed off by worker");
+        require(telemetryCount("falley_jump")>jumps&&telemetryCount("falley_swipe")==swipes+1,"actual touch handlers record individual jump and swipe");
+        require(telemetryCount("falley_input_batch")>=batches+3,"touch plus synthetic raw accelerometer and gyro streams handed off separately");
+        require(read(telemetry(),"worker")!=null,"background handler exists");
+        ui(()->{write(arena,"active",false);});click("pause");click("resume");telemetryFlush();require(telemetryCount("falley_run_start")==starts+1,"pause/resume does not duplicate run start");
+        click("pause");click("home");telemetryFlush();require(telemetryCount("falley_run_end")==ends+1,"abandon closes one old run");
+        require(telemetryCount("falley_navigation")>0,"actual menu transitions recorded");
+        uxNav("settings",SETTINGS);click("language");click("language_1");click("language_done");telemetryFlush();require(telemetryCount("falley_language_change")>0,"persisted language change recorded");
+        v43Language(0);uxHome();int unlocks=telemetryCount("falley_avatar_unlock");uxRewardFinale(3);telemetryFlush();require(telemetryCount("falley_avatar_unlock")==unlocks+1,"actual persisted finale completion logs new avatar once");click("reward_continue");click("reward_keep");uxHome();
+        int ropes=telemetryCount("falley_rope");expansionStart(2,false);uxRopeSupportFixture(1);telemetryFlush();require(telemetryCount("falley_rope")>ropes,"actual Spring support emits rope encounter");uxHome();
+        click("daily");click("start_daily");expansionLanding(1,0);int shares=telemetryCount("falley_share");expansionShareCheck();telemetryFlush();require(telemetryCount("falley_share")==shares+1,"real Share Result button logs tap without claiming delivery");uxHome();uxNav("settings",SETTINGS);
+        click("telemetry");click("telemetry_analytics");require(!choice("analytics")&&!choice("crashes"),"independent choices now OFF");
+        require(((Number)call(read(telemetry(),"buffer"),"pending")).intValue()==0,"opt-out discards pending raw and interaction batches");
+        require(storage.getInt("telemetry_flags",-1)==0,"opt-out saved explicitly");ui(()->call(telemetry(),"reload"));require(!choice("analytics")&&!choice("crashes"),"explicit saved opt-out survives default-on reload");
+        Object offTask=analytics.getClass().getMethod("getAppInstanceId").invoke(analytics);until=SystemClock.uptimeMillis()+12000;while(!(Boolean)taskClass.getMethod("isComplete").invoke(offTask)&&SystemClock.uptimeMillis()<until)SystemClock.sleep(60);
+        require((Boolean)taskClass.getMethod("isSuccessful").invoke(offTask)&&taskClass.getMethod("getResult").invoke(offTask)==null,"Analytics storage reset/deny applied");
+        int sent=(int)numeric(telemetry(),"eventsSubmitted");back();uxNav("home",HOME);click("play");click("begin_campaign");ui(()->write(arena,"active",false));tap(240,400);click("pause");click("home");telemetryFlush();require(numeric(telemetry(),"eventsSubmitted")==sent,"events blocked after opt-out");
         uxNav("settings",SETTINGS);click("telemetry");capture("firebase-final-off");back();uxNav("home",HOME);
     }
     private void firebaseCrash() throws Exception {

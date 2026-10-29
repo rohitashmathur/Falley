@@ -3,8 +3,8 @@ param(
     [string]$JdkRoot=$env:JAVA_HOME,
     [ValidateSet('com.perfgames.falley.motiontest')][string]$ApplicationId='com.perfgames.falley.motiontest',
     [string]$AppLabel='Falley Motion Test',
-    [string]$VersionName='4.4.0-beta-test',
-    [ValidateRange(1,2100000000)][int]$VersionCode=17,
+    [string]$VersionName='4.4.1-beta-test',
+    [ValidateRange(1,2100000000)][int]$VersionCode=18,
     [string]$OutputApk
 )
 $ErrorActionPreference='Stop'

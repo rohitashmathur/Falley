@@ -55,6 +55,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             gyroscope = sensors.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         }
         arena = new Arena(this, accelerometer != null, gyroscope != null);
+        arena.physics.ropeObserver=telemetry::rope;
         audio = new FalleyAudio(this);
         if (state != null) {arena.restoreMenu();if(arena.screen==Arena.HOME){arena.selectHomeChapter(state.getInt("homeChapter",arena.chapterPage));int selected=state.getInt("homeStage",arena.homeStage);if(arena.profile.isStageUnlocked(selected)&&selected/4==arena.chapterPage)arena.homeStage=selected;}}
         setContentView(arena);
@@ -84,6 +85,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         arena.clearTouch(); arena.motion.resetSamples(); arena.saveProfile();
         if (sensors != null) sensors.unregisterListener(this);
         audio.setForeground(false);
+        telemetry.navigation(arena.screen);telemetry.flush();
         super.onPause();
     }
     @Override public void onConfigurationChanged(android.content.res.Configuration configuration){
@@ -187,6 +189,8 @@ public class MainActivity extends Activity implements SensorEventListener {
         if (!resumed || !arena.motionEnabled) return;
         boolean hadSample = arena.motion.hasSample();
         float x = event.values[0], y = event.values[1], z = event.values[2];
+        if(arena.active&&arena.screen==Arena.PLAY&&!arena.physics.lost&&!arena.physics.won)
+            telemetry.motion(event.sensor.getType(),event.timestamp,x,y,z,getWindowManager().getDefaultDisplay().getRotation());
         // Sensor axes stay tied to natural orientation, including tablets.
         switch (getWindowManager().getDefaultDisplay().getRotation()) {
             case Surface.ROTATION_90: { float oldX = x; x = -y; y = oldX; break; }
@@ -396,6 +400,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 if (screen == PAUSE || screen == RESULT) { buttons.clear(); drawOverlay(c); }
             }
             c.restore();
+            owner.telemetry.navigation(screen);
             setKeepScreenOn(active && screen == PLAY);
             owner.updateMusic();
             menuAccessibility.updateScreen();
@@ -427,11 +432,12 @@ public class MainActivity extends Activity implements SensorEventListener {
             if ((physics.won || physics.lost) && !resultRecorded) {
                 resultStarsThisRun=!runMirror?UxRules.starsForRun(physics):0;
                 resultStarsNew=resultStarsThisRun&~resultStarsBefore;
+                int previouslyUnlocked=AvatarRewards.unlockedMask(profile);
                 boolean changed;
                 if (physics.daily) changed = profile.recordDaily(runDailyDay,physics.won,physics.score,physics.elapsed,physics.jumpsUsed(),runControl);
                 else if (physics.arcade) changed = profile.recordArcadeResult(physics.arcadeDifficulty,physics.score,physics.elapsed);
                 else changed = !runMirror && profile.recordResult(physics.stage.index,physics.won,physics.score,physics.elapsed,physics.jumpsUsed(),physics.landingX,physics.landingTargetCenter,physics.landingTargetWidth);
-                if (changed) saveProfile();
+                if (!changed||saveProfile())owner.telemetry.unlocked(AvatarRewards.unlockedMask(profile)&~previouslyUnlocked);
                 owner.telemetry.end(physics,physics.won,false);
                 resultRecorded = true;
             }
@@ -786,15 +792,15 @@ public class MainActivity extends Activity implements SensorEventListener {
         private void drawTelemetry(Canvas c){
             header(c,"Diagnostics & analytics");float extra=layout.extra;
             copy(c,"Help improve Falley",24,126,432,22,1,mint);
-            copy(c,"Both choices are optional and off by default.",24,158,432,15,2,muted);
+            copy(c,"On by default. Turn either option off anytime.",24,158,432,15,2,muted);
             int mark=section(c,extra*.15f);toggleRow(c,"telemetry_crash","Crash reports",204,owner.telemetry.choices.crashes(),true);
             copy(c,"Send crash, error and device diagnostics to Firebase.",34,303,412,14,2,muted);
             endSection(c,mark,extra*.15f);mark=section(c,extra*.40f);toggleRow(c,"telemetry_analytics","Gameplay analytics",354,owner.telemetry.choices.analytics(),true);
-            copy(c,"Share runs, stages and control choices to improve balance.",34,453,412,14,2,muted);
+            copy(c,"Share gameplay, menu use, motion and touch samples.",34,453,412,14,2,muted);
             endSection(c,mark,extra*.40f);mark=section(c,extra*.65f);
             copy(c,"Crash report changes fully apply next app launch. Reports already sending may finish.",24,506,432,13,3,gold);
             copy(c,"Enabling crash reports can include reports saved on this device.",24,565,432,13,3,muted);
-            copy(c,"No ads, advertising ID, raw motion or personal profile data.",24,624,432,13,2,muted);
+            copy(c,"Input samples are batched during play. No ads or advertising ID.",24,624,432,13,2,muted);
             if(!owner.telemetry.available())copy(c,"Diagnostics are unavailable. Your choices are saved.",24,670,432,12,2,coral);
             endSection(c,mark,extra*.65f);
             button(c,"privacy",24,704+extra,234,756+extra,"PRIVACY POLICY",white,14);
@@ -814,7 +820,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 if(profile.language==i)circle(c,426,top+42,5,mint);
                 if(!countryHint.country.isEmpty()&&i==countryHint.suggestedLanguage())fitText(c,"Available for your region",40,top+74,11,muted,370);
             }
-            copy(c,"Your choice stays on this device.",24,609+layout.extra*.75f,432,15,2,muted);
+            copy(c,"Reporting starts on: gameplay, motion and touch samples go to Google for Perf Games. Change this in Settings > Diagnostics & analytics.",24,609+layout.extra*.75f,432,14,5,muted);
             button(c,"language_done",24,734+layout.extra,456,808+layout.extra,first?"CONTINUE":"DONE",mint,19);
         }
 
@@ -1537,7 +1543,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         private void resumeMotion() {
             if (motionEnabled) { motion.resetSamples(); physics.vx = 0; physics.gx = 0; }
         }
-        private void jump() { if (screen == PLAY && !physics.won && physics.jump()) cue(1); }
+        private void jump() { if(screen==PLAY&&!physics.won&&!physics.lost){boolean accepted=physics.jump();owner.telemetry.jump(physics,accepted);if(accepted)cue(1);} }
         void back() {
             if (screen == PLAY) { owner.stopEffects(); screen = PAUSE; }
             else if (screen == PAUSE) { resumeMotion(); screen = PLAY; }
@@ -1556,7 +1562,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (id.equals("restart")) restart();
             else if(id.equals("daily"))openDaily();
             else if(id.equals("start_daily"))startDaily();
-            else if(id.equals("share_daily") && screen==RESULT && physics.daily)DailyShare.send(owner,physics,runDailyDay,runControl,profile.selectedAvatar,profile.language);
+            else if(id.equals("share_daily") && screen==RESULT && physics.daily){owner.telemetry.share();owner.telemetry.flush();DailyShare.send(owner,physics,runDailyDay,runControl,profile.selectedAvatar,profile.language);}
             else if(id.equals("wardrobe")){if(screen!=WARDROBE)closetTab=0;screen=WARDROBE;clearTouch();}
             else if(id.startsWith("closet_tab_"))closetTab=Math.max(0,Math.min(1,Integer.parseInt(id.substring(11))));
             else if(id.equals("avatar_preview")){avatarPreviewTime=0;}
@@ -1610,7 +1616,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (id.equals("privacy_email") && screen == PRIVACY) owner.openPrivacyLink(true);
             else if (id.equals("language")) { screen = LANGUAGE; clearTouch(); }
             else if(id.equals("language_done")){boolean first=!profile.languageConfirmed;profile.languageConfirmed=true;saveProfile();if(first)enterHome();else screen=SETTINGS;}
-            else if (id.startsWith("language_")) { profile.language = FalleyStrings.sanitize(Integer.parseInt(id.substring(9))); saveProfile(); }
+            else if (id.startsWith("language_")) { int before=profile.language;profile.language = FalleyStrings.sanitize(Integer.parseInt(id.substring(9)));if(saveProfile())owner.telemetry.language(before,profile.language); }
             else if (id.equals("back")) back();
             else if (id.equals("pause")) { owner.stopEffects(); screen = PAUSE; clearTouch(); }
             else if (id.equals("resume")) { resumeMotion(); screen = PLAY; clearTouch(); }
@@ -1660,7 +1666,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
             }
             private String content() {
-                if(screen==TELEMETRY)return t("Both choices are optional and off by default.")+" "+t("Crash report changes fully apply next app launch. Reports already sending may finish.")+" "+t("Enabling crash reports can include reports saved on this device.")+" "+t("No ads, advertising ID, raw motion or personal profile data.");
+                if(screen==TELEMETRY)return t("On by default. Turn either option off anytime.")+" "+t("Crash report changes fully apply next app launch. Reports already sending may finish.")+" "+t("Enabling crash reports can include reports saved on this device.")+" "+t("Input samples are batched during play. No ads or advertising ID.");
                 if (screen == PRIVACY) {
                     StringBuilder policy = new StringBuilder(t(PrivacyPolicy.TITLE)).append('\n').append(t(PrivacyPolicy.PUBLISHER)).append('\n').append(t(PrivacyPolicy.EFFECTIVE_DATE)).append('\n').append(t(PrivacyPolicy.UPDATED_DATE));
                     for (String[] section : PrivacyPolicy.SECTIONS) policy.append("\n\n").append(t(section[0])).append('\n').append(t(section[1]));
@@ -1671,7 +1677,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 if(screen==BRIEF)return t(physics.stage.title)+". "+t(ChapterStories.intro(physics.stage.chapterIndex))+" "+t(mechanicCopy(physics.stage))+" "+t(AvatarCatalog.name(profile.selectedAvatar))+". "+t(AvatarCatalog.trait(profile.selectedAvatar))+". "+t(AvatarCatalog.detail(profile.selectedAvatar))+" "+t("PAR %d JUMPS",physics.stage.parJumps);
                 if(screen==ARCADE_SETUP)return t("Build your survival run.")+" "+t("Tap cards to add or remove hazards.")+" "+t("Special ropes from Wave 2")+". "+t(UxRules.controlCue(motionEnabled));
                 if(screen==DAILY)return DailyDrop.courseId(DailyDrop.today())+". "+t("NEW COURSE AT 00:00 UTC")+". "+t("STREAK %d / BEST %d",profile.dailyStreak,profile.dailyBestStreak);
-                if(screen==LANGUAGE)return t("Choose your language")+". "+(!profile.languageConfirmed?t("English is selected by default.")+" ":"")+t("Your choice stays on this device.");
+                if(screen==LANGUAGE)return t("Choose your language")+". "+(!profile.languageConfirmed?t("English is selected by default.")+" ":"")+t("Reporting starts on: gameplay, motion and touch samples go to Google for Perf Games. Change this in Settings > Diagnostics & analytics.");
                 if(screen==WARDROBE){String detail=t("Collection")+". "+t(AvatarCatalog.name(profile.selectedAvatar))+". "+t(AvatarCatalog.trait(profile.selectedAvatar))+". "+t(AvatarCatalog.detail(profile.selectedAvatar))+". "+t(AvatarCatalog.story(profile.selectedAvatar))+". "+t("Ropes change within each course. Read their colour and symbol. Daily uses Classic.");if(closetTab==1)for(int type=0;type<RopeCatalog.COUNT;type++)detail+=" "+t(RopeCatalog.name(type))+". "+t(RopeCatalog.description(type));return detail;}
                 if(screen==UNLOCK)return t("New avatar unlocked")+". "+t(AvatarCatalog.name(AvatarRewards.pending(profile)))+". "+t(AvatarCatalog.trait(AvatarRewards.pending(profile)))+". "+t(AvatarCatalog.detail(AvatarRewards.pending(profile)))+". "+t("Current avatar: %s",t(AvatarCatalog.name(profile.selectedAvatar)));
                 if(screen==PLAY&&!contextCue.isEmpty())return t(contextCue);
@@ -1817,9 +1823,15 @@ public class MainActivity extends Activity implements SensorEventListener {
                 return next != NONE || action == MotionEvent.ACTION_HOVER_EXIT;
             }
         }
+        private float gestureStartX,gestureStartY;
+        private long gestureStartTime;
         @Override public boolean onTouchEvent(MotionEvent event) {
             int action = event.getActionMasked(), index = event.getActionIndex();
             float x = (event.getX(index)-ox)/scale, y = (event.getY(index)-oy)/scale;
+            if(active&&screen==PLAY&&!physics.lost&&!physics.won){
+                int phase=action==MotionEvent.ACTION_DOWN?0:action==MotionEvent.ACTION_MOVE?1:action==MotionEvent.ACTION_UP?2:action==MotionEvent.ACTION_CANCEL?3:-1;
+                if(phase>=0)owner.telemetry.touch(phase,event.getX(0),event.getY(0),getWidth(),getHeight());
+            }
             if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
                 if ((screen == CHAPTERS || screen == BRIEF) && chapterSwipePointer < 0 && y >= 128 && y <= 714) {
                     chapterSwipePointer = event.getPointerId(index); chapterSwipeX = x;
@@ -1832,7 +1844,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     privacyPointer = event.getPointerId(index); privacyLastY = y; return true;
                 }
                 if (screen == PLAY && pointer < 0 && !physics.lost && !physics.won && x >= 20 && x <= 460 && y >= TOP && y <= BOTTOM) {
-                    pointer = event.getPointerId(index); touch.begin(x,y); applySteering();
+                    pointer = event.getPointerId(index);gestureStartX=x;gestureStartY=y;gestureStartTime=event.getEventTime();touch.begin(x,y); applySteering();
                 }
             } else if (action == MotionEvent.ACTION_MOVE && screen == PRIVACY && privacyPointer >= 0) {
                 int current = event.findPointerIndex(privacyPointer);
@@ -1863,6 +1875,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
                 if (id == pointer) {
                     boolean tap = touch.release(x,y); pointer = -1;
+                    if(!tap)owner.telemetry.swipe(gestureStartX,gestureStartY,x,y,event.getEventTime()-gestureStartTime);
                     physics.steerTouch(0); applySteering();
                     if (tap) jump();
                     performClick();

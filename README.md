@@ -2,7 +2,7 @@
 
 An Android physics game by **Perf Games**. Fall through elastic ropes, steer with phone motion or swipes, dodge attacks and land on the target. Gameplay works offline.
 
-**Current: 4.4.0 / code 17 — optional Firebase reporting.** Debug APK, signed release bundle, local release test APK, mappings and signing files stay local. Exact build/test status is in [Build Status](BUILD_STATUS.md).
+**Current: 4.4.1 / code 18 — expanded Firebase tracking; debug testing.** Only a debug APK is prepared for this revision. Release bundles, APKs, mappings and signing files stay local. Exact build/test status is in [Build Status](BUILD_STATUS.md).
 
 - 24 Campaign stages across six chapters, mastery stars and earned avatar rewards.
 - One Campaign action opens combined chapter/stage selection and briefing; later stages unlock by completing the previous stage.
@@ -10,7 +10,7 @@ An Android physics game by **Perf Games**. Fall through elastic ropes, steer wit
 - Seven avatars with different jump, weight and attack-resistance abilities in Campaign/Arcade. Daily uses standard physics for everyone.
 - Mixed Classic, Spring and Static ropes; Arcade hazard cards; Daily Drop and explicit result-image sharing.
 - Touch/motion controls, phone/tablet layouts, English/Hindi/Bahasa Indonesia, retro music and independent effects controls.
-- **Crash reports** and **Gameplay analytics** are independent, optional switches in Settings → Diagnostics & analytics. Both start off; no first-launch reporting prompt interrupts play.
+- **Crash reports** and **Gameplay analytics** are independent switches in Settings → Diagnostics & analytics. Both default on when no choice is saved; explicit opt-outs are preserved. First launch explains reporting.
 
 ## Build and test
 
@@ -27,6 +27,6 @@ Use **Falley Motion Test** for debug testing, separate from the production app. 
 
 No accounts, ads or purchases. Progress/preferences stay on the device. Optional reporting can send limited diagnostics, gameplay events and SDK installation/device information to Google for Perf Games. Both switches off at startup means Firebase is not initialized. Analytics changes apply immediately; crash-report changes fully apply next launch and later opt-in may send cached reports. Turning reporting off does not delete information already received by Google.
 
-Raw motion samples, touch coordinates, the full save file and the temporary country hint are not included in Falley reporting events. Analytics may separately infer approximate geography from network information. Daily resets at 00:00 UTC and has no server-verified leaderboard.
+Gameplay analytics now includes individual jump attempts, swipes, sampled raw motion/touch input, menu transitions, language changes, earned avatars, rope encounters and Share Result taps. Samples are bounded and handed to Firebase in background batches. The full save file, temporary country hint and Daily seed/date remain excluded. Analytics may separately infer approximate geography from network information. Daily resets at 00:00 UTC and has no server-verified leaderboard.
 
-Redeploy the [updated policy website source](policy-site/) and review Play Data safety before distributing 4.4; a source push does not confirm a matching live policy or Play Console update. Physical-device motion, balance, audio, performance, fluent-speaker feedback and TalkBack remain owner acceptance checks.
+Redeploy the [updated policy website source](policy-site/) and review Play Data safety before distributing 4.4.1; a source push does not confirm a matching live policy or Play Console update. Physical-device motion, balance, audio, performance, fluent-speaker feedback and TalkBack remain owner acceptance checks.

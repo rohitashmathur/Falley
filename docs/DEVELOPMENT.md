@@ -1,6 +1,6 @@
 # Falley development and builds
 
-Current version: **4.4.0/code 17**. Debug and signed release artifacts are kept local. Exact completed build/native checks are in [Build Status](../BUILD_STATUS.md); Firebase behavior and console steps are in [Firebase 4.4](FIREBASE_4_4.md).
+Current version: **4.4.1/code 18**. This revision builds debug only; release commands below are documented for a later authorized release. Artifacts stay local. Exact completed build/native checks are in [Build Status](../BUILD_STATUS.md); Firebase behavior and console steps are in [Firebase 4.4](FIREBASE_4_4.md).
 
 ## Prerequisites and configuration
 
@@ -18,17 +18,17 @@ The helper validates package/client identity without printing file contents, the
 
 ```powershell
 .\scripts\test-expansion.ps1 -JdkRoot 'C:\path\to\jdk-17'
-.\scripts\build-android.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17' -OutputApk 'C:\local-delivery\Falley-4.4.0-debug.apk'
-adb install -r 'C:\local-delivery\Falley-4.4.0-debug.apk'
+.\scripts\build-android.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17' -OutputApk 'C:\local-delivery\Falley-4.4.1-debug.apk'
+adb install -r 'C:\local-delivery\Falley-4.4.1-debug.apk'
 adb shell am start -n com.perfgames.falley.motiontest/com.perfgames.ropelab.MainActivity
 ```
 
-The debug script now uses Gradle and defaults to **4.4.0-beta-test/code 17**, package `com.perfgames.falley.motiontest`, label **Falley Motion Test**, without R8. It includes Firebase's dependency resources and classes. The existing ignored `build/debug.keystore` is used explicitly; preserve it for compatible updates. Do not uninstall merely to bypass a signing mismatch if progress matters. `test-physics.ps1` remains an entry point to the portable suite.
+The debug script now uses Gradle and defaults to **4.4.1-beta-test/code 18**, package `com.perfgames.falley.motiontest`, label **Falley Motion Test**, without R8. It includes Firebase's dependency resources and classes. The existing ignored `build/debug.keystore` is used explicitly; preserve it for compatible updates. Do not uninstall merely to bypass a signing mismatch if progress matters. `test-physics.ps1` remains an entry point to the portable suite.
 
 ## Signed Play bundle and local release test APK
 
 ```powershell
-.\scripts\build-release.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17' -BundletoolJar 'C:\path\to\bundletool-all-1.18.3.jar' -OutputDirectory 'C:\local-delivery\Falley-4.4.0\release'
+.\scripts\build-release.ps1 -SdkRoot 'C:\path\to\android-sdk' -JdkRoot 'C:\path\to\jdk-17' -BundletoolJar 'C:\path\to\bundletool-all-1.18.3.jar' -OutputDirectory 'C:\local-delivery\Falley-4.4.1\release'
 ```
 
 Reuse the existing upload identity; see [release signing](RELEASE_SIGNING.md). Do not initialize a replacement key for an existing app. Release uses R8 optimization/obfuscation, resource shrinking and SDK/app consumer rules. The script runs lint and bundle generation, validates production identity/version/SDK/allowed permissions, verifies signatures against the preserved upload certificate, and derives a bundle-based local install APK. A Play-installed APK may instead carry Google's app-signing certificate.

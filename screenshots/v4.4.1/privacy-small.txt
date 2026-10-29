@@ -1,0 +1,1 @@
+PASS: native Falley privacy; checks=2752; captures=12; viewport=small; focused EN/HI/ID 4.4 optional-reporting policy, contact/URL visibility and accessibility, long-token glyph fit, blocked browser/mail handoff, Back and reviewed SDK permissions; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
