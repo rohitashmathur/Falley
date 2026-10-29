@@ -1,5 +1,8 @@
 # Android's optimized defaults and generated AAPT rules handle framework callbacks.
-# Preserve the two manifest entry points without retaining unrelated app members.
+# Preserve the manifest entry points without retaining unrelated app members.
+-keep,allowoptimization class com.perfgames.ropelab.FalleyApplication {
+    public <init>();
+}
 -keep,allowoptimization class com.perfgames.ropelab.MainActivity {
     public <init>();
 }

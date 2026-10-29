@@ -134,6 +134,19 @@ public final class ReleaseStrings {
         add("You can turn motion steering, music, sound effects, vibration and blood effects on or off in Settings. Falley does not ask for camera, microphone, location or contacts access.",
             "आप सेटिंग्स में झुकाकर दिशा बदलने, संगीत, ध्वनि प्रभाव, कंपन और खून के प्रभाव चालू या बंद कर सकते हैं। Falley कैमरे, माइक्रोफ़ोन, स्थान या संपर्कों तक पहुँच नहीं माँगता।",
             "Anda dapat menyalakan atau mematikan kendali gerak, musik, efek suara, getaran, dan efek darah di Pengaturan. Falley tidak meminta akses kamera, mikrofon, lokasi, atau kontak.");
+        add("DIAGNOSTICS & ANALYTICS","निदान और विश्लेषण","DIAGNOSTIK & ANALITIK");
+        add("Diagnostics & analytics","निदान और विश्लेषण","Diagnostik & analitik");
+        add("Help improve Falley","Falley को बेहतर बनाने में मदद करें","Bantu tingkatkan Falley");
+        add("Both choices are optional and off by default.","दोनों विकल्प वैकल्पिक हैं और शुरुआत में बंद हैं।","Kedua pilihan opsional dan awalnya nonaktif.");
+        add("Crash reports","क्रैश रिपोर्ट","Laporan crash");
+        add("Gameplay analytics","गेमप्ले विश्लेषण","Analitik permainan");
+        add("Send crash, error and device diagnostics to Firebase.","क्रैश, त्रुटि और डिवाइस के निदान Firebase को भेजें।","Kirim laporan crash, kesalahan dan diagnostik perangkat ke Firebase.");
+        add("Share runs, stages and control choices to improve balance.","संतुलन सुधारने के लिए दौर, चरण और नियंत्रण के विकल्प साझा करें।","Bagikan permainan, tahap dan pilihan kontrol untuk meningkatkan keseimbangan.");
+        add("Crash report changes fully apply next app launch. Reports already sending may finish.","क्रैश रिपोर्ट के बदलाव अगली बार ऐप खोलने पर पूरी तरह लागू होंगे। भेजी जा रही रिपोर्ट पूरी हो सकती हैं।","Perubahan laporan crash berlaku penuh saat aplikasi dibuka berikutnya. Laporan yang sedang dikirim mungkin tetap selesai.");
+        add("Enabling crash reports can include reports saved on this device.","क्रैश रिपोर्ट चालू करने पर इस डिवाइस में सहेजी रिपोर्ट भी भेजी जा सकती हैं।","Mengaktifkan laporan crash dapat menyertakan laporan yang tersimpan di perangkat ini.");
+        add("No ads, advertising ID, raw motion or personal profile data.","कोई विज्ञापन, विज्ञापन आईडी, गति के मूल नमूने या निजी प्रोफ़ाइल डेटा नहीं।","Tanpa iklan, ID iklan, data gerakan mentah atau data profil pribadi.");
+        add("Diagnostics are unavailable. Your choices are saved.","निदान अभी उपलब्ध नहीं है। आपके विकल्प सहेजे गए हैं।","Diagnostik tidak tersedia. Pilihan Anda telah disimpan.");
+        PrivacyPolicy.addTranslations(STRINGS);
     }
     public static String text(int language,String english,Object...args){
         if(english==null)return "";

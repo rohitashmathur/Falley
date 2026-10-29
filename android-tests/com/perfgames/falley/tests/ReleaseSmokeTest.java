@@ -40,7 +40,7 @@ public final class ReleaseSmokeTest extends Instrumentation {
     private View canvas;
     private SharedPreferences storage,backup;
     private File output;
-    private String mode,shot;
+    private String mode,shot,expectedVersion;
     private int checks,captures,expectedCode;
     private final StringBuilder log=new StringBuilder();
     private interface Step { void run() throws Exception; }
@@ -50,7 +50,7 @@ public final class ReleaseSmokeTest extends Instrumentation {
     }
     @Override public void onCreate(Bundle arguments){
         super.onCreate(arguments);Bundle args=arguments==null?new Bundle():arguments;
-        mode=args.getString("mode","smoke");shot=args.getString("shot","small");expectedCode=Integer.parseInt(args.getString("versionCode","14"));
+        mode=args.getString("mode","smoke");shot=args.getString("shot","small");expectedCode=Integer.parseInt(args.getString("versionCode","17"));expectedVersion=args.getString("versionName","4.4.0");
         if((!mode.equals("smoke")&&!mode.equals("restore"))||!shot.matches("[a-z0-9-]+"))throw new IllegalArgumentException("Release smoke arguments");start();
     }
     @Override public void onStart(){
@@ -68,15 +68,25 @@ public final class ReleaseSmokeTest extends Instrumentation {
             }
         }catch(Throwable error){failure=error;if(activity!=null&&canvas!=null)try{capture("failure");}catch(Throwable diagnostic){failure.addSuppressed(diagnostic);}}
         finally{try{close();restoreOriginal();}catch(Throwable cleanup){if(failure==null)failure=cleanup;else failure.addSuppressed(cleanup);}}
-        String summary=failure==null?"PASS: Falley release smoke; checks="+checks+"; captures="+captures+"; viewport="+shot+"; mode="+mode+"; reflection-free production launch/onboarding/navigation/resources, original preferences restored; no physical-phone audio or sensor comfort claim\n":"FAIL: Falley release smoke; viewport="+shot+"\n"+android.util.Log.getStackTraceString(failure);
+        String summary=failure==null?"PASS: Falley release smoke; checks="+checks+"; captures="+captures+"; viewport="+shot+"; mode="+mode+"; reflection-free production launch/onboarding/navigation/resources and default-off diagnostics, original preferences restored; no physical-phone audio or sensor comfort claim\n":"FAIL: Falley release smoke; viewport="+shot+"\n"+android.util.Log.getStackTraceString(failure);
         try(FileOutputStream file=new FileOutputStream(new File(output,"checks.txt"))){file.write((log.toString()+summary).getBytes("UTF-8"));}catch(Exception error){summary+="Artifact log failure: "+error+"\n";}
         Bundle result=new Bundle();result.putString("stream",summary);finish(failure==null?Activity.RESULT_OK:Activity.RESULT_CANCELED,result);
     }
     private void identityAndResources() throws Exception{
-        PackageInfo info=getTargetContext().getPackageManager().getPackageInfo(APP,android.content.pm.PackageManager.GET_PERMISSIONS);
+        PackageInfo info=getTargetContext().getPackageManager().getPackageInfo(APP,android.content.pm.PackageManager.GET_PERMISSIONS|android.content.pm.PackageManager.GET_PROVIDERS|android.content.pm.PackageManager.GET_META_DATA);
         require(APP.equals(getTargetContext().getPackageName()),"smoke targets the production package only");require((info.applicationInfo.flags&ApplicationInfo.FLAG_DEBUGGABLE)==0,"installed production app is not debuggable");
-        require((Build.VERSION.SDK_INT>=28?info.getLongVersionCode():info.versionCode)==expectedCode,"installed production version code matches this release");require("4.2.0".equals(info.versionName),"installed production version is 4.2.0");
-        require(info.requestedPermissions==null||info.requestedPermissions.length==0,"offline production app still requests no Android permissions");
+        require((Build.VERSION.SDK_INT>=28?info.getLongVersionCode():info.versionCode)==expectedCode,"installed production version code matches this release");require(expectedVersion.equals(info.versionName),"installed production version matches this release");
+        Set<String> allowed=new HashSet<>(java.util.Arrays.asList("android.permission.INTERNET","android.permission.ACCESS_NETWORK_STATE","android.permission.WAKE_LOCK","com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE",APP+".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"));
+        Set<String> requested=new HashSet<>();if(info.requestedPermissions!=null)java.util.Collections.addAll(requested,info.requestedPermissions);
+        for(String permission:requested)require(allowed.contains(permission),"production permission is bounded to Firebase network/background/install attribution or the app-scoped receiver: "+permission);
+        for(String permission:new String[]{"android.permission.INTERNET","android.permission.ACCESS_NETWORK_STATE","android.permission.WAKE_LOCK"})require(requested.contains(permission),"production retains required normal Firebase permission: "+permission);
+        if(requested.contains(APP+".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")){
+            android.content.pm.PermissionInfo permission=getTargetContext().getPackageManager().getPermissionInfo(APP+".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",0);
+            require((permission.protectionLevel&android.content.pm.PermissionInfo.PROTECTION_MASK_BASE)==android.content.pm.PermissionInfo.PROTECTION_SIGNATURE,"AndroidX app-scoped receiver permission is signature protected");
+        }
+        if(info.providers!=null)for(android.content.pm.ProviderInfo provider:info.providers)require(!provider.name.equals("com.google.firebase.provider.FirebaseInitProvider")&&!provider.name.equals("com.google.android.gms.measurement.AppMeasurementContentProvider"),"automatic Firebase/measurement provider is absent from optimized app");
+        for(String flag:new String[]{"firebase_data_collection_default_enabled","firebase_analytics_collection_enabled","firebase_crashlytics_collection_enabled","google_analytics_adid_collection_enabled","google_analytics_ssaid_collection_enabled","google_analytics_default_allow_analytics_storage","google_analytics_default_allow_ad_storage","google_analytics_default_allow_ad_user_data","google_analytics_default_allow_ad_personalization_signals"})require(info.applicationInfo.metaData!=null&&info.applicationInfo.metaData.containsKey(flag)&&!info.applicationInfo.metaData.getBoolean(flag,true),"optimized manifest retains disabled collection/ad default: "+flag);
+        int appId=getTargetContext().getResources().getIdentifier("google_app_id","string",APP);require(appId!=0&&getTargetContext().getString(appId).contains(":android:"),"optimized app retains its generated Android Firebase configuration without logging its values");
         String[] clips={"falley_fire_launch","falley_fire_burn","falley_laser_zap","falley_lightning_crack","falley_saw_motor","falley_saw_impact","falley_ui","falley_jump","falley_win","falley_loss","falley_rope","falley_retro_loop"};
         for(String name:clips){int id=getTargetContext().getResources().getIdentifier(name,"raw",APP);require(id!=0,"optimized package retains audio resource "+name);try(InputStream stream=getTargetContext().getResources().openRawResource(id)){byte[] header=new byte[12];require(stream.read(header)==12,"packaged audio is readable: "+name);require(header[0]=='R'&&header[1]=='I'&&header[2]=='F'&&header[3]=='F',"packaged audio has a WAV header: "+name);}}
         log.append("Resource names above are inspected by this test only; production audio uses direct IDs. No keep rules are required for this harness.\n");
@@ -94,13 +104,19 @@ public final class ReleaseSmokeTest extends Instrumentation {
         click("Collection",false);awaitHost("Collection",2000);require(find("AVATARS",false)!=null&&find("ROPES",false)!=null,"Collection exposes the two focused tabs");require(!has("TRAILS",false)&&!has("LANDING",false),"extra Collection tabs are absent");capture("collection-avatars");click("ROPES",false);capture("collection-ropes");
         click("Settings",false);awaitHost("Settings",2000);require(has("Retro music",true),"independent music setting is discoverable");capture("settings");
         click("Retro music",true);require(!storage.getBoolean("music",true)&&storage.getBoolean("sound",false),"music turns off independently of sound effects");click("Sound Effects",false);require(!storage.getBoolean("sound",true)&&!storage.getBoolean("music",true),"sound effects also turn off independently");click("Retro music",true);require(storage.getBoolean("music",false)&&!storage.getBoolean("sound",true),"music can remain on while effects are off");click("Sound Effects",false);
+        click("DIAGNOSTICS & ANALYTICS",false);awaitHost("Diagnostics & analytics",2000);
+        require(!find("Crash reports",true).checked&&!find("Gameplay analytics",true).checked,"production exposes two independent optional reporting choices off by default");
+        require(storage.getInt("telemetry_flags",0)==0,"release smoke never enables production reporting");
+        final String[] notice={""};ui(() -> {AccessibilityNodeInfo node=canvas.getAccessibilityNodeProvider().createAccessibilityNodeInfo(10000);require(node!=null,"diagnostics exposes readable consent details");notice[0]=String.valueOf(node.getText());node.recycle();});
+        require(notice[0].contains("next app launch")&&notice[0].contains("saved on this device")&&notice[0].contains("No ads"),"optimized diagnostics discloses crash timing, cached reports and excluded advertising");capture("diagnostics-off");
+        click("PRIVACY POLICY",false);awaitHost("Falley Privacy Policy",2000);back();awaitHost("Diagnostics & analytics",2000);click("DONE",false);awaitHost("Settings",2000);
         click("Language",true);awaitHost("Language selection",2000);
         click("हिन्दी",false);require(storage.getInt("language",-1)==1,"Hindi choice saves through real touch");capture("language-hindi");click("Bahasa Indonesia",false);require(storage.getInt("language",-1)==2,"Indonesian choice saves through real touch");capture("language-indonesian");click("English",false);click(has("DONE",false)?"DONE":"CONTINUE",false);awaitHost("Settings",2000);
         click("PRIVACY POLICY",false);awaitHost("Falley Privacy Policy",2000);final String[] policy={""};ui(() -> {AccessibilityNodeInfo node=canvas.getAccessibilityNodeProvider().createAccessibilityNodeInfo(10000);require(node!=null,"policy exposes complete readable content");policy[0]=String.valueOf(node.getText());node.recycle();});
         require(policy[0].contains("mathurrohitash16@gmail.com")&&policy[0].contains("https://falley-privacy-policy.vercel.app/"),"release policy includes support and public URL");capture("privacy");back();awaitHost("Settings",2000);click("Play",false);awaitHost("Falley home",2000);
     }
     private void actualCampaign() throws Exception{
-        click("START FALLING",false);awaitHost("First light",2000);require(has("TOUCH",false),"campaign briefing exposes Touch controls");capture("briefing");click("TOUCH",false);require(!storage.getBoolean("motion",true),"Touch selection remains saved without sensor requirements");click("START DROP",false);awaitHost("Falley gameplay",2000);require(has("Jump.",true),"actual live gameplay exposes its jump control");capture("gameplay-touch");
+        click("Continue stage",true);awaitHost("First light",2000);require(has("TOUCH",false),"campaign briefing exposes Touch controls");capture("briefing");click("TOUCH",false);require(!storage.getBoolean("motion",true),"Touch selection remains saved without sensor requirements");click("START DROP",false);awaitHost("Falley gameplay",2000);require(has("Jump.",true),"actual live gameplay exposes its jump control");capture("gameplay-touch");
         click("Pause",false);awaitHost("Paused",2000);capture("paused");click("Settings",false);awaitHost("Settings",2000);back();awaitHost("Paused",2000);click("RESTART",false);awaitHost("Falley gameplay",2000);
         // Actual Back dispatch exercises the supported API 33+ callback on current Android.
         back();awaitHost("Paused",2000);click("HOME",false);awaitHost("Falley home",2000);require(storage.getInt("stage_wins_0",0)==0,"smoke navigation cannot fabricate a campaign win");capture("home-after-play");

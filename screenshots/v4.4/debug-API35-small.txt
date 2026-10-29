@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: native Falley firebase; checks=407; captures=4; viewport=small; 4.4 actual Firebase SDK opt-in initialization, independent durable collection choices, Analytics instance ID consent/reset, private event routing and EN/HI/ID settings; dashboard delivery not established; controlled collision/death fixtures, not a natural phone playtest; original preferences restored
+
+INSTRUMENTATION_CODE: -1

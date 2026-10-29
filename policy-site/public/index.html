@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Privacy policy for Falley by Perf Games. Learn how the offline Android game handles motion controls, local progress and your choices.">
+  <meta name="description" content="Privacy policy for Falley by Perf Games. Offline play, optional Firebase crash reports and gameplay analytics, local progress and your choices.">
   <meta name="theme-color" content="#171b1c">
   <title>Falley Privacy Policy | Perf Games</title>
   <style>
@@ -70,81 +70,83 @@
   <main id="policy" class="wrap">
     <p class="eyebrow">Your privacy</p>
     <h1>Privacy policy</h1>
-    <p class="meta">Effective: <time datetime="2026-10-16">16 October 2026</time><br>Last updated: <time datetime="2026-10-25">25 October 2026</time> &middot; Offline Android version</p>
-    <p class="intro">Falley is a physics game developed and published by Perf Games. This policy explains how the current offline game handles information, including optional motion controls.</p>
-
-    <aside class="summary" aria-label="Privacy at a glance">
-      <p><strong>Your game stays on your device.</strong> Falley has no accounts, ads, analytics or tracking SDKs. The game does not collect or send personal information to Perf Games.</p>
-    </aside>
+    <p class="meta">Effective: <time datetime="2026-10-16">16 October 2026</time><br>Last updated: <time datetime="2026-10-29">29 October 2026</time> &middot; Falley 4.4 for Android</p>
+    <p class="intro">Falley is a physics game developed and published by Perf Games. Play works offline. This policy explains local data and the optional Google Firebase reporting introduced in version 4.4.</p>
+    <aside class="summary" aria-label="Privacy at a glance"><p><strong>You choose whether to share reports.</strong> Crash reports and gameplay analytics are separate options, both off by default. You can play with both off. There are no accounts, ads or purchases.</p></aside>
     <nav aria-label="Policy sections">
-      <a href="#local-data">Saved data</a>
-      <a href="#motion">Motion controls</a>
-      <a href="#deletion">Delete your data</a>
-      <a href="#contact">Contact</a>
+      <a href="#crash-reports">Crash reports</a><a href="#analytics">Analytics</a><a href="#choices">Your choices</a><a href="#deletion">Delete data</a><a href="#contact">Contact</a>
     </nav>
 
-    <section id="local-data">
-      <h2>1. Information stored on your device</h2>
-      <p>Falley saves information in the app's private storage so it can remember your preferences and progress. This includes:</p>
-      <ul>
-        <li>Language, motion controls and steering sensitivity settings.</li>
-        <li>Sound, vibration and blood effects preferences.</li>
-        <li>Selected stages, unlocked campaign progress, stars, earned appearance choices, arcade choices, scores, run counts and best times.</li>
-        <li>Daily Drop dates, attempts, results and completion streaks.</li>
-      </ul>
-      <p>This information stays on your device. Perf Games cannot access it through the game.</p>
+    <section id="offline">
+      <h2>1. Offline play and optional reporting</h2>
+      <p>Falley 4.4 can be played without an Internet connection. Perf Games offers optional crash reports through Firebase Crashlytics and optional gameplay analytics through Google Analytics for Firebase, provided by Google. Each option is off by default until you enable it separately in Settings. Neither option is required to play. With both options off when the app starts, Falley does not initialize Firebase. Falley has no accounts, ads or purchases.</p>
     </section>
 
     <section id="motion">
-      <h2>2. Motion controls, country and language</h2>
-<p>Falley may read a coarse country hint from your mobile network, SIM provider or device region to assist language selection. This is not precise location. The hint stays temporarily on your device and is not saved or sent anywhere. English is selected by default. You choose a language on first launch and can change it in Settings.</p>
-      <p>When you enable motion steering, Falley uses available accelerometer and gyroscope readings to steer the character. These readings are processed temporarily in memory on your device. They are not saved as sensor history, uploaded or shared.</p>
-      <p>You can turn motion controls off in Settings and play using touch controls instead.</p>
+      <h2>2. Motion controls</h2>
+      <p>If you enable motion steering, accelerometer and gyroscope readings are processed temporarily on your device to control the game. Falley does not save sensor history or include raw sensor readings, touch coordinates or motion-calibration samples in reporting. Touch controls work with motion steering off.</p>
     </section>
 
-    <section id="permissions">
-      <h2>3. Permissions, sound and vibration</h2>
-      <p>The current game requests no Android permissions, including no Internet permission. It does not access your camera, microphone, contacts or location. Optional motion sensors do not require these permissions.</p>
-      <p>Original retro music and sound effects are bundled with the game and played locally. Music, sound effects and vibration have independent switches in Settings. Falley does not record audio.</p>
+    <section id="country">
+      <h2>3. Country and language</h2>
+      <p>Falley may read a coarse country hint from your mobile network, SIM provider or device region to assist language selection. This is not precise location. That hint is temporary, is not saved, and is not included in Falley reporting events. English is selected by default; you choose a language on first launch and can change it in Settings. If you enable Analytics, Google may separately derive approximate geography from network information such as your IP address.</p>
     </section>
 
-    <section id="sharing">
-      <h2>4. Collection, sharing and advertising</h2>
-      <p>Perf Games does not collect, receive, sell or share personal information through this version of Falley. There are no advertising, analytics or tracking SDKs, online accounts, online leaderboards, chat services or game servers.</p>
-      <p>If you choose <strong>Share Result</strong> after a Daily Drop, Falley creates a result image containing the course date, generator version, score, time, jump count, selected avatar and control mode. Android lets you choose an app to receive it. Nothing is shared automatically. The receiving app handles that image under its own policy.</p>
-      <p>Google Play and Android may separately process information when you install, update or review an app, under their own policies. See <a href="https://policies.google.com/privacy">Google's Privacy Policy</a>.</p>
+    <section id="local-data">
+      <h2>4. Data on your device</h2>
+      <p>Falley saves preferences, reporting choices, selected stages, campaign unlocks, stars, avatar and rope choices, scores, run counts, best times, Daily Drop results and streaks in app-private storage. Music, sound effects and vibration are produced locally. Your full save file is not uploaded. If you enable reporting, the limited diagnostic or gameplay information described below can be sent to Google for Perf Games.</p>
+    </section>
+
+    <section id="crash-reports">
+      <h2>5. Optional crash reports</h2>
+      <p>When enabled, Firebase Crashlytics sends crash stack traces and related diagnostics, app version, device and operating-system information, installation identifiers, and limited game state such as mode, stage, wave, avatar, controls and outcome. Perf Games uses these reports to find and fix faults. We do not assign your name, email address or an account ID to reports. Changes to crash reporting fully apply on the next app launch. Enabling it can upload crash information stored locally while Firebase was active earlier, including when only Analytics was enabled. Reports already queued or in transit may still finish sending after you turn it off. Turning it off does not delete reports already received.</p>
+    </section>
+
+    <section id="analytics">
+      <h2>6. Optional gameplay analytics</h2>
+      <p>When enabled, Google Analytics for Firebase records limited gameplay interactions such as starting and ending a run, with mode, stage, wave, avatar, control mode and outcome. The SDK can also collect automatic app/session events, app-install/source attribution information, timestamps, app version, device and operating-system details, language, an app-instance identifier and approximate geography. Perf Games uses this to understand play and improve balance. Falley disables advertising-ID collection and advertising personalization. We do not send your full save file, raw sensor samples or touch coordinates. Analytics can be turned off independently of crash reports.</p>
+    </section>
+
+    <section id="choices">
+      <h2>7. Your choices</h2>
+      <p>Both reporting options start off and remain optional. Change crash reports and gameplay analytics separately in Settings. Analytics changes apply immediately and turning it off asks the SDK to reset local Analytics data; crash-report changes fully apply on the next app launch. You can also control motion steering, music, sound effects, vibration and blood effects. Reporting choices are remembered on this device. Turning an option off does not remove information already received by Google. Gameplay remains available with both reporting options off.</p>
     </section>
 
     <section id="deletion">
-      <h2>5. Storage, security and deletion</h2>
-      <p>Saved settings and records are held in Android's app-private storage. Falley disables Android cloud backup and device-transfer backup for this app. There is no Perf Games server copy of your game data.</p>
-      <p>Local records remain until you clear the app's storage or uninstall Falley. To delete them:</p>
-      <ol>
-        <li>Open your device's <strong>Settings &rarr; Apps &rarr; Falley</strong>.</li>
-        <li>Choose <strong>Storage</strong>, then <strong>Clear storage</strong> or <strong>Clear data</strong>. The names may vary by device.</li>
-      </ol>
-      <p>Uninstalling also removes the app's local records. Deletion resets your progress and settings and cannot be undone through Perf Games. There is no online account to delete.</p>
-      <p>A generated result image is kept temporarily in the app's private cache and replaced when you create another one. Android may clear this cache. Copies you choose to save or share in other apps must be deleted in those apps.</p>
+      <h2>8. Deleting your data</h2>
+      <p>Clear Falley app storage in Android Settings or uninstall the app to erase local preferences and progress. This cannot be undone; Android app backup and device-transfer backup are disabled. Turning reporting off or clearing local storage does not erase data already received by Google. Analytics retention follows the Google Analytics property settings and applicable deletion procedures. Google currently documents Crashlytics crash traces and associated identifiers as retained for 90 days before removal from live and backup systems begins. Contact us for a privacy request; without an account or identifying details, we may be unable to link a request to a particular pseudonymous report.</p>
+    </section>
+
+    <section id="google-services">
+      <h2>9. Google services and network access</h2>
+      <p>Optional reporting uses Google Firebase and Google Analytics. Google processes information under the applicable Firebase/Analytics terms and privacy information; processing may take place outside your country. Perf Games can view the resulting reporting dashboards. Falley uses Internet, network-state, background wake and Play install-referrer access permissions for these services. It does not request camera, microphone, location or contacts access. Music and effects are bundled locally and Falley does not record audio. Read Google's privacy information at <a href="https://policies.google.com/privacy">Google's Privacy Policy</a> and Firebase details at <a href="https://firebase.google.com/support/privacy/">Firebase privacy information</a> .</p>
+      <p>Google Play and Android also process installation, update and store information under their own policies. Technical service data may be processed as described in Google's applicable privacy and service information.</p>
+    </section>
+
+    <section id="sharing">
+      <h2>10. Sharing a result</h2>
+      <p>Daily Drop records, stars, streaks and appearance choices are saved on your device. If you choose Share Result, Falley creates an image with the course date, generator version, score, time, jumps, avatar and control mode. Android lets you choose where to share it. No result image is shared automatically. The receiving app handles the image under its own policy. A temporary copy remains in app-private cache; copies saved or shared elsewhere must be deleted there.</p>
+    </section>
+
+    <section id="support">
+      <h2>11. Support messages</h2>
+      <p>If you email us, we receive your address, message and any attachments you choose to send. We use them to answer your inquiry or privacy request. Gmail, provided by Google, handles correspondence under Google's Privacy Policy. We keep messages only as long as needed to resolve your inquiry, unless law requires longer. You can request deletion by email. We do not sell messages or use them for advertising. Contacting us does not automatically send game records or sensor readings. Do not include sensitive information.</p>
     </section>
 
     <section id="website">
-      <h2>6. Visiting this policy website</h2>
-      <p>This page has no analytics scripts, advertising, contact forms or embedded third-party content. The page itself does not set cookies or use browser storage.</p>
-      <p>Opening a website is separate from playing the offline game. This website is hosted on Vercel, which may process technical request information, such as your IP address, to deliver and protect the website. See <a href="https://vercel.com/legal/privacy-notice">Vercel's Privacy Notice</a> for its own practices.</p>
+      <h2>12. Online privacy policy</h2>
+      <p>Read the public policy at <a href="https://falley-privacy-policy.vercel.app/">Falley public privacy policy</a> . Opening it uses your browser and Internet connection. The policy page has no analytics scripts, forms, advertising or external assets. Vercel hosts it and may process technical request information such as an IP address to deliver and protect the page. This website visit is separate from your in-game reporting choices.</p>
+      <p>See <a href="https://vercel.com/legal/privacy-notice">Vercel's Privacy Notice</a>. This page has no JavaScript and does not set its own cookies or browser storage.</p>
     </section>
 
     <section id="changes">
-      <h2>7. Changes to this policy</h2>
-      <p>This policy describes the current offline, ad-free version of Falley. If we introduce features that change how information is handled, such as ads or online services, we will update this policy before distributing a version with those changes. The date above identifies the latest update.</p>
+      <h2>13. About this policy</h2>
+      <p>This policy describes Falley 4.4 by Perf Games. If information practices change, this policy will be updated before a version with those changes is distributed. Older versions may have different behavior; version 4.3 and earlier did not include Firebase reporting.</p>
     </section>
 
     <section id="contact" class="contact">
-      <h2>8. Privacy questions</h2>
-      <p>For privacy questions about Falley, contact Perf Games:</p>
-      <p><a href="mailto:mathurrohitash16@gmail.com">mathurrohitash16@gmail.com</a></p>
-      <p>If you email us, we receive your email address, message and any attachments you choose to send. We use this information to answer your question or handle your privacy request. Messages are handled through Gmail, provided by Google, under <a href="https://policies.google.com/privacy">Google's Privacy Policy</a>.</p>
-      <p>We keep support correspondence only for as long as needed to resolve your inquiry, unless a longer period is required by law. You can request deletion of correspondence by emailing the same address. We do not use support messages for advertising or sell them.</p>
-      <p>Contacting us separately does not automatically send your saved progress or motion readings. Please do not include sensitive information in a message.</p>
+      <h2>14. Privacy contact</h2>
+      <p>For privacy questions about Falley, email Perf Games at <a href="mailto:mathurrohitash16@gmail.com">mathurrohitash16@gmail.com</a>. The buttons below open the policy website or your email app. No message is sent automatically.</p>
     </section>
   </main>
   <footer class="wrap">

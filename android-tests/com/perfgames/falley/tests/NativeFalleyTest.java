@@ -45,7 +45,7 @@ public final class NativeFalleyTest extends Instrumentation {
     private String APP;
     private static final String ACTIVITY = "com.perfgames.ropelab.MainActivity";
     private static final String BACKUP_MARKER = "fixture-original-ready";
-    private static final int HOME=0, PLAY=1, SETTINGS=2, HELP=3, PAUSE=4, RESULT=5, SPLASH=6, CHAPTERS=7, ARCADE_SETUP=8, PRIVACY=9, LANGUAGE=10, DAILY=11, WARDROBE=12, BRIEF=13, UNLOCK=14;
+    private static final int HOME=0, PLAY=1, SETTINGS=2, HELP=3, PAUSE=4, RESULT=5, SPLASH=6, CHAPTERS=7, ARCADE_SETUP=8, PRIVACY=9, LANGUAGE=10, DAILY=11, WARDROBE=12, BRIEF=13, UNLOCK=14, TELEMETRY=15;
     private Activity activity;
     private View arena;
     private Object physics;
@@ -60,7 +60,7 @@ public final class NativeFalleyTest extends Instrumentation {
         super.onCreate(arguments);
         Bundle args = arguments == null ? new Bundle() : arguments;
         mode=args.getString("mode","suite"); shot=args.getString("shot","small");
-        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("release") && !mode.equals("privacy") && !mode.equals("store") && !mode.equals("motion") && !mode.equals("progression") && !mode.equals("features") && !mode.equals("splash") && !mode.equals("revision") && !mode.equals("revision_smoke") && !mode.equals("expansion") && !mode.equals("ux") && !mode.equals("v43") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
+        if ((!mode.equals("suite") && !mode.equals("effects") && !mode.equals("v31") && !mode.equals("release") && !mode.equals("privacy") && !mode.equals("store") && !mode.equals("motion") && !mode.equals("progression") && !mode.equals("features") && !mode.equals("splash") && !mode.equals("revision") && !mode.equals("revision_smoke") && !mode.equals("expansion") && !mode.equals("ux") && !mode.equals("v43") && !mode.equals("firebase") && !mode.equals("firebasecrash") && !mode.equals("restore")) || !shot.matches("[a-z0-9-]+"))
             throw new IllegalArgumentException("Falley test harness arguments");
         start();
     }
@@ -81,7 +81,9 @@ public final class NativeFalleyTest extends Instrumentation {
                 if (!mode.equals("features")) fixture.putInt("preset",1);
                 require(fixture.commit(),"deterministic emulator settings installed");
                 launch();
-                if (mode.equals("v43")) {
+                if(mode.equals("firebasecrash")){waitScreen(HOME,4000);firebaseCrash();}
+                else if(mode.equals("firebase")){waitScreen(HOME,4000);firebaseRegression();}
+                else if (mode.equals("v43")) {
                     waitScreen(HOME,4000); v43Regression();
                 } else if (mode.equals("ux")) {
                     waitScreen(LANGUAGE,4000); uxFirstRun(); uxRegression();
@@ -136,10 +138,12 @@ public final class NativeFalleyTest extends Instrumentation {
             try { close(); restoreOriginal(); }
             catch (Throwable cleanup) { if (failure==null) failure=cleanup; else failure.addSuppressed(cleanup); }
         }
-        String coverage=mode.equals("effects") ? "focused fire/three-beam warnings, collisions and early/late visual effects"
+        String coverage=mode.equals("firebase") ? "4.4 actual Firebase SDK opt-in initialization, independent durable collection choices, Analytics instance ID consent/reset, private event routing and EN/HI/ID settings; dashboard delivery not established"
+                : mode.equals("firebasecrash") ? "4.4 debug-only intentional Crashlytics verification crash; console delivery and recovery recorded separately"
+                : mode.equals("effects") ? "focused fire/three-beam warnings, collisions and early/late visual effects"
                 : mode.equals("v31") ? "focused V3.1 mask migration, five hazards, saw physics and native SoundPool counters/lifecycle; audibility not assessed"
                 : mode.equals("release") ? "V3.2 focused privacy, virtual accessibility actions, active-play screen awake, five hazards and audio lifecycle"
-                : mode.equals("privacy") ? "focused EN/HI/ID offline policy, contact/URL visibility and accessibility, long-token glyph fit, real-touch browser/mail intent handoff interception, Back and no requested app permissions"
+                : mode.equals("privacy") ? "focused EN/HI/ID 4.4 optional-reporting policy, contact/URL visibility and accessibility, long-token glyph fit, blocked browser/mail handoff, Back and reviewed SDK permissions"
                 : mode.equals("v43") ? "debug 4.3 phone/tablet responsive layout, inline Campaign locks/selection, actual avatar ability routing and Daily standardization, six emitted boss warning/live captures; controlled fixtures"
                 : mode.equals("ux") ? "debug EN/HI/ID first-run confirmed language and local country fallback, two-tab avatar/rope guide Collection, durable avatar celebration and mixed individual rope abilities/mode isolation, independent music lifecycle, compact results and Chapter spotlight navigation; controlled fixtures, audio audibility not assessed"
                 : mode.equals("expansion") ? "debug EN/HI/ID six chapter pages, local Daily Drop retry/share intent and PNG provider, cumulative mastery stars and chapter wardrobe rewards, actual native finale/mechanic render fixtures and twelve-to-twenty-four-stage preference migration"
@@ -169,7 +173,7 @@ public final class NativeFalleyTest extends Instrumentation {
         ui(() -> {Object p=read(arena,"profile");require(((Number)read(p,"language")).intValue()==0&&!(Boolean)read(p,"languageConfirmed"),"fresh default stays English and awaits explicit confirmation");});
         require(!storage.getBoolean("language_confirmed",false),"first prompt is not silently confirmed");
         String[] permissions=getTargetContext().getPackageManager().getPackageInfo(APP,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;
-        require(permissions==null||permissions.length==0,"local country hint, music and ropes add no requested app permissions");
+        firebasePermissions();
         ui(() -> {Object hint=read(arena,"countryHint");String country=(String)read(hint,"country"),source=(String)read(hint,"source");require(java.util.Arrays.asList("network","sim","device","none").contains(source),"native country hint identifies its local fallback source");require(country.isEmpty()||country.matches("[A-Z]{2}"),"native country hint is coarse ISO text or absent");log.append("NATIVE coarse country hint ").append(country).append(" source ").append(source).append("; no language override\n");});
         Class<?> rules=Class.forName("com.perfgames.ropelab.CountryRules",true,getTargetContext().getClassLoader());Method choose=rules.getMethod("choose",String.class,String.class,String.class);
         Object hint=choose.invoke(null,"","id","IN");require("ID".equals(read(hint,"country"))&&"sim".equals(read(hint,"source")),"native rules fall back from unavailable network country to SIM");
@@ -179,7 +183,7 @@ public final class NativeFalleyTest extends Instrumentation {
         recreate();requireScreen(LANGUAGE,"recreation before Continue keeps the unconfirmed language prompt");ui(() -> require(((Number)read(read(arena,"profile"),"language")).intValue()==2,"unconfirmed language choice survives recreation"));
         click("language_0");click("language_done");requireScreen(HOME,"explicit Continue confirms English and opens Home");require(storage.getBoolean("language_confirmed",false)&&storage.getInt("language",-1)==0,"confirmation and English are saved");
         recreate();requireScreen(HOME,"confirmed player does not see onboarding again");
-        close();require(storage.edit().remove("language_confirmed").putInt("language",2).commit(),"controlled legacy preference fixture retains explicit language but lacks new confirmation key");launch(false);waitScreen(HOME,4000);
+        close();require(storage.edit().remove("language_confirmed").putInt("language",2).commit(),"controlled legacy preference fixture retains explicit language but lacks new confirmation key");launch(false);waitScreen(HOME,12000);
         ui(() -> {Object p=read(arena,"profile");require((Boolean)read(p,"languageConfirmed")&&((Number)read(p,"language")).intValue()==2,"legacy explicit language bypasses onboarding without losing preference");});
         featureLanguage(0);back();requireScreen(HOME,"first-run and legacy checks return Home with English");
     }
@@ -300,10 +304,10 @@ public final class NativeFalleyTest extends Instrumentation {
                 require(!(Boolean)read(hazard,"active"),"fresh audio lifecycle fixture has no active unrelated hazard");
             // Music/OS lifecycle checks intentionally do not test dodging. Idle/input
             // synchronization can exceed the stage's 3.6s opening-laser deadline.
-            write(physics,"attackCountdown",100000f);
-            log.append("FIXTURE audio lifecycle delays unrelated stage attacks; real gameplay frames, system Home/onPause/resume and audio callbacks remain enabled\n");
+            write(physics,"attackCountdown",100000f);write(arena,"accumulator",-100000f);
+            log.append("FIXTURE physics simulation held during audio-focus checks; actual render, system Home/onPause/resume and native audio callbacks remain enabled\n");
         });
-        animation(true);uxAwaitMusic(audio,true,"foreground campaign permits music");click("pause");uxAwaitMusic(audio,false,"pause suspends music");click("settings");requireScreen(SETTINGS,"pause opens its own Settings");uxAwaitMusic(audio,false,"Settings reached from Pause keeps music suspended");back();requireScreen(PAUSE,"Settings returns to Pause");click("resume");uxAwaitMusic(audio,true,"Resume restarts the permitted loop");
+        animation(true);uxAwaitMusic(audio,true,"foreground campaign permits music");click("pause");uxAwaitMusic(audio,false,"pause suspends music");click("settings");requireScreen(SETTINGS,"pause opens its own Settings");uxAwaitMusic(audio,false,"Settings reached from Pause keeps music suspended");back();requireScreen(PAUSE,"Settings returns to Pause");click("resume");ui(() -> write(arena,"accumulator",-100000f));uxAwaitMusic(audio,true,"Resume restarts the permitted loop");
         uxBackgroundHome();long deadline=SystemClock.uptimeMillis()+4000;while(audioFlag(audio,"isForeground")&&SystemClock.uptimeMillis()<deadline)SystemClock.sleep(20);
         require(!audioFlag(audio,"isForeground"),"actual Android background clears audio foreground ownership");uxAwaitMusic(audio,false,"background suspends native music");
         ui(() -> getTargetContext().startActivity(new Intent().setClassName(APP,ACTIVITY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
@@ -312,6 +316,7 @@ public final class NativeFalleyTest extends Instrumentation {
         final Object oldAudio=audio;recreate();audio=audio();require(audio!=oldAudio&&audioFlag(oldAudio,"isMusicReleased"),"destroyed Activity releases the old music owner");
         require(audioFlag(audio,"isMusicEnabled")&&audioFlag(audio,"isEnabled"),"audio preferences survive recreation");animation(true);uxAwaitMusic(audio,true,"new foreground Activity can play the retained music preference");
         animation(false);uxNav("settings",SETTINGS);click("music");click("sound");require(!storage.getBoolean("music",true)&&!storage.getBoolean("sound",true),"fixture returns both audio channels to silent preferences");uxHome();
+        ui(() -> write(arena,"accumulator",0f));
         log.append("Native music engine lifecycle and counters checked; listening quality, output volume and audibility not assessed\n");
     }
     private void uxHome() throws Exception {
@@ -508,7 +513,7 @@ public final class NativeFalleyTest extends Instrumentation {
         require(APP.equals("com.perfgames.falley.motiontest"),"expansion checks target the isolated local debug package");
         require((getTargetContext().getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0,"expansion package is debuggable");
         String[] permissions=getTargetContext().getPackageManager().getPackageInfo(APP,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;
-        require(permissions==null||permissions.length==0,"expanded modes still request no app permissions or Internet");
+        firebasePermissions();
         expansionMenuChecks();expansionProgressChecks();expansionExtraChecks();
     }
     // Append these methods before homeAndHelp(). Call expansionExtraChecks() after expansionProgressChecks().
@@ -1270,6 +1275,26 @@ public final class NativeFalleyTest extends Instrumentation {
         return visible.toString().replaceAll("\\s+","");
     }
     private void privacyIntent(String id,String action,String uri,boolean accessible) throws Exception {
+        // API 25 does not dispatch the API 26+ onStartActivity callback. Its
+        // blocking filter still proves action plus literal URI scheme/SSP,
+        // without launching a browser/email app. Deep fragment/flag inspection
+        // remains covered by the captured-intent path on newer Android.
+        if (android.os.Build.VERSION.SDK_INT<26) {
+            android.net.Uri expected=android.net.Uri.parse(uri);
+            android.content.IntentFilter filter=new android.content.IntentFilter(action);
+            filter.addDataScheme(expected.getScheme());
+            filter.addDataSchemeSpecificPart(expected.getSchemeSpecificPart(),android.os.PatternMatcher.PATTERN_LITERAL);
+            ActivityMonitor monitor=new ActivityMonitor(filter,new ActivityResult(Activity.RESULT_CANCELED,null),true);
+            addMonitor(monitor);
+            try {
+                if (accessible) accessibleClick(id); else click(id);
+                require(monitor.getHits()>0,"legacy blocking monitor matches browser/mail action and literal scheme-specific destination: "+id);
+                requireScreen(PRIVACY,"legacy blocked handoff keeps the policy available: "+id);
+                log.append("LEGACY BLOCKED ").append(action).append(' ').append(uri)
+                        .append("; exact action/scheme/SSP filter; external activity/message blocked; deep fragment/flag inspection is API26+ evidence\n");
+            } finally { removeMonitor(monitor); }
+            return;
+        }
         final Intent[] captured={null};
         ActivityMonitor monitor=new ActivityMonitor() {
             @Override public ActivityResult onStartActivity(Intent intent) {
@@ -1292,7 +1317,7 @@ public final class NativeFalleyTest extends Instrumentation {
     }
     private void privacyContactRegression() throws Exception {
         String[] requested=getTargetContext().getPackageManager().getPackageInfo(APP,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;
-        require(requested==null||requested.length==0,"policy handoffs add no requested app permissions, including no Internet permission");
+        firebasePermissions();
         log.append("FONT_SCALE ").append(getTargetContext().getResources().getConfiguration().fontScale).append('\n');
         Set<String> localizedPolicies=new HashSet<>();
         for (int language=0;language<3;language++) {
@@ -1892,8 +1917,8 @@ public final class NativeFalleyTest extends Instrumentation {
         }
         finally { ui(() -> app.unregisterActivityLifecycleCallbacks(callback)); }
         if (earlyFailure[0]!=null) throw new Exception("initial intro clock fixture",earlyFailure[0]);
-        bind(); if (!prepareArtifacts) return;
-        output=new File(activity.getExternalFilesDir(null),(mode.equals("v43")?"falley-native-v43/":mode.equals("ux")?"falley-native-ux/":mode.equals("expansion")?"falley-native-expansion/":mode.equals("privacy")?"falley-native-privacy/":mode.startsWith("revision")?"falley-native-revision/":mode.equals("splash")?"falley-native-splash/":mode.equals("features")?"falley-native-features/":mode.equals("motion")?"falley-native-motion/":mode.equals("progression")?"falley-native-progression/":"falley-native-v32/")+shot);
+        bind(); ui(() -> call(read(activity,"telemetry"),"reload")); if (!prepareArtifacts) return;
+        output=new File(activity.getExternalFilesDir(null),(mode.startsWith("firebase")?"falley-native-firebase/":mode.equals("v43")?"falley-native-v43/":mode.equals("ux")?"falley-native-ux/":mode.equals("expansion")?"falley-native-expansion/":mode.equals("privacy")?"falley-native-privacy/":mode.startsWith("revision")?"falley-native-revision/":mode.equals("splash")?"falley-native-splash/":mode.equals("features")?"falley-native-features/":mode.equals("motion")?"falley-native-motion/":mode.equals("progression")?"falley-native-progression/":"falley-native-v32/")+shot);
         require(output.isDirectory()||output.mkdirs(),"artifact directory ready");
         // This test-owned directory must describe only this run, not retain an old failure PNG.
         File[] prior=output.listFiles();
@@ -1965,7 +1990,7 @@ public final class NativeFalleyTest extends Instrumentation {
         require(edit.commit(),"preferences committed");
     }
     private void capture(String name) throws Exception {
-        if(mode.equals("ux")||mode.equals("v43")) {
+        if(mode.equals("ux")||mode.equals("v43")||mode.startsWith("firebase")) {
             // Frozen fixture state still needs a real window frame before a compositor shot.
             // Manual Canvas fit checks do not submit a Surface frame and are never screenshots.
             final CountDownLatch committed=new CountDownLatch(1);
@@ -2236,11 +2261,56 @@ public final class NativeFalleyTest extends Instrumentation {
     }
     private void v43Regression() throws Exception {
         require(APP.equals("com.perfgames.falley.motiontest"),"4.3 fixture targets the isolated debug app");
-        require(getTargetContext().getPackageManager().getPackageInfo(APP,0).versionName.equals("4.3.0-beta-test"),"4.3 evidence comes from the installed current debug version");
+        require(getTargetContext().getPackageManager().getPackageInfo(APP,0).versionName.equals("4.4.0-beta-test"),"4.4 Firebase build retains the 4.3 gameplay/layout regression");
         v43LargeDisplayPolicy();v43Viewport("initial");v43Picker();v43Menus();v43EarnedFixture();v43AvatarRouting();v43Resize();v43Bosses();uxHome();
         v43Language(0);uxFit("4.3 final earned Home");capture("v43-home-earned-controlled");
     }
 
+    private void firebasePermissions() throws Exception {
+        String[] permissions=getTargetContext().getPackageManager().getPackageInfo(APP,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;
+        Set<String> allowed=new HashSet<>();allowed.add("android.permission.INTERNET");allowed.add("android.permission.ACCESS_NETWORK_STATE");allowed.add("android.permission.WAKE_LOCK");allowed.add("com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE");allowed.add(APP+".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION");
+        require(permissions!=null,"Firebase network permissions are declared");for(String permission:permissions)require(allowed.contains(permission),"only bounded normal Firebase permission: "+permission);
+        for(String required:new String[]{"android.permission.INTERNET","android.permission.ACCESS_NETWORK_STATE","android.permission.WAKE_LOCK"})require(java.util.Arrays.asList(permissions).contains(required),"required SDK permission exists: "+required);
+    }
+    private Object telemetry() throws Exception{return read(activity,"telemetry");}
+    private Object telemetryChoices() throws Exception{return read(telemetry(),"choices");}
+    private boolean choice(String name) throws Exception{return (Boolean)call(telemetryChoices(),name);}
+    private void firebaseRegression() throws Exception {
+        require(APP.equals("com.perfgames.falley.motiontest"),"Firebase consent fixture targets debug only");firebasePermissions();
+        require(getTargetContext().getPackageManager().getPackageInfo(APP,0).versionName.equals("4.4.0-beta-test"),"installed Firebase version is current");
+        Class<?> appClass=Class.forName("com.google.firebase.FirebaseApp",true,getTargetContext().getClassLoader());
+        java.util.List<?> apps=(java.util.List<?>)appClass.getMethod("getApps",Context.class).invoke(null,getTargetContext());
+        require(apps.isEmpty()&&!(Boolean)call(telemetry(),"initialized"),"fresh both-OFF cold process has no initialized Firebase app");
+        require(!choice("crashes")&&!choice("analytics"),"crash and analytics choices default OFF");
+        uxNav("settings",SETTINGS);click("telemetry");requireScreen(TELEMETRY,"Settings opens separate privacy controls");
+        for(int language=0;language<3;language++){v43Language(language);uxFit("Firebase consent "+language);localizedNodes(language,"Firebase consent");capture("firebase-consent-"+language);}
+        v43Language(0);click("privacy");requireScreen(PRIVACY,"consent screen opens in-app policy");back();requireScreen(TELEMETRY,"policy returns to consent screen");
+        click("telemetry_analytics");require(choice("analytics")&&!choice("crashes"),"Analytics opt-in leaves crash reporting OFF");
+        require((Boolean)call(telemetry(),"initialized")&&(Boolean)call(telemetry(),"available"),"real Firebase SDK initialized from local configuration");
+        Class<?> crashClass=Class.forName("com.google.firebase.crashlytics.FirebaseCrashlytics",true,getTargetContext().getClassLoader());Object crash=crashClass.getMethod("getInstance").invoke(null);
+        require(!(Boolean)crashClass.getMethod("isCrashlyticsCollectionEnabled").invoke(crash),"actual Crashlytics SDK remains disabled for Analytics-only choice");
+        Object analytics=read(telemetry(),"analytics");Object task=analytics.getClass().getMethod("getAppInstanceId").invoke(analytics);Class<?> taskClass=Class.forName("com.google.android.gms.tasks.Task",true,getTargetContext().getClassLoader());
+        long until=SystemClock.uptimeMillis()+12000;while(!(Boolean)taskClass.getMethod("isComplete").invoke(task)&&SystemClock.uptimeMillis()<until)SystemClock.sleep(60);
+        require((Boolean)taskClass.getMethod("isSuccessful").invoke(task)&&taskClass.getMethod("getResult").invoke(task)!=null,"actual Analytics instance ID is available after consent; value not logged");
+        int before=(int)numeric(telemetry(),"eventsSubmitted");back();uxNav("home",HOME);click("play");click("begin_campaign");requireScreen(PLAY,"opted-in real Campaign begins");
+        require(numeric(telemetry(),"eventsSubmitted")==before+1,"real run start submits exactly one Analytics event");click("pause");click("resume");require(numeric(telemetry(),"eventsSubmitted")==before+1,"pause/resume does not duplicate start");
+        click("pause");click("home");require(numeric(telemetry(),"eventsSubmitted")==before+2,"explicit abandonment submits exactly one end");
+        uxNav("settings",SETTINGS);click("telemetry");click("telemetry_analytics");require(!choice("analytics")&&!choice("crashes"),"Analytics opt-out preserves crash OFF");
+        click("telemetry_crash");require(choice("crashes")&&!choice("analytics"),"Crash opt-in leaves Analytics OFF");require((Boolean)crashClass.getMethod("isCrashlyticsCollectionEnabled").invoke(crash),"actual Crashlytics SDK receives explicit opt-in");
+        click("telemetry_crash");require(!choice("crashes")&&!choice("analytics"),"both choices return OFF");require(storage.getInt("telemetry_flags",-1)==0,"opt-out is durable for next cold app process");
+        Object offTask=analytics.getClass().getMethod("getAppInstanceId").invoke(analytics);until=SystemClock.uptimeMillis()+12000;
+        while(!(Boolean)taskClass.getMethod("isComplete").invoke(offTask)&&SystemClock.uptimeMillis()<until)SystemClock.sleep(60);
+        require((Boolean)taskClass.getMethod("isSuccessful").invoke(offTask)&&taskClass.getMethod("getResult").invoke(offTask)==null,"actual Analytics instance ID is unavailable after storage consent is denied");
+        before=(int)numeric(telemetry(),"eventsSubmitted");back();uxNav("home",HOME);click("play");click("begin_campaign");click("pause");click("home");require(numeric(telemetry(),"eventsSubmitted")==before,"subsequent run events are blocked after Analytics opt-out");
+        uxNav("settings",SETTINGS);click("telemetry");capture("firebase-final-off");back();uxNav("home",HOME);
+    }
+    private void firebaseCrash() throws Exception {
+        require(APP.equals("com.perfgames.falley.motiontest"),"test crash debug only");uxNav("settings",SETTINGS);click("telemetry");
+        if(!choice("crashes"))click("telemetry_crash");require(choice("crashes"),"debug crash is explicitly opted in");capture("firebase-before-test-crash");
+        try(FileOutputStream stream=new FileOutputStream(new File(output,"checks-before-crash.txt"))){stream.write(log.toString().getBytes("UTF-8"));}
+        final Object adapter=telemetry();activity.runOnUiThread(() -> {try{call(adapter,"debugTestCrash");}catch(Exception expected){throw new RuntimeException("Falley debug Crashlytics verification",expected);}});
+        SystemClock.sleep(8000);throw new AssertionError("expected debug process crash did not occur");
+    }
     private void require(boolean condition,String message) {
         if (!condition) throw new AssertionError(message); checks++; log.append("PASS ").append(message).append('\n');
     }

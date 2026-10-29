@@ -1,0 +1,1 @@
+PASS: static policy HTML targets, 14 complete app-matching English sections, dates/contact, no scripts/forms/external assets, current source copy and Vercel public output (89 checks)

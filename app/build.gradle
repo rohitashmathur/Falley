@@ -1,13 +1,33 @@
-plugins { id 'com.android.application' }
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+}
+
 android {
     namespace 'com.perfgames.ropelab'
     compileSdk 36
-    defaultConfig { applicationId 'com.perfgames.falley'; minSdk 24; targetSdk 36; versionCode 16; versionName '4.3.0' }
+    defaultConfig {
+        applicationId 'com.perfgames.falley'
+        minSdk 24
+        targetSdk 36
+        versionCode 17
+        versionName '4.4.0'
+        resValue 'string', 'app_name', 'Falley'
+    }
+    buildFeatures { buildConfig true }
     compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
 
     def signingNames = ['FALLEY_UPLOAD_KEYSTORE', 'FALLEY_UPLOAD_STORE_PASSWORD', 'FALLEY_UPLOAD_KEY_ALIAS', 'FALLEY_UPLOAD_KEY_PASSWORD']
     def releaseSigningAvailable = signingNames.every { System.getenv(it) }
     signingConfigs {
+        debug {
+            // Preserve the existing Motion Test identity instead of using ~/.android/debug.keystore.
+            storeFile rootProject.file('build/debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
         if (releaseSigningAvailable) {
             upload {
                 storeFile file(System.getenv('FALLEY_UPLOAD_KEYSTORE'))
@@ -18,13 +38,22 @@ android {
         }
     }
     buildTypes {
+        debug {
+            applicationIdSuffix '.motiontest'
+            resValue 'string', 'app_name', providers.gradleProperty('falleyDebugLabel').getOrElse('Falley Motion Test')
+            signingConfig signingConfigs.debug
+            firebaseCrashlytics { mappingFileUploadEnabled false }
+        }
         release {
             debuggable false
-            // Keep release mapping beside each local artifact; debug builds stay unminified.
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             if (releaseSigningAvailable) signingConfig signingConfigs.upload
+            // Ordinary builds retain mapping locally. Upload is a separate explicit owner action.
+            firebaseCrashlytics {
+                mappingFileUploadEnabled providers.gradleProperty('falleyUploadMapping').map { it.toBoolean() }.getOrElse(false)
+            }
         }
     }
     tasks.register('requireReleaseSigning') {
@@ -33,4 +62,72 @@ android {
         }
     }
     tasks.matching { it.name == 'preReleaseBuild' }.configureEach { dependsOn 'requireReleaseSigning' }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType('debug')) { variant ->
+        variant.outputs.each { output ->
+            output.versionName.set(providers.gradleProperty('falleyDebugVersionName').orElse(android.defaultConfig.versionName + '-beta-test'))
+            output.versionCode.set(providers.gradleProperty('falleyDebugVersionCode').map { it.toInteger() }.orElse(android.defaultConfig.versionCode))
+        }
+    }
+}
+
+// Source-only portable CI does not invoke these variant tasks or require local configuration.
+['Debug': 'com.perfgames.falley.motiontest', 'Release': 'com.perfgames.falley'].each { variant, expectedPackage ->
+    def configFile = file("src/${variant.toLowerCase()}/google-services.json")
+    def check = tasks.register("validate${variant}FirebaseConfig") {
+        inputs.file(configFile).optional()
+        doLast {
+            if (!configFile.isFile()) throw new GradleException("Missing local Firebase ${variant.toLowerCase()} config. Run scripts/configure-firebase.ps1 with your two downloaded JSON files; configuration files must not be committed.")
+            def config
+            try { config = new groovy.json.JsonSlurper().parse(configFile) }
+            catch (Exception ignored) { throw new GradleException("Invalid Firebase ${variant.toLowerCase()} JSON (contents suppressed).") }
+            if (config?.private_key || config?.type == 'service_account') throw new GradleException('Use the Android google-services configuration, never a service-account private key.')
+            def client = config?.client?.find { it?.client_info?.android_client_info?.package_name == expectedPackage }
+            if (!client?.client_info?.mobilesdk_app_id || !client?.api_key?.any { it?.current_key }) throw new GradleException("Firebase ${variant.toLowerCase()} config must contain the ${expectedPackage} Android client and its client API configuration (contents suppressed).")
+        }
+    }
+    tasks.matching { it.name == "pre${variant}Build" || it.name == "process${variant}GoogleServices" }.configureEach { dependsOn check }
+}
+
+
+// Crashlytics3.0.8 otherwise writes a blank ID when upload is disabled. Keep a
+// real release ID in the APK while separating the later network upload action.
+afterEvaluate {
+    // Apply after the plugin's variant registration; its initial configuration
+    // otherwise overwrites an earlier configureEach value.
+    tasks.named('injectCrashlyticsMappingFileIdRelease').configure {
+        useBlankMappingFileId.set(false)
+        // Keep the producer in the graph (not -x) so AGP can query its outputs,
+        // but preserve this already-validated ID during explicit upload.
+        onlyIf { !providers.gradleProperty('falleyUploadMapping').map { it.toBoolean() }.getOrElse(false) }
+    }
+}
+
+// Validate again AFTER dependencies and immediately BEFORE any mapping upload.
+// The helper also skips ID regeneration so the ID stays bound to the built APK.
+tasks.matching { it.name == 'uploadCrashlyticsMappingFileRelease' }.configureEach {
+    doFirst {
+        def sha256 = { File input ->
+            if (!input.isFile()) throw new GradleException('An exact-build Crashlytics input is missing. Rebuild and validate the release before uploading.')
+            java.security.MessageDigest.getInstance('SHA-256').digest(input.bytes).encodeHex().toString()
+        }
+        def guarded = [
+            falleyExpectedMappingSha256: file('build/outputs/mapping/release/mapping.txt'),
+            falleyExpectedMappingIdSha256: file('build/crashlytics/release/mappingFileId.txt'),
+            falleyExpectedFirebaseConfigSha256: file('src/release/google-services.json'),
+            falleyExpectedBundleSha256: file('build/outputs/bundle/release/app-release.aab')
+        ]
+        guarded.each { property, input ->
+            def expected = providers.gradleProperty(property).orNull
+            if (!expected || expected != sha256(input)) throw new GradleException('Crashlytics upload inputs differ from the validated local release. Use scripts/upload-crashlytics-mapping.ps1 with the matching release receipt; no upload was performed.')
+        }
+    }
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:34.19.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
 }

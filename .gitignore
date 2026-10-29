@@ -27,3 +27,16 @@ work/
 falley-home.png
 __pycache__/
 *.pyc
+
+# Firebase client configuration and service-account credentials remain local.
+google-services*.json
+*-firebase-adminsdk-*.json
+*service-account*.json
+.firebase/
+firebase-debug*.log
+
+*service_account*.json
+
+mapping.txt
+
+mappingFileId.txt

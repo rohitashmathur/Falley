@@ -41,11 +41,13 @@ public class MainActivity extends Activity implements SensorEventListener {
     private SensorManager sensors;
     private Sensor accelerometer, gyroscope;
     private FalleyAudio audio;
+    AppTelemetry telemetry;
     private Object backCallback;
     private boolean resumed;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        telemetry=((FalleyApplication)getApplication()).telemetry();
         if(isLargeDisplay())setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         sensors = (SensorManager)getSystemService(SENSOR_SERVICE);
         if (sensors != null) {
@@ -169,7 +171,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     void setSoundEnabled(boolean enabled) { if (audio != null) audio.setEnabled(enabled); }
     void setMusicEnabled(boolean enabled) { if(audio!=null)audio.setMusicEnabled(enabled); }
     void updateMusic() {
-        boolean pausedMenu=arena.settingsReturn==Arena.PAUSE && (arena.screen==Arena.SETTINGS||arena.screen==Arena.LANGUAGE||arena.screen==Arena.PRIVACY||arena.screen==Arena.HELP);
+        boolean pausedMenu=arena.settingsReturn==Arena.PAUSE && (arena.screen==Arena.SETTINGS||arena.screen==Arena.LANGUAGE||arena.screen==Arena.PRIVACY||arena.screen==Arena.HELP||arena.screen==Arena.TELEMETRY);
         if(audio!=null)audio.setMusicPlaying(arena.active && arena.profile.languageConfirmed && arena.screen!=Arena.SPLASH && arena.screen!=Arena.PAUSE && !pausedMenu);
     }
     void openPrivacyLink(boolean email) {
@@ -201,7 +203,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     static final class Arena extends View {
-        static final int HOME = 0, PLAY = 1, SETTINGS = 2, HELP = 3, PAUSE = 4, RESULT = 5, SPLASH = 6, CHAPTERS = 7, ARCADE_SETUP = 8, PRIVACY = 9, LANGUAGE = 10, DAILY = 11, WARDROBE = 12, BRIEF = 13, UNLOCK = 14;
+        static final int HOME = 0, PLAY = 1, SETTINGS = 2, HELP = 3, PAUSE = 4, RESULT = 5, SPLASH = 6, CHAPTERS = 7, ARCADE_SETUP = 8, PRIVACY = 9, LANGUAGE = 10, DAILY = 11, WARDROBE = 12, BRIEF = 13, UNLOCK = 14, TELEMETRY = 15;
         private static final float TOP = 160;
         private float BOTTOM=730;
         ViewportLayout layout=ViewportLayout.create(480,820,0,0,0,0,1,false);
@@ -227,7 +229,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         String contextCue = "";
         long runDailyDay = DailyDrop.NO_DAY;
         boolean dailyClockValid = true, runMirror, steeredThisRun;
-        int helpPage;
+        int helpPage, privacyReturn=SETTINGS;
         boolean helpMotion;
         int chapterSwipePointer = -1;
         float chapterSwipeX;
@@ -383,6 +385,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (screen == CHAPTERS) drawChapters(c);
             else if (screen == ARCADE_SETUP) drawArcadeSetup(c);
             else if (screen == PRIVACY) drawPrivacy(c);
+            else if (screen == TELEMETRY) drawTelemetry(c);
             else if (screen == LANGUAGE) drawLanguage(c);
             else if (screen == DAILY) drawDaily(c);
             else if (screen == WARDROBE) drawWardrobe(c);
@@ -429,6 +432,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 else if (physics.arcade) changed = profile.recordArcadeResult(physics.arcadeDifficulty,physics.score,physics.elapsed);
                 else changed = !runMirror && profile.recordResult(physics.stage.index,physics.won,physics.score,physics.elapsed,physics.jumpsUsed(),physics.landingX,physics.landingTargetCenter,physics.landingTargetWidth);
                 if (changed) saveProfile();
+                owner.telemetry.end(physics,physics.won,false);
                 resultRecorded = true;
             }
             if (physics.won && physics.winTime > 1.2f || physics.lost && burstTime > .32f) {
@@ -772,12 +776,29 @@ public class MainActivity extends Activity implements SensorEventListener {
             copy(c,!hasMotion?"No sensor available. Swipe left or right to steer.":!motionEnabled?"Motion is off. Swipe left or right to steer.":!motion.hasSample()?"Waiting for a sensor reading...":"Your hold centers at every start and resume.",24,319,432,12,1,muted);
             endSection(c,mark,extra*.05f);mark=section(c,extra*.23f);rect(c,24,323,456,379,13,panel);text(c,"Language",44,358,18,white);paint.setTextAlign(Paint.Align.RIGHT);fitText(c,FalleyStrings.languageName(profile.language),436,358,15,mint,210);paint.setTextAlign(Paint.Align.LEFT);
             buttons.add(new Hit("language",24,323,456,379,t("Language")+". "+FalleyStrings.languageName(profile.language),true,false,false));
-            endSection(c,mark,extra*.23f);mark=section(c,extra*.36f);compactToggle(c,"music","Retro music",391,52,profile.music,true);
-            endSection(c,mark,extra*.36f);mark=section(c,extra*.48f);compactToggle(c,"sound","Sound Effects",455,52,profile.sound,true);
-            endSection(c,mark,extra*.48f);mark=section(c,extra*.60f);compactToggle(c,"haptics","Vibration",519,52,profile.haptics,true);
-            endSection(c,mark,extra*.60f);mark=section(c,extra*.72f);compactToggle(c,"blood","Blood Effects",583,52,profile.blood,true);
-            endSection(c,mark,extra*.72f);mark=section(c,extra*.84f);button(c,"help",24,647,234,703,"HOW TO PLAY",white,15);button(c,"privacy",246,647,456,703,"PRIVACY POLICY",white,15);
-            endSection(c,mark,extra*.84f);if(paused)button(c,"back",24,744+extra,456,816+extra,"BACK TO PAUSE",mint,17);else bottomNav(c,2);
+            endSection(c,mark,extra*.23f);mark=section(c,extra*.36f);compactToggle(c,"music","Retro music",383,48,profile.music,true);
+            endSection(c,mark,extra*.36f);mark=section(c,extra*.48f);compactToggle(c,"sound","Sound Effects",439,48,profile.sound,true);
+            endSection(c,mark,extra*.48f);mark=section(c,extra*.60f);compactToggle(c,"haptics","Vibration",495,48,profile.haptics,true);
+            endSection(c,mark,extra*.60f);mark=section(c,extra*.72f);compactToggle(c,"blood","Blood Effects",551,48,profile.blood,true);
+            endSection(c,mark,extra*.72f);mark=section(c,extra*.78f);button(c,"telemetry",24,607,456,651,"DIAGNOSTICS & ANALYTICS",mint,14);endSection(c,mark,extra*.78f);mark=section(c,extra*.90f);button(c,"help",24,663,234,711,"HOW TO PLAY",white,15);button(c,"privacy",246,663,456,711,"PRIVACY POLICY",white,15);
+            endSection(c,mark,extra*.90f);if(paused)button(c,"back",24,744+extra,456,816+extra,"BACK TO PAUSE",mint,17);else bottomNav(c,2);
+        }
+        private void drawTelemetry(Canvas c){
+            header(c,"Diagnostics & analytics");float extra=layout.extra;
+            copy(c,"Help improve Falley",24,126,432,22,1,mint);
+            copy(c,"Both choices are optional and off by default.",24,158,432,15,2,muted);
+            int mark=section(c,extra*.15f);toggleRow(c,"telemetry_crash","Crash reports",204,owner.telemetry.choices.crashes(),true);
+            copy(c,"Send crash, error and device diagnostics to Firebase.",34,303,412,14,2,muted);
+            endSection(c,mark,extra*.15f);mark=section(c,extra*.40f);toggleRow(c,"telemetry_analytics","Gameplay analytics",354,owner.telemetry.choices.analytics(),true);
+            copy(c,"Share runs, stages and control choices to improve balance.",34,453,412,14,2,muted);
+            endSection(c,mark,extra*.40f);mark=section(c,extra*.65f);
+            copy(c,"Crash report changes fully apply next app launch. Reports already sending may finish.",24,506,432,13,3,gold);
+            copy(c,"Enabling crash reports can include reports saved on this device.",24,565,432,13,3,muted);
+            copy(c,"No ads, advertising ID, raw motion or personal profile data.",24,624,432,13,2,muted);
+            if(!owner.telemetry.available())copy(c,"Diagnostics are unavailable. Your choices are saved.",24,670,432,12,2,coral);
+            endSection(c,mark,extra*.65f);
+            button(c,"privacy",24,704+extra,234,756+extra,"PRIVACY POLICY",white,14);
+            button(c,"back",246,704+extra,456,756+extra,"DONE",mint,17);
         }
         private void drawLanguage(Canvas c) {
             boolean first=!profile.languageConfirmed;
@@ -945,7 +966,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             center(c,privacyScroll >= privacyScrollLimit-1 ? "END OF POLICY" : "SWIPE UP TO READ MORE",240,655+extra,11,muted);
             button(c,"privacy_web",24,674+extra,234,728+extra,"ONLINE POLICY",mint,14);
             button(c,"privacy_email",246,674+extra,456,728+extra,"EMAIL PERF GAMES",white,14);
-            button(c,"back",24,744+extra,456,816+extra,"BACK TO SETTINGS",mint,17);
+            button(c,"back",24,744+extra,456,816+extra,privacyReturn==TELEMETRY?"BACK":"BACK TO SETTINGS",mint,17);
         }
         private float policyParagraph(Canvas c,String value,float x,float y,float size,float lineHeight,boolean bold,int color) {
             value = t(value);
@@ -1463,6 +1484,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         private void restoreMenu(){if(!profile.languageConfirmed){screen=LANGUAGE;clearTouch();}else enterHome();}
         private void enterHome() {
+            owner.telemetry.end(physics,false,true);
             owner.stopEffects();homeElapsed=0;clearTouch();selectHomeChapter(UxRules.continueStage(profile)/4);
             if(profile.languageConfirmed&&AvatarRewards.pending(profile)>=0&&saveProfile()){
                 rewardNextStage=UxRules.campaignComplete(profile)?-1:UxRules.continueStage(profile);screen=UNLOCK;unlockTime=0;
@@ -1484,6 +1506,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         private void restart() {
             if(screen==RESULT&&!physics.daily&&!physics.arcade&&!runMirror&&AvatarRewards.pending(profile)>=0){openAvatarReward();if(screen==UNLOCK)rewardNextStage=physics.stage.index;return;}
+            owner.telemetry.end(physics,false,true);
             physics.configureAvatar(profile.selectedAvatar);if(physics.daily)physics.resetDaily(DailyDrop.seed(runDailyDay));else physics.reset();beginRun();
         }
         private void refreshCampaignSelection(){
@@ -1505,6 +1528,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             dailyClockValid=day>=profile.lastObservedDay;profile.beginDaily(day);runMirror=false;runDailyDay=day;saveProfile();physics.configureAvatar(profile.selectedAvatar);physics.resetDaily(DailyDrop.seed(day));beginRun();
         }
         private void beginRun() {
+            owner.telemetry.start(physics,profile.selectedAvatar,motionEnabled,runMirror);
             owner.stopEffects(); soundCue.reset(physics.soundSequence);
             clearTouch(); accumulator = 0; Arrays.fill(trailValid,false); trailIndex = 0;
             burstTime=10;resultRecorded=false;lastLandingCue=0;runControl=motionEnabled?1:0;
@@ -1518,7 +1542,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             if (screen == PLAY) { owner.stopEffects(); screen = PAUSE; }
             else if (screen == PAUSE) { resumeMotion(); screen = PLAY; }
             else if(screen==UNLOCK){finishAvatarReward(false);}
-            else if (screen == PRIVACY) screen = SETTINGS;
+            else if (screen == PRIVACY) screen = privacyReturn;
+            else if (screen == TELEMETRY) screen = SETTINGS;
             else if(screen==LANGUAGE){if(!profile.languageConfirmed)return;screen=SETTINGS;}
             else if(screen==HELP)screen=helpReturn;
             else if(screen==BRIEF)screen=briefReturn;
@@ -1575,7 +1600,12 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if (id.equals("help_prev")) helpPage = Math.max(0,helpPage-1);
             else if (id.equals("help_next")) helpPage = Math.min(5,helpPage+1);
             else if(id.equals("settings")){if(screen!=SETTINGS){owner.stopEffects();settingsReturn=screen==PLAY||screen==PAUSE?PAUSE:HOME;screen=SETTINGS;clearTouch();}}
-            else if (id.equals("privacy")) { screen = PRIVACY; privacyScroll = 0; clearTouch(); }
+            else if (id.equals("privacy")) { privacyReturn=screen==TELEMETRY?TELEMETRY:SETTINGS;screen = PRIVACY; privacyScroll = 0; clearTouch(); }
+            else if(id.equals("telemetry")){screen=TELEMETRY;clearTouch();}
+            else if(id.equals("telemetry_crash")||id.equals("telemetry_analytics")){
+                boolean saved=id.equals("telemetry_crash")?owner.telemetry.choices.setCrash(!owner.telemetry.choices.crashes()):owner.telemetry.choices.setAnalytics(!owner.telemetry.choices.analytics());
+                if(!saved)Toast.makeText(owner,t("Could not save. Please try again."),Toast.LENGTH_SHORT).show();
+            }
             else if (id.equals("privacy_web") && screen == PRIVACY) owner.openPrivacyLink(false);
             else if (id.equals("privacy_email") && screen == PRIVACY) owner.openPrivacyLink(true);
             else if (id.equals("language")) { screen = LANGUAGE; clearTouch(); }
@@ -1613,6 +1643,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 switch (screen) {
                     case HOME: return t("Falley home");
                     case SETTINGS: return t("Settings");
+                    case TELEMETRY: return t("Diagnostics & analytics");
                     case HELP: return t("How to play");
                     case PAUSE: return t("Paused");
                     case RESULT: return t("Result");
@@ -1629,6 +1660,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
             }
             private String content() {
+                if(screen==TELEMETRY)return t("Both choices are optional and off by default.")+" "+t("Crash report changes fully apply next app launch. Reports already sending may finish.")+" "+t("Enabling crash reports can include reports saved on this device.")+" "+t("No ads, advertising ID, raw motion or personal profile data.");
                 if (screen == PRIVACY) {
                     StringBuilder policy = new StringBuilder(t(PrivacyPolicy.TITLE)).append('\n').append(t(PrivacyPolicy.PUBLISHER)).append('\n').append(t(PrivacyPolicy.EFFECTIVE_DATE)).append('\n').append(t(PrivacyPolicy.UPDATED_DATE));
                     for (String[] section : PrivacyPolicy.SECTIONS) policy.append("\n\n").append(t(section[0])).append('\n').append(t(section[1]));

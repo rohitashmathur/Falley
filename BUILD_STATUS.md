@@ -1,42 +1,46 @@
 # Falley build status
 
-**4.3.0-beta-test/code 16 — local debug testing**, prepared 25 October 2026. Package: `com.perfgames.falley.motiontest`. The [application input hashes](screenshots/v4.3/SOURCE_HASHES.json) identify the built source; later test/documentation edits do not alter the APK.
+**Current: 4.4.0/code 17**, prepared 29 October 2026. Firebase Crashlytics and Analytics are implemented as separate optional choices, off by default in Settings → Diagnostics & analytics. Gameplay still works offline.
 
-## Delivered
+## Local deliverables
 
-- Stronger alternating motion breeze/nudge, with a clear HUD cue and calmer landing approach.
-- Meaningful gear-grid/blade-rig attacks in the first two finales; side-mounted Demon/Robot casters in later finales, driven by actual warning/firing state.
-- Seven real avatar ability profiles and original stories. Campaign/Arcade use selected traits; Daily retains standard Human physics for fairness. Every boundary, spike, ceiling and fatal floor remains lethal.
-- One Home Campaign action opens combined chapter/stage selection and briefing. Locks, replay, recommended stage and Result navigation are covered; no extra Home buttons.
-- Separate card icon/text rows, safe-height menus, width caps, bottom tabs and real tablet orientation/resize handling.
+Portable directory example: `C:\local-delivery\2026-10-29\Falley-4.4`.
 
-## Local build
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `Falley-4.4-debug.apk` | 7,112,517 | `c1bc2c6a330e51ee68d136a069e11d7802b12b7cbf44aebe8ff57c14901af7c6` |
+| `release/Falley-4.4.0-beta.aab` | 3,214,112 | `2760faf1a668cddce4fd20d6e3c7a7a434547eeab9a20250b5ce7a38abd12f48` |
+| `release/Falley-4.4.0-beta-local.apk` | 2,230,251 | `22b8932b7fb7efaaf0eec5c766cc9a84feb59410c7c7c333f5312fadd7782c5f` |
 
-Portable example: `C:\local-delivery\2026-10-25\Falley-4.3\Falley-4.3-debug.apk`, **1,132,474 bytes**. SHA-256: `a08391a972b64729b7ec474a19a11819c32646a49a3459eb1f8716f63d9db377`.
+Debug package `com.perfgames.falley.motiontest`; release `com.perfgames.falley`. Signing identities are preserved (debug APK v2 signing verified). Release R8/resource shrinking, bundle/signature validation, exact embedded mapping/runtime-ID matching and native ELF/ZIP 16 KiB checks **PASS**. Exact release mapping upload to Firebase **succeeded**; local artifact hashes are unchanged. JSON, keys, APK/AAB/APKS, mappings and generated intermediates are excluded from Git.
 
-Compilation, min24/target36, package/version, zero requested permissions and preserved v2/v3 debug signing identity **PASS**. Source/tests/docs/evidence may be public; APK/AAB/APKS, keys, mappings and generated intermediates remain local. **No release APK/AAB, release R8/lint verification, Play upload, Firebase integration or Vercel deployment was performed.**
+## Implemented and tested
 
-## Completed checks
+- Firebase initializes only after a saved opt-in. Analytics storage consent is separately controlled; ad consent, advertising identifiers and automatic screen reporting stay disabled. Crash changes fully apply next launch, and later opt-in can include cached reports; received server data is not deleted by opt-out.
+- Closed-vocabulary run-start/end events and coarse crash context, labelled debug/release. No custom name/email/user ID, raw motion, touch history, full save or Daily seed/date upload.
+- **36 portable groups**, reward/storage (704/32), media (56), policy (222), release translations (52,482), consent controller (1,403) and event-schema (17,475) checks pass.
+- Accepted native checks on final binaries, font 1.3:
 
-- **33 portable groups PASS**: 336 avatar/Campaign/control cases, 14 avatar/Arcade cases, delayed boss dodges, exact boss collision boundaries, mixed ropes, motion bounds, menus/progression and 20,562 release-language checks.
-- **704 reward-model/32 durable-storage checks**, **56 music lifecycle checks** and published 4.2 Daily compatibility (**48,471,122 bit-exact float checks**) PASS.
-- Final-APK native results at font 1.3, EN/HI/ID:
-
-| Run | Checks | Captures |
+| Native fixture | Checks | Captures |
 | --- | ---: | ---: |
-| API 35-small-v43 | 4,031 | 45 |
-| API 35-tall-v43 | 4,031 | 45 |
-| API 35-small-ux | 12,083 | 92 |
-| API 35-tall-ux | 12,083 | 92 |
-| API 25-small-v43 | 3,940 | 45 |
-| API 36-tablet-v43 | 4,635 | 52 |
+| debug-API35-small | 407 | 4 |
+| debug-API35-tall | 407 | 4 |
+| debug-API25-firebase | 403 | 4 |
+| debug-API25-privacy | 2,417 | 12 |
+| debug-API35-small-ux | 12,428 | 92 |
+| debug-API35-tall-ux | 12,513 | 92 |
+| release-API36-small | 255 | 13 |
+| release-API36-tall | 257 | 13 |
+| release-API25-small | 234 | 13 |
 
-The native API 36 evidence includes actual 2560x1600→1600x2560 tablet display rotation and same-run pause/state preservation. Native fixtures restore preferences/display/font/rotation and remove instrumentation. Owned emulators are stopped after verification. Screenshots, receipts and limits: [4.3 evidence](screenshots/v4.3/README.md).
+The synthetic debug exception was captured and bound to the report queued by the SDK after reopening. This does **not** claim Firebase Console dashboard confirmation. Release smoke deliberately leaves production reporting off. Native preferences/display/font and the owned emulator's temporary network change are restored; harnesses are removed and owned emulators stopped after verification.
 
-## Remaining acceptance
+Release lint reports **0 errors/13 warnings**, with no unsupported Kotlin metadata diagnostics. Reviewed warnings concern legacy/launcher artwork, orientation/tooling/style and existing Gradle advice; no telemetry/security errors were suppressed. Firebase BoM 34.19.0 (Analytics 23.2.0/Crashlytics 20.1.1) matches existing AGP 8.10.1/R8's Kotlin 2.2 support. Newer SDK 24 metadata was rejected during validation rather than shipped with incomplete analysis.
 
-Install over the existing Motion Test app without uninstalling. Test physical Redmi/tablet motion comfort, avatar/rope balance, audio audibility, reachability, performance, TalkBack and fluent Hindi/Indonesian copy. Automated fixtures do not certify every Android version or physical device. See the [4.3 checklist](docs/BETA_4_3.md).
+Screens, accepted log summaries, provenance and limits: [4.4 evidence](screenshots/v4.4/README.md). Source-only CI needs no Firebase configuration or signing keys.
 
-Firebase Crashlytics/Analytics remain **4.4** work after owner configuration. Redeploy matching [privacy website source](policy-site/) before beta distribution; a Git push does not deploy Vercel. Existing store screenshots are historical 4.2.1 assets and are not new submission evidence.
+## Before beta distribution
 
-[Development](docs/DEVELOPMENT.md) · [Previous 4.2.1 status](docs/history/BUILD_STATUS_4_2_1.md) · [Older history](docs/history/BUILD_STATUS_THROUGH_4_2.md)
+Redeploy the [updated policy page](policy-site/README.md), review Play Data safety and selected Firebase/Analytics console settings, and confirm the debug test report/DebugView in the **Motion Test** app registration. Both app registrations share one Firebase project. No Play upload, Vercel deployment, monetization or production test crash was performed.
+
+Test physical Redmi/tablet feel, audio, sustained performance, TalkBack and fluent Hindi/Indonesian copy. Emulator fixtures do not certify every Android version/device. [Development](docs/DEVELOPMENT.md) · [Firebase guide](docs/FIREBASE_4_4.md) · [Historical 4.3 status](docs/history/BUILD_STATUS_4_3.md)

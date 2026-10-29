@@ -6,7 +6,8 @@ param(
     [string]$SigningDirectory,
     [string]$Device='emulator-5580',
     [ValidateSet('small','tall')][string[]]$Viewport=@('small','tall'),
-    [ValidateRange(1,2100000000)][int]$ExpectedVersionCode=14,
+    [ValidateRange(1,2100000000)][int]$ExpectedVersionCode=17,
+    [ValidatePattern("^[0-9]+\.[0-9]+\.[0-9]+$")][string]$ExpectedVersionName='4.4.0',
     [ValidateRange(0.85,1.6)][double]$FontScale=1.3,
     [string]$ArtifactRoot
 )
@@ -58,7 +59,7 @@ try {
  if ((Adb @('shell','pm','path',$app)) -notmatch '^package:') { throw 'Install the bundle-derived production APK separately before this smoke test.' }
  New-Item -ItemType Directory -Force -Path $ArtifactRoot | Out-Null
  function Instrument([string]$Mode,[string]$Shot) {
-    $result=Adb @('shell','am','instrument','-r','-w','-e','mode',$Mode,'-e','shot',$Shot,'-e','versionCode',([string]$ExpectedVersionCode),$component)
+    $result=Adb @('shell','am','instrument','-r','-w','-e','mode',$Mode,'-e','shot',$Shot,'-e','versionCode',([string]$ExpectedVersionCode),'-e','versionName',$ExpectedVersionName,$component)
     $result | Write-Output
     $result | Set-Content -LiteralPath (Join-Path $ArtifactRoot "$Shot-$Mode.txt") -Encoding utf8
     $text=$result -join "`n"

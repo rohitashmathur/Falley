@@ -1,0 +1,185 @@
+{
+  "version": "4.4.0",
+  "versionCode": 17,
+  "sdk": {
+    "bom": "34.19.0",
+    "analytics": "23.2.0",
+    "crashlytics": "20.1.1",
+    "googleServicesPlugin": "4.5.0",
+    "crashlyticsPlugin": "3.0.8"
+  },
+  "artifacts": [
+    {
+      "kind": "debug",
+      "file": "Falley-4.4-debug.apk",
+      "bytes": 7112517,
+      "sha256": "c1bc2c6a330e51ee68d136a069e11d7802b12b7cbf44aebe8ff57c14901af7c6"
+    },
+    {
+      "kind": "bundle",
+      "file": "release/Falley-4.4.0-beta.aab",
+      "bytes": 3214112,
+      "sha256": "2760faf1a668cddce4fd20d6e3c7a7a434547eeab9a20250b5ce7a38abd12f48"
+    },
+    {
+      "kind": "release-local",
+      "file": "release/Falley-4.4.0-beta-local.apk",
+      "bytes": 2230251,
+      "sha256": "22b8932b7fb7efaaf0eec5c766cc9a84feb59410c7c7c333f5312fadd7782c5f"
+    }
+  ],
+  "native": [
+    {
+      "label": "debug-API35-small",
+      "checks": 407,
+      "captures": 4,
+      "log": "debug-API35-small.txt",
+      "rawLocalLogSha256": "58f9e12c0f24fe5a8dc07308aa2bbf928634261cb5d49764f7519c15c8da6dfa"
+    },
+    {
+      "label": "debug-API35-tall",
+      "checks": 407,
+      "captures": 4,
+      "log": "debug-API35-tall.txt",
+      "rawLocalLogSha256": "4de5b09b417fe0bf9a4397832ca7f35af9cf91f17b477ea2a8e25cb66638ace5"
+    },
+    {
+      "label": "debug-API25-firebase",
+      "checks": 403,
+      "captures": 4,
+      "log": "debug-API25-firebase.txt",
+      "rawLocalLogSha256": "f1206f82c3f61996ea278e84f3871c4962b36623710ad016c089dc027a12df98"
+    },
+    {
+      "label": "debug-API25-privacy",
+      "checks": 2417,
+      "captures": 12,
+      "log": "debug-API25-privacy.txt",
+      "rawLocalLogSha256": "1c25fe83b010e54ffae1db69f0319cd38c8f285b7ba6fb294b5c8effa1435a5a"
+    },
+    {
+      "label": "debug-API35-small-ux",
+      "checks": 12428,
+      "captures": 92,
+      "log": "debug-API35-small-ux.txt",
+      "rawLocalLogSha256": "2c80fde65c6e2890141129260f13804686f8c1ebe0309085c6d06c7abdfdd05b"
+    },
+    {
+      "label": "debug-API35-tall-ux",
+      "checks": 12513,
+      "captures": 92,
+      "log": "debug-API35-tall-ux.txt",
+      "rawLocalLogSha256": "ce52eb889fd4949795850e5ffb7d28d5ae9c1534c80757e1e54fed7d56e29210"
+    },
+    {
+      "label": "release-API36-small",
+      "checks": 255,
+      "captures": 13,
+      "log": "release-API36-small.txt",
+      "rawLocalLogSha256": "743b4f44d7ef2365d0783580d89f1c57b60f888baef07478b7092949823b17aa"
+    },
+    {
+      "label": "release-API36-tall",
+      "checks": 257,
+      "captures": 13,
+      "log": "release-API36-tall.txt",
+      "rawLocalLogSha256": "e3b147378e3b398f485f090c032ff05a9e823d448d14839454118c29a52bd903"
+    },
+    {
+      "label": "release-API25-small",
+      "checks": 234,
+      "captures": 13,
+      "log": "release-API25-small.txt",
+      "rawLocalLogSha256": "b499ba65a205463ad6598ebe3a5f17b15234419e57893259ff0b6fe7e5c86631"
+    }
+  ],
+  "images": [
+    {
+      "file": "consent-en.png",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "fdf3199501e7119508945de09e208694098ae82798738b3c6ce69ba62f2d523d",
+      "sourceWithinLocalVerification": "accepted-api35-firebase/tall/firebase-consent-0.png",
+      "provenance": "Unedited native screenshot; controlled emulator fixture, not natural physical-device play."
+    },
+    {
+      "file": "consent-hi.png",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "b6ae0092068ebe320016aa4569d27427508fc7d3024bd3b38f5403fc2fed47bc",
+      "sourceWithinLocalVerification": "accepted-api35-firebase/tall/firebase-consent-1.png",
+      "provenance": "Unedited native screenshot; controlled emulator fixture, not natural physical-device play."
+    },
+    {
+      "file": "consent-id.png",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "e180de92e395ad5921aed3640445a9ef4d67795068afbb7aa095cd9cd4395259",
+      "sourceWithinLocalVerification": "accepted-api35-firebase/tall/firebase-consent-2.png",
+      "provenance": "Unedited native screenshot; controlled emulator fixture, not natural physical-device play."
+    },
+    {
+      "file": "consent-small.png",
+      "pixels": [
+        480,
+        800
+      ],
+      "sha256": "64b4a0fdb2e5bc61264e8c9667185597675e799e9717a5180d8effab98b34912",
+      "sourceWithinLocalVerification": "accepted-api35-firebase/small/firebase-consent-0.png",
+      "provenance": "Unedited native screenshot; controlled emulator fixture, not natural physical-device play."
+    },
+    {
+      "file": "release-settings.png",
+      "pixels": [
+        720,
+        1600
+      ],
+      "sha256": "0e04378a3dcb0abc301fd8270dd36938ae9068cc2064fffd69c8f7c1cf747d7b",
+      "sourceWithinLocalVerification": "release-api36/tall/settings.png",
+      "provenance": "Unedited native screenshot; controlled emulator fixture, not natural physical-device play."
+    },
+    {
+      "file": "release-consent-off.png",
+      "pixels": [
+        480,
+        800
+      ],
+      "sha256": "68835d0a6e919556d5e9113b614eaeae1b4afff9adac835003b871420ef4657a",
+      "sourceWithinLocalVerification": "release-api36/small/diagnostics-off.png",
+      "provenance": "Unedited native screenshot; controlled emulator fixture, not natural physical-device play."
+    }
+  ],
+  "release": {
+    "lintErrors": 0,
+    "lintWarnings": 13,
+    "r8": true,
+    "embeddedMappingMatched": true,
+    "runtimeMappingIdMatched": true,
+    "nativeElfAndZip16KiBChecks": true,
+    "firebaseExactMappingUploadSucceeded": true
+  },
+  "syntheticDebugCrash": {
+    "package": "com.perfgames.falley.motiontest",
+    "debugOnly": true,
+    "expectedProcessCrash": true,
+    "syntheticExceptionObserved": true,
+    "sdkInitialized": true,
+    "reportEnqueuedBySdk": true,
+    "syntheticSessionBound": true,
+    "firebaseConsoleConfirmed": false,
+    "note": "SDK transport acceptance is not Firebase Console dashboard confirmation. Raw logs remain local and must be reviewed/redacted before sharing."
+  },
+  "limits": [
+    "SDK enqueue is not Firebase Console dashboard confirmation.",
+    "Production reporting remains OFF in smoke fixtures.",
+    "Physical sensor/audio/performance/TalkBack and fluent-language acceptance remain owner checks.",
+    "Policy source is updated; no Vercel deployment or Play submission was performed."
+  ],
+  "logTransform": "Public logs replace personal workspace paths and normalize line endings/trailing whitespace. SDK logcat/config/build receipts remain local."
+}

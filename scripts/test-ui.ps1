@@ -15,6 +15,7 @@ param(
     [switch]$ExpansionOnly,
     [switch]$UxOnly,
     [switch]$V43Only,
+    [switch]$FirebaseOnly,
     [switch]$ReleaseSigning,
     [string]$SdkRoot=$env:ANDROID_HOME,
     [string]$JdkRoot=$env:JAVA_HOME,
@@ -27,10 +28,10 @@ param(
 )
 $ErrorActionPreference='Stop'
 if ($BuildOnly -and $RestoreOnly) { throw 'Choose BuildOnly or RestoreOnly.' }
-if (@($EffectsOnly,$V31Only,$ReleaseOnly,$PrivacyOnly,$StoreOnly,$MotionOnly,$ProgressionOnly,$FeatureOnly,$SplashOnly,$RevisionOnly,$RevisionSmoke,$ExpansionOnly,$UxOnly,$V43Only | Where-Object { $_ }).Count -gt 1) { throw 'Choose one focused or store mode.' }
+if (@($EffectsOnly,$V31Only,$ReleaseOnly,$PrivacyOnly,$StoreOnly,$MotionOnly,$ProgressionOnly,$FeatureOnly,$SplashOnly,$RevisionOnly,$RevisionSmoke,$ExpansionOnly,$UxOnly,$V43Only,$FirebaseOnly | Where-Object { $_ }).Count -gt 1) { throw 'Choose one focused or store mode.' }
 # Current default is the 4.3 debug suite. Explicit older modes retain version-specific fixtures.
-if (@($EffectsOnly,$V31Only,$ReleaseOnly,$PrivacyOnly,$StoreOnly,$MotionOnly,$ProgressionOnly,$FeatureOnly,$SplashOnly,$RevisionOnly,$RevisionSmoke,$ExpansionOnly,$UxOnly,$V43Only | Where-Object { $_ }).Count -eq 0 -and !$ReleaseSigning) { $V43Only=$true }
-if (($MotionOnly -or $ProgressionOnly -or $FeatureOnly -or $SplashOnly -or $RevisionOnly -or $ExpansionOnly -or $UxOnly -or $V43Only) -and $ReleaseSigning) { throw 'This focused check is debug-only; use RevisionSmoke for release verification.' }
+if (@($EffectsOnly,$V31Only,$ReleaseOnly,$PrivacyOnly,$StoreOnly,$MotionOnly,$ProgressionOnly,$FeatureOnly,$SplashOnly,$RevisionOnly,$RevisionSmoke,$ExpansionOnly,$UxOnly,$V43Only,$FirebaseOnly | Where-Object { $_ }).Count -eq 0 -and !$ReleaseSigning) { $V43Only=$true }
+if (($MotionOnly -or $ProgressionOnly -or $FeatureOnly -or $SplashOnly -or $RevisionOnly -or $ExpansionOnly -or $UxOnly -or $V43Only -or $FirebaseOnly) -and $ReleaseSigning) { throw 'This focused check is debug-only; use RevisionSmoke for release verification.' }
 if ($SplashOnly -and !$PSBoundParameters.ContainsKey('Viewport')) { $Viewport=@('small') }
 if ($ReleaseSigning -and $KeyStore) { throw 'ReleaseSigning loads the existing upload identity; do not also pass KeyStore.' }
 if ($StoreOnly) { $Viewport=@('store') }
@@ -39,8 +40,8 @@ $root=Split-Path -Parent $PSScriptRoot
 $frontlineRoot=Split-Path -Parent (Split-Path -Parent $root)
 if (!$SdkRoot) { $SdkRoot=Join-Path $frontlineRoot '.toolchain\android-sdk' }
 if (!$JdkRoot) { $JdkRoot=(Get-ChildItem -LiteralPath (Join-Path $frontlineRoot '.toolchain') -Directory -Filter 'jdk-*' | Select-Object -First 1).FullName }
-if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root $(if ($V43Only) { 'build\device\v43' } elseif ($UxOnly) { 'build\device\ux' } elseif ($ExpansionOnly) { 'build\device\expansion' } elseif ($PrivacyOnly) { 'build\device\privacy-contact' } elseif ($RevisionOnly -or $RevisionSmoke) { 'build\device\revision' } elseif ($SplashOnly) { 'build\device\splash' } elseif ($FeatureOnly) { 'build\device\features' } elseif ($ProgressionOnly) { 'build\device\progression' } elseif ($MotionOnly) { 'build\device\motion-fix' } elseif ($StoreOnly) { 'build\store-captures' } elseif ($ReleaseOnly) { 'build\device\v32-focused' } elseif ($V31Only) { 'build\device\v32-v31-focused' } elseif ($EffectsOnly) { 'build\device\v32-effects' } else { 'build\device\v32' }) }
-$nativeFolder=if ($V43Only) { 'falley-native-v43' } elseif ($UxOnly) { 'falley-native-ux' } elseif ($ExpansionOnly) { 'falley-native-expansion' } elseif ($PrivacyOnly) { 'falley-native-privacy' } elseif ($RevisionOnly -or $RevisionSmoke) { 'falley-native-revision' } elseif ($SplashOnly) { 'falley-native-splash' } elseif ($FeatureOnly) { 'falley-native-features' } elseif ($ProgressionOnly) { 'falley-native-progression' } elseif ($MotionOnly) { 'falley-native-motion' } else { 'falley-native-v32' }
+if (!$ArtifactRoot) { $ArtifactRoot=Join-Path $root $(if ($FirebaseOnly) { 'build\device\firebase44' } elseif ($V43Only) { 'build\device\v43' } elseif ($UxOnly) { 'build\device\ux' } elseif ($ExpansionOnly) { 'build\device\expansion' } elseif ($PrivacyOnly) { 'build\device\privacy-contact' } elseif ($RevisionOnly -or $RevisionSmoke) { 'build\device\revision' } elseif ($SplashOnly) { 'build\device\splash' } elseif ($FeatureOnly) { 'build\device\features' } elseif ($ProgressionOnly) { 'build\device\progression' } elseif ($MotionOnly) { 'build\device\motion-fix' } elseif ($StoreOnly) { 'build\store-captures' } elseif ($ReleaseOnly) { 'build\device\v32-focused' } elseif ($V31Only) { 'build\device\v32-v31-focused' } elseif ($EffectsOnly) { 'build\device\v32-effects' } else { 'build\device\v32' }) }
+$nativeFolder=if ($FirebaseOnly) { 'falley-native-firebase' } elseif ($V43Only) { 'falley-native-v43' } elseif ($UxOnly) { 'falley-native-ux' } elseif ($ExpansionOnly) { 'falley-native-expansion' } elseif ($PrivacyOnly) { 'falley-native-privacy' } elseif ($RevisionOnly -or $RevisionSmoke) { 'falley-native-revision' } elseif ($SplashOnly) { 'falley-native-splash' } elseif ($FeatureOnly) { 'falley-native-features' } elseif ($ProgressionOnly) { 'falley-native-progression' } elseif ($MotionOnly) { 'falley-native-motion' } else { 'falley-native-v32' }
 $output=Join-Path $root ('build\android-ui-falley\'+$Device)
 $apk=Join-Path $output $(if ($ReleaseSigning) { 'falley-ui-tests-release.apk' } else { 'falley-ui-tests.apk' })
 function Checked([string]$Program,[string[]]$Arguments) {
@@ -126,7 +127,7 @@ try {
         }
         if ($fontScaleChanged) { Adb @('shell','settings','put','system','font_scale',$FontScale.ToString([Globalization.CultureInfo]::InvariantCulture)) | Out-Null }
         Start-Sleep -Milliseconds 650
-        try { Instrument $(if ($V43Only) { 'v43' } elseif ($UxOnly) { 'ux' } elseif ($ExpansionOnly) { 'expansion' } elseif ($PrivacyOnly) { 'privacy' } elseif ($RevisionSmoke) { 'revision_smoke' } elseif ($RevisionOnly) { 'revision' } elseif ($SplashOnly) { 'splash' } elseif ($FeatureOnly) { 'features' } elseif ($ProgressionOnly) { 'progression' } elseif ($MotionOnly) { 'motion' } elseif ($StoreOnly) { 'store' } elseif ($ReleaseOnly) { 'release' } elseif ($V31Only) { 'v31' } elseif ($EffectsOnly) { 'effects' } else { 'suite' }) $name }
+        try { Instrument $(if ($FirebaseOnly) { 'firebase' } elseif ($V43Only) { 'v43' } elseif ($UxOnly) { 'ux' } elseif ($ExpansionOnly) { 'expansion' } elseif ($PrivacyOnly) { 'privacy' } elseif ($RevisionSmoke) { 'revision_smoke' } elseif ($RevisionOnly) { 'revision' } elseif ($SplashOnly) { 'splash' } elseif ($FeatureOnly) { 'features' } elseif ($ProgressionOnly) { 'progression' } elseif ($MotionOnly) { 'motion' } elseif ($StoreOnly) { 'store' } elseif ($ReleaseOnly) { 'release' } elseif ($V31Only) { 'v31' } elseif ($EffectsOnly) { 'effects' } else { 'suite' }) $name }
         finally {
             if ($StoreOnly) {
                 foreach ($file in @('campaign.png','landing.png','lightning.png','saw.png','arcade.png','settings.png','sources.json','checks.txt')) {
@@ -150,10 +151,11 @@ finally {
     if ($restored) { try { Adb @('uninstall','com.perfgames.falley.tests') | Out-Null } catch { if (!$failure) { $failure=$_ } } }
 }
 if ($failure) { throw $failure }
-if ($V43Only) { Write-Host "PASS: focused Falley 4.3 responsive Campaign/avatars/boss and EN/HI/ID measured native layouts. Controlled emulator fixtures; physical motion, audio and performance remain owner checks. Artifacts: $ArtifactRoot" }
+if ($FirebaseOnly) { Write-Host "PASS: Firebase opt-in, actual SDK initialization, independent collection, private event schema and localized settings. Console delivery remains owner confirmation. Artifacts: $ArtifactRoot" }
+elseif ($V43Only) { Write-Host "PASS: focused Falley 4.3 responsive Campaign/avatars/boss and EN/HI/ID measured native layouts. Controlled emulator fixtures; physical motion, audio and performance remain owner checks. Artifacts: $ArtifactRoot" }
 elseif ($UxOnly) { Write-Host "PASS: focused Falley 4.3 debug responsive phone/tablet layout, inline Campaign selection, avatar traits, boss emission cues, first-run language/country hints, durable avatar choices, mixed individual ropes, Arcade cards, music lifecycle and EN/HI/ID layout. Controlled fixtures; phone feel and audio audibility remain owner checks. Artifacts: $ArtifactRoot" }
 elseif ($ExpansionOnly) { Write-Host "PASS: focused Falley debug Daily Drop/share handoff, mastery/progress migration, wardrobe, six chapter finales and EN/HI/ID expansion UI. Controlled fixtures, not a natural phone playtest. Artifacts: $ArtifactRoot" }
-elseif ($PrivacyOnly) { Write-Host "PASS: focused Falley EN/HI/ID policy contact, URL, wrapping/accessibility, intercepted browser/mail handoff and no app permissions. Artifacts: $ArtifactRoot" }
+elseif ($PrivacyOnly) { Write-Host "PASS: focused Falley EN/HI/ID policy contact, URL, wrapping/accessibility, blocked browser/mail handoff and reviewed SDK permissions. Artifacts: $ArtifactRoot" }
 elseif ($RevisionOnly -or $RevisionSmoke) { Write-Host "PASS: focused Falley campaign locks, burst recovery/budget, drift and visual Help revision checks. Artifacts: $ArtifactRoot" }
 elseif ($SplashOnly) { Write-Host "PASS: focused Falley debug splash transition/resource checks; starting-window artwork requires visual review. Artifacts: $ArtifactRoot" }
 elseif ($FeatureOnly) { Write-Host "PASS: focused Falley debug localization, paging, jump budget/ceiling and splash checks. Artifacts: $ArtifactRoot" }

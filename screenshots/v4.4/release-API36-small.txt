@@ -1,0 +1,3 @@
+INSTRUMENTATION_RESULT: stream=PASS: Falley release smoke; checks=255; captures=13; viewport=small; mode=smoke; reflection-free production launch/onboarding/navigation/resources and default-off diagnostics, original preferences restored; no physical-phone audio or sensor comfort claim
+
+INSTRUMENTATION_CODE: -1
